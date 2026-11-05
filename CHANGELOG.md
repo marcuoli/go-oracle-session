@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.1
+
+- Expose explicit descriptor and sqlnet security settings to driver adapters, preserving scope, quoted text and duplicates so unsupported certificate constraints cannot be silently ignored.
+
+
 ## v0.2.0
 
 - Add functional oraclenet contracts for bounded alias lookup, typed local failures, descriptor/sqlnet wallet precedence and native/environment wallet paths.
