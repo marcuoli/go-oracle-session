@@ -1,0 +1,10 @@
+github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d h1:licZJFw2RwpHMqeKTCYkitsPqHNxTmd4SNR5r94FGM8=
+github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d/go.mod h1:asat636LX7Bqt5lYEZ27JNDcqxfjdBQuJ/MM4CN/Lzo=
+github.com/marcuoli/go-hostdiscovery v1.6.0 h1:6rBMDtOE/jD1973tGkiIeC2OTETm76OIwC64liH8x5o=
+github.com/marcuoli/go-hostdiscovery v1.6.0/go.mod h1:nI7Gm/+eaT1qsTeom0U6Dr+sjtCsiwlAZCTJFOG3ocE=
+github.com/marcuoli/go-sqltemplate v0.1.1 h1:MtiN+DO1Y8DHzQTbSNwM3PssJd9ilc6MpZrxeASnS/I=
+github.com/marcuoli/go-sqltemplate v0.1.1/go.mod h1:h6PwhHMovPqYCWlSKQl4enk4/fUKZ0fsMicbPbP5zEo=
+github.com/marcuoli/go-textoutput v0.1.1 h1:/13gmrxoeHEUwcisCrSxlpWC0/6uTrSI9YGFiwNlVSw=
+github.com/marcuoli/go-textoutput v0.1.1/go.mod h1:I//P9iV2/ANWhqUz4VoTwrlMSl19Nv2MWF31h0pAvd4=
+golang.org/x/text v0.43.0 h1:1QivrlhwAsnMOcqgOdl9my7s9OyZl8O5/UGUTJVXoWc=
+golang.org/x/text v0.43.0/go.mod h1:hbSIYA/amXcRXTFSZqh8tWHEoqRvvbKPJ2uz/KU+a+s=

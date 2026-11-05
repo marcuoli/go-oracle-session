@@ -1,0 +1,68 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Prepare optional source CA bundle
+        id: source_ca
+        shell: bash
+        env:
+          SOURCE_CA_PEM: ${{ secrets.SOURCE_CA_PEM }}
+        run: |
+          set -euo pipefail
+          set +x
+          if [[ -z "${SOURCE_CA_PEM:-}" ]]; then
+            exit 0
+          fi
+          umask 077
+          ca_file="$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/source-ca.XXXXXXXX.pem")"
+          printf 'path=%s\n' "$ca_file" >> "$GITHUB_OUTPUT"
+          chmod 600 "$ca_file"
+          system_ca=
+          for candidate in "${SSL_CERT_FILE:-}" /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt /etc/ssl/cert.pem; do
+            if [[ -n "$candidate" && -r "$candidate" && -s "$candidate" ]]; then
+              system_ca="$candidate"
+              break
+            fi
+          done
+          if [[ -z "$system_ca" ]]; then
+            printf '%s\n' 'No readable system CA bundle was found.' >&2
+            exit 1
+          fi
+          cat -- "$system_ca" > "$ca_file"
+          printf '\n%s\n' "$SOURCE_CA_PEM" >> "$ca_file"
+          unset SOURCE_CA_PEM
+          printf 'GIT_SSL_CAINFO=%s\nNODE_EXTRA_CA_CERTS=%s\n' "$ca_file" "$ca_file" >> "$GITHUB_ENV"
+
+      - uses: https://github.com/actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: https://github.com/actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version: '1.27.3'
+          cache: false
+      - name: Test, vet, verify modules, race-test, and build
+        shell: bash
+        run: bash scripts/validate.sh --race --scan
+
+      - name: Remove temporary source CA bundle
+        if: always()
+        shell: bash
+        env:
+          SOURCE_CA_FILE: ${{ steps.source_ca.outputs.path }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${SOURCE_CA_FILE:-}" ]]; then
+            rm -f -- "$SOURCE_CA_FILE"
+            printf 'GIT_SSL_CAINFO=\nNODE_EXTRA_CA_CERTS=\n' >> "$GITHUB_ENV"
+          fi
