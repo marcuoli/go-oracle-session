@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add optional connected-PDB configured-memory SQL selection and exact typed provenance decoding, with explicit inheritance and guarded effective-value modes.
+
 ## v0.2.1
 
 - Expose explicit descriptor and sqlnet security settings to driver adapters, preserving scope, quoted text and duplicates so unsupported certificate constraints cannot be silently ignored.

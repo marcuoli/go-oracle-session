@@ -14,3 +14,9 @@ Go 1.27.3 is required. Run `scripts/validate.ps1 -Race -Scan` or `scripts/valida
 
 License: UPL 1.0.
 The `oraclenet` package resolves bounded `tnsnames.ora` aliases and wallet paths without a driver. It preserves connection-compatible alias precedence and descriptor text, handles `MY_WALLET_DIRECTORY`, `sqlnet.ora` file wallets and native environment expansion, and never reads wallet contents. Callers decide when a selected TCPS endpoint needs client credentials; ordinary TCP endpoints must not inherit a wallet. `ResolveDescriptorWallet` considers explicit descriptor settings only, without automatic file discovery. Application diagnostics and TLS negotiation remain caller-owned.
+
+## Optional configured-memory facts
+
+The memory package selects fixed connected-PDB SGA/PGA queries and validates exact GiB text with source/current container IDs, instance identity, parameter name and availability. Inheritance must be explicitly admitted. Effective-value mode is only for Oracle 18+ after a primary NULL/no-row result; invalid evidence and access failures are not retry triggers. The package performs no I/O or RAC aggregation. Session/transport APIs remain catalog-free. See examples/memory for a runnable query-selection example. Source tests are prepared; native compatibility and reader-specific use require separate qualification.
+
+This unqualified prototype is preserved for contract transfer to the dedicated go-oracle-info fact library. It is not an accepted production package and must not be released from this repository. Session and transport ownership remain unchanged. Resume only after the owning contract and storage constraints are resolved.
