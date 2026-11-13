@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.3.0
 
 - Add fixed-capacity admitted-session pools and owned native streaming cursors,
   with query/queue deadlines, explicit timeout opt-out, independent cursor cleanup,
