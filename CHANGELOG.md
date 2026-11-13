@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.0
+
+- Add fixed-capacity admitted-session pools and owned native streaming cursors,
+  with query/queue deadlines, explicit timeout opt-out, independent cursor cleanup,
+  complete-versus-partial status and no automatic replay or recovery.
+- Preserve existing buffered Session APIs, exact values and default budgets;
+  cover lease ownership, cancellation, cleanup failures, capacity and shutdown.
+
 ## v0.2.1
 
 - Expose explicit descriptor and sqlnet security settings to driver adapters, preserving scope, quoted text and duplicates so unsupported certificate constraints cannot be silently ignored.

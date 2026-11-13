@@ -11,8 +11,29 @@ import (
 // This forwarding boundary retains that independent cleanup cause without
 // changing driver code, replaying SQL, or replacing cursor transport.
 type cursorErrors struct {
-	mu     sync.Mutex
-	errors []error
+	mu        sync.Mutex
+	errors    []error
+	closeHook func(func() error) error
+}
+
+func (c *cursorErrors) setCloseHook(hook func(func() error) error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.closeHook = hook
+}
+
+func (c *cursorErrors) closeRows(closeRows func() error) error {
+	c.mu.Lock()
+	hook := c.closeHook
+	c.mu.Unlock()
+	var err error
+	if hook == nil {
+		err = closeRows()
+	} else {
+		err = hook(closeRows)
+	}
+	c.add(err)
+	return err
 }
 
 func (c *cursorErrors) add(err error) {
@@ -109,4 +130,4 @@ type trackedRows struct {
 	errors *cursorErrors
 }
 
-func (r *trackedRows) Close() error { err := r.Rows.Close(); r.errors.add(err); return err }
+func (r *trackedRows) Close() error { return r.errors.closeRows(r.Rows.Close) }

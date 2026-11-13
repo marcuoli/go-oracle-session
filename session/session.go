@@ -97,6 +97,9 @@ type Session struct {
 	connection       *sql.Conn
 	options          Options
 	closed, unusable bool
+	streamMu         sync.Mutex
+	activeStream     *Stream
+	streamFinalizers sync.WaitGroup
 }
 
 // Open authenticates one connector under the explicit connection budget.
@@ -240,11 +243,16 @@ func (session *Session) Query(ctx context.Context, statement Statement) (result 
 // Close uses a bounded cleanup lifetime even after collection cancellation.
 // Dispose joins transport closure; no new query or recovery is attempted.
 func (session *Session) Close(ctx context.Context) error {
+	return session.close(ctx, true)
+}
+
+func (session *Session) close(ctx context.Context, joinFinalizers bool) error {
 	if session == nil {
 		return nil
 	}
 	session.closeOnce.Do(func() {
 		session.closing.Store(true)
+		session.cancelActiveStream()
 		// Arm disposal before waiting for admission: active I/O cannot extend the
 		// cleanup lifetime indefinitely when the qualified hook unblocks it.
 		session.closeErr = cleanup(ctx, session.options, func() error {
@@ -259,6 +267,12 @@ func (session *Session) Close(ctx context.Context) error {
 			return errors.Join(connectionErr, session.db.Close())
 		})
 	})
+	// The gate joins physical I/O, while a stream may still be returning its
+	// lease and publishing terminal state. No new finalizer can register after
+	// closing is set and this cleanup has acquired/released that gate.
+	if joinFinalizers {
+		session.streamFinalizers.Wait()
+	}
 	return safeError("close", reference.Reference{}, session.closeErr)
 }
 
