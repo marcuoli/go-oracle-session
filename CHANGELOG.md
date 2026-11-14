@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Require the pure-Go go-ora connection path without Oracle Client installation or shared libraries; qualify legacy and future compatibility on that path.
 - Define the Oracle 9.2-through-26ai compatibility target, future-release policy and native qualification requirements; preserve existing connector workarounds and single-owner cancellation semantics before consumer migration.
 - Add an isolated opt-in native qualification module with explicit fixture admission, separate official driver targets and regression cases for NULL framing, character output capacity and session lifecycle; retain unqualified combinations and upstream gaps explicitly.
 

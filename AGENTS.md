@@ -13,6 +13,8 @@ This repository is a reusable Go library. Organize implementation and tests in c
 
 ## Oracle compatibility
 
+- Preserve the pure-Go go-ora connection path without Oracle Client installation or shared-library requirements. Keep concrete driver dependencies at caller/test boundaries; an OCI route does not satisfy missing go-ora compatibility.
+
 - Preserve the Oracle Database 9.2 baseline through 26ai and forward compatibility with later releases. Follow docs/oracle-compatibility.md.
 - Gate optional newer features without raising the baseline or rejecting unknown newer releases solely by version. Keep numeric server versions, marketing names and observed capabilities distinct.
 - Preserve contextual driver, cancellation, disposal, exact-value and no-replay contracts. Record exact native driver/client/server/patch/platform evidence; synthetic tests or another application's acceptance do not qualify this module.

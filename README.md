@@ -25,6 +25,10 @@ The unchanged shipping module and current build require Go 1.27.4. Run `scripts/
 
 ## Oracle compatibility
 
+The required connection path uses go-ora's pure Go stack and must remain free of
+Oracle Client installation and shared-library requirements. Concrete driver
+dependencies stay at the caller and integration-test boundaries.
+
 The compatibility target is **Oracle Database 9.2 through Oracle AI Database
 26ai**, with forward compatibility for subsequent releases. Preserve legacy
 baseline operations while gating optional newer features by capability; do not

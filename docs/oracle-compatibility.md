@@ -8,17 +8,23 @@ with subsequent database releases. New optional features must not raise the
 baseline for existing operations. Do not reject an otherwise usable newer
 server solely because its version is absent from a known-release list.
 
+The required connectivity path uses go-ora's pure Go stack without an Oracle
+Client installation or shared libraries. Keep concrete driver dependencies at
+caller and integration-test boundaries so the reusable module remains
+driver-neutral. Resolve and qualify go-ora compatibility gaps on that path;
+switching to an OCI-based connector does not satisfy this requirement.
+
 This is the library's compatibility requirement. A verified combination also
-needs evidence for the exact library commit, upstream driver, Oracle Client
-when used, server patch level, operating system and architecture. Neither a
-successful connection nor synthetic module CI qualifies every operation.
+needs evidence for the exact library commit, upstream driver, server patch level,
+operating system and architecture. Record Oracle Client as `not used` for this
+path. Neither a successful connection nor synthetic module CI qualifies every
+operation.
 Native range qualification is tracked in the source repository's issue #16; it remains incomplete.
 
 ## Compatibility boundaries
 
 The library owns connection/session/cursor/transaction resource contracts. The
-caller selects the configured connector, compatible client libraries and
-reviewed SQL. Shared upstream qualification uses unmodified official driver
+caller selects the configured go-ora connector and reviewed SQL. Shared upstream qualification uses unmodified official driver
 releases. Existing consumer adapters and separately approved retained dependency
 exceptions must remain in place until equivalent behavior is demonstrated; this
 library does not replace or retire them. A consumer-reference result using such
@@ -27,7 +33,8 @@ Retained exceptions keep their owning project's retirement and approval criteria
 including explicit user confirmation where required. Passing comparative tests
 or publishing this library does not itself authorize their removal. Authentication, protocol negotiation, supported
 Oracle Net settings and database SQL features depend on that combination.
-One driver/client build is not assumed to cover the entire server range.
+One driver release and configuration are not assumed to cover the entire server
+range.
 
 Retain contextual execution, joined cancellation and physical-disposal
 requirements on legacy and newer servers. Missing required driver interfaces
@@ -80,7 +87,7 @@ a result on one patch applies to every patch or family. Cover applicable
 single-instance/RAC and non-CDB/CDB/PDB deployments without requiring modern
 container metadata on legacy servers. Identify inapplicable cases explicitly.
 
-For each selected connector/client/server/platform combination, record:
+For each selected go-ora connector/server/platform combination, record:
 
 - Admission and session identity; required privileges; authentication and
   TCP/TCPS configuration actually tested, with credentials kept private.
@@ -101,7 +108,7 @@ Use isolated approved fixtures for tests that change data or transactions;
 read-only qualification must not silently expand into writes or privilege
 changes. Preserve real failure evidence and upstream-only dependency rules.
 Add reusable synthetic regressions for confirmed defects, and repeat native
-qualification when the driver/client, relevant behavior or server release changes.
+qualification when the driver, relevant behavior or server release changes.
 Future releases enter this process without an artificial numeric upper bound;
 their combinations remain unverified until the required evidence exists.
 
@@ -109,15 +116,9 @@ their combinations remain unverified until the required evidence exists.
 
 Oracle-published references checked on 2026-11-13:
 
-- [Instant Client FAQ](https://www.oracle.com/database/technologies/faq-instant-client.html),
-  interoperability section: client/server combinations depend on Oracle's
-  interoperability matrix, and individual tools may have narrower requirements.
-- [About Oracle Instant Client, 26ai](https://docs.oracle.com/en/database/oracle/oracle-database/26/ntcli/oracle-instant-client.html):
-  Oracle refers certified configurations to its interoperability matrix.
-  These public pages reference My Oracle Support Doc ID 207303.1; consult the
-  current matrix for the exact pair rather than inferring certification here.
 - [About Oracle Database Release Numbers, 26ai](https://docs.oracle.com/en/database/oracle/oracle-database/26/upgrd/oracle-database-release-numbers.html):
   numeric release components and the 26ai `23.26` example.
 
-The target range does not change Oracle's product lifecycle, client/server
-certification or the consuming application's feature qualification obligations.
+The target range does not change Oracle's product lifecycle or the consuming
+application's feature qualification obligations. Oracle Client interoperability
+certification does not establish pure-Go driver compatibility.
