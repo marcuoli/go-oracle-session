@@ -4,7 +4,7 @@ This opt-in test module exercises released go-oracle-session with official
 upstream drivers. It keeps concrete driver dependencies out of the main library.
 Use Go 1.27.4, GOWORK=off and project-owned external scratch/cache/output paths.
 Do not add local replacements to this module or treat a skipped native test as
-qualification. The source repository's issue #16 tracks the incomplete matrix.
+qualification. The source repository tracks exact native evidence and outstanding qualification separately.
 
 ## Build and offline checks
 
@@ -100,11 +100,10 @@ retirement/approval gates intact. Recheck official upstream releases at the next
 dependency review; no shared fork, cache patch or protocol rewrite is authorized.
 ## Native cancellation profiles
 
-Add the `settled` build tag and use a shared-module version exporting
-`session.Cancellation` to exercise native continuation. For an unreleased
-first-party candidate, use a separate external modfile; do not change application
-manifests or introduce a third-party replacement. Published consumer checks use
-GOWORK=off and the released shared module without a first-party replacement.
+The default integration targets include native continuation against released
+go-oracle-session v0.7.0. Use GOWORK=off without a first-party replacement.
+For an unreleased first-party candidate, use a separate external modfile; do not
+change application manifests or introduce a third-party replacement.
 
 Set `SettledCancellation=true` and an explicit `CancellationOutcome` in private
 stdin. `reuse` requires same-session continuation, `retire` requires retirement

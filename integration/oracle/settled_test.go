@@ -1,4 +1,4 @@
-//go:build integration && settled
+//go:build integration
 
 package oracle
 

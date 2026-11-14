@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Validate both native driver targets against released v0.7.0 without a first-party replacement; include cancellation-continuation checks in their normal integration builds and scans.
+
 ## v0.7.0
 
 - Add opt-in per-session native cancellation hooks with one joined break/grace/cleanup owner, affirmative same-session reuse proof, preserved parent/stage causes and conservative fallback; retain default retirement and never replay interrupted SQL.
