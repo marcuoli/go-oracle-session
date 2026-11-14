@@ -71,6 +71,29 @@ Native driver/version/platform qualification remains the consuming application's
 
 The `oraclenet` package resolves bounded `tnsnames.ora` aliases and wallet paths without a driver. It preserves connection-compatible alias precedence and descriptor text, handles `MY_WALLET_DIRECTORY`, `sqlnet.ora` file wallets and native environment expansion, and never reads wallet contents. Callers decide when a selected TCPS endpoint needs client credentials; ordinary TCP endpoints must not inherit a wallet. `ResolveDescriptorWallet` considers explicit descriptor settings only, without automatic file discovery. Application diagnostics and TLS negotiation remain caller-owned.
 
+
+### Intentional partial samples
+
+For an intentional sample that must continue on the same admitted connection,
+call `Stream.FinalizeSample` from the Next/Scan owner after consuming borrowed
+values. It closes the cursor without calling Next again, then invokes a
+caller-qualified `SampleFinalizer` on the original driver. Driver close/settling
+can still perform I/O. The callback is bounded by the original query context and
+positive CleanupTimeout, and must join I/O and retain no resources.
+
+Only affirmative `SampleHealth` protocol/transaction evidence plus error-free
+joined cleanup allow reuse. A generic Ping or successful cursor Close is not
+universal proof; qualify the actual native hook, disposal, database version and
+platform. The library supplies no native health implementation. A missing hook,
+missing evidence, callback/close/fetch failure or cancellation retires the session.
+Transaction streams reject early finalization with ErrUnsupported.
+
+The returned `SampleFinalization` separates EOFObserved, StoppedEarly and
+cancellation/health Evidence. Successful early finalization leaves Complete false
+and Err nil; it never makes retained rows a complete result. Existing terminal
+outcomes are stable, and repeated finalization does not invoke the callback again.
+Normal Close still cancels an unfinished stream and retires its session.
+
 ## Execution and transactions
 
 `Session.Exec` and `Pool.Exec` accept `Statement` and `ExecOptions` and return

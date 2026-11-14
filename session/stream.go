@@ -3,7 +3,6 @@ package session
 import (
 	"context"
 	"database/sql"
-	"database/sql/driver"
 	"errors"
 	"sync"
 	"sync/atomic"
@@ -22,7 +21,8 @@ type StreamOptions struct {
 }
 
 // Stream owns one cursor and its session lease. Next and Scan belong to one
-// goroutine; Close, Err and Complete may be called concurrently. Scan preserves
+// goroutine, including FinalizeSample. Close, Err and Complete may be called
+// concurrently. Scan preserves
 // database/sql conversions and driver-owned value lifetimes, including lazy LOBs.
 // Buffered Query's Codec/MaxBytes do not apply to native Scan; callers own value
 // consumption and memory limits. Completion never certifies that consumption.
@@ -37,6 +37,7 @@ type Stream struct {
 	columns           []string
 	maxRows, read     int
 	current, complete bool
+	sample            SampleFinalization
 	err               error
 	finished          atomic.Bool
 	stopCancel        func() bool
@@ -173,21 +174,37 @@ func (cursor *Stream) closeDriverRows(closeRows func() error) error {
 }
 
 func (cursor *Stream) finishLocked(cause error, exhausted bool) bool {
+	finishHere, _ := cursor.finishWithSampleLocked(cause, exhausted, nil)
+	return finishHere
+}
+
+func (cursor *Stream) finishWithSampleLocked(cause error, exhausted bool, finalizer SampleFinalizer) (bool, any) {
 	if cursor.finished.Swap(true) {
-		return false
+		return false, nil
 	}
 	// Stop/join ownership is split deliberately: a callback cannot join itself,
 	// and a caller joins it only after releasing the mutex needed by that callback.
 	finishHere := cursor.stopCancel()
 	if cursor.rows != nil {
 		cause = joinCauses(cause, cursor.rows.Close())
+		cause = joinCauses(cause, cursor.rows.Err())
 	}
 	cause = joinCauses(cause, cursor.session.cursorErrors.take())
-	_, cause = cursor.watch.Finish(cause)
+	var qualified bool
+	var recovered any
+	if finalizer != nil && cause == nil {
+		var health SampleHealth
+		health, cause, recovered = cursor.probeSample(finalizer)
+		qualified = health.ProtocolSettled && health.TransactionUsable && cause == nil
+	}
+	outcome, cause := cursor.watch.Finish(cause)
+	cursor.sample.Evidence = outcome.Evidence
 	cursor.complete = exhausted && cause == nil
-	if !cursor.complete || errors.Is(cause, driver.ErrBadConn) || errors.Is(cause, sql.ErrConnDone) {
+	if cause != nil || (!cursor.complete && !qualified) {
 		cursor.session.unusable = true
-		cause = joinCauses(cause, cursor.session.options.Dispose())
+		disposeErr := cursor.session.options.Dispose()
+		cursor.sample.Evidence.TransportDiscarded = cursor.sample.Evidence.TransportDiscarded || disposeErr == nil
+		cause = joinCauses(cause, disposeErr)
 	}
 	cursor.session.cursorErrors.setCloseHook(nil)
 	cursor.session.streamMu.Lock()
@@ -201,10 +218,13 @@ func (cursor *Stream) finishLocked(cause error, exhausted bool) bool {
 	}
 	if cause != nil {
 		cursor.complete = false
+		cursor.sample.Evidence.ProtocolSettled = false
+		cursor.sample.Evidence.TransactionUsable = false
 	}
+	cursor.sample.EOFObserved = cursor.complete
 	cursor.err = safeError("stream", cursor.statement.Reference, cause)
 	cursor.cancel()
-	return finishHere
+	return finishHere, recovered
 }
 
 func (cursor *Stream) joinCancellation() { <-cursor.cancelDone }
@@ -295,9 +315,7 @@ func (cursor *Stream) Complete() bool {
 // concurrent Next via the qualified disposal hook. Early cancellation retires the
 // session and is returned as an error; after successful EOF it returns nil.
 func (cursor *Stream) Close() error {
-	if !cursor.finished.Load() {
-		cursor.cancel()
-	}
+	cursor.cancel()
 	cursor.mu.Lock()
 	var finishHere bool
 	if !cursor.finished.Load() {

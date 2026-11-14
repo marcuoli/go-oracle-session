@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add explicit bounded sample finalization with caller-qualified native health, separate EOF/reuse evidence and no implicit fetch drain.
+- Preserve early Close retirement and complete-result semantics; join finalizer interruption/panics, reject transaction Raw access, and retain independent terminal causes.
+
 ## v0.4.1
 
 - Update the module/build requirement and validation workflows to Go 1.27.4.
