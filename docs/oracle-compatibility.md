@@ -22,7 +22,10 @@ reviewed SQL. Shared upstream qualification uses unmodified official driver
 releases. Existing consumer adapters and separately approved retained dependency
 exceptions must remain in place until equivalent behavior is demonstrated; this
 library does not replace or retire them. A consumer-reference result using such
-an exception is distinct from qualification with official upstream dependencies. Authentication, protocol negotiation, supported
+an exception is distinct from qualification with official upstream dependencies.
+Retained exceptions keep their owning project's retirement and approval criteria,
+including explicit user confirmation where required. Passing comparative tests
+or publishing this library does not itself authorize their removal. Authentication, protocol negotiation, supported
 Oracle Net settings and database SQL features depend on that combination.
 One driver/client build is not assumed to cover the entire server range.
 
