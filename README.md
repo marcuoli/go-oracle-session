@@ -27,7 +27,7 @@ The unchanged shipping module and current build require Go 1.27.4. Run `scripts/
 
 The declared module requirement and current build compiler are Go 1.27.4.
 Separately, unchanged source and selected dependencies passed an isolated probe
-using exact Go 1.27.3, with only the probe module's Go directive adjusted:
+using exact Go 1.27.3, with only an alternate probe module's Go directive adjusted:
 Windows/amd64 tests, race, vet, module verification and builds passed;
 Linux/amd64 and macOS/arm64 test binaries cross-compiled without execution.
 This does not make the unchanged shipping module installable with Go 1.27.3.
