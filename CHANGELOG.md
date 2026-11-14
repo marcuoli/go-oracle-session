@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Define the Oracle 9.2-through-26ai compatibility target, forward compatibility policy and native qualification requirements; preserve capability-gated optional features without a version ceiling.
+
 ## v0.4.1
 
 - Update the module/build requirement and validation workflows to Go 1.27.4.

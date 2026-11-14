@@ -15,6 +15,16 @@ The inventory parser preserves password bytes; do not serialize entries or log u
 
 The unchanged shipping module and current build require Go 1.27.4. Run `scripts/validate.ps1 -Race -Scan` or `scripts/validate.sh --race --scan` with configured external development storage. `examples/inventory` demonstrates synthetic parsing without contacting a database. See [architecture](docs/architecture.md), [comments](CONTRIBUTING.md) and [delivery](docs/code-management.md).
 
+## Oracle compatibility
+
+The compatibility target is **Oracle Database 9.2 through Oracle AI Database
+26ai**, with forward compatibility for subsequent releases. Preserve legacy
+baseline operations while gating optional newer features by capability; do not
+impose a numeric upper-version cutoff. Exact driver/client/server/platform
+combinations require native qualification. See the [compatibility contract and
+qualification checklist](docs/oracle-compatibility.md); the full range is not
+yet natively qualified by this module.
+
 ## Go compatibility
 
 The declared module requirement and current build compiler are Go 1.27.4.

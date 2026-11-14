@@ -11,6 +11,12 @@ This repository is a reusable Go library. Organize implementation and tests in c
 - Use generic examples and synthetic inputs. Preserve copyright/license notices. Keep private provenance and delivery evidence outside this repository.
 - Use official upstream dependencies; never maintain patched dependency copies or local replacement fixes.
 
+## Oracle compatibility
+
+- Preserve the Oracle Database 9.2 baseline through 26ai and forward compatibility with later releases. Follow docs/oracle-compatibility.md.
+- Gate optional newer features without raising the baseline or rejecting unknown newer releases solely by version. Keep numeric server versions, marketing names and observed capabilities distinct.
+- Preserve contextual driver, cancellation, disposal, exact-value and no-replay contracts. Record exact native driver/client/server/patch/platform evidence; synthetic tests or another application's acceptance do not qualify this module.
+
 ## Change workflow
 
 - Track one bounded change per issue using a typed imperative title, one type:* label and applicable area:* labels. Include the exact heading `## Validation and acceptance` and evidence-backed checkboxes.

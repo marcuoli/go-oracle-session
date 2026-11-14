@@ -18,3 +18,12 @@ The indirect module version floors intentionally cover the upstream graph,
 including metadata-only nodes. A plain tidy removes unused floors; a dependency
 refresh must reconcile and reapply current official graph versions afterward.
 Do not patch upstream manifests or caches to retain those constraints.
+
+## Oracle compatibility
+
+Preserve the Oracle 9.2-through-26ai baseline and compatibility with subsequent
+releases under the [Oracle compatibility contract](docs/oracle-compatibility.md).
+Optional features must remain capability-gated. Include relevant legacy and newer
+regressions with behavior changes, and distinguish synthetic tests from exact
+native driver/client/server/platform qualification. Do not add a numeric version
+ceiling or copy application-specific dependency patches into this library.

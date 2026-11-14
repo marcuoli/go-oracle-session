@@ -18,3 +18,9 @@ parent lease; they never reacquire it. Parent shutdown cancels owned transaction
 and joins both cursor and transaction finalizers. Driver terminal evidence and
 physical retirement join automatic rollback before an uncertain lease is returned.
 This is resource ownership, not an Oracle DDL or database recovery policy.
+The [Oracle compatibility contract](oracle-compatibility.md) preserves the 9.2
+baseline through 26ai and later releases without a numeric upper cutoff. Optional
+capabilities and caller-selected SQL must not impose a new minimum on unrelated
+baseline operations. Contextual interfaces, exact values, joined cancellation,
+physical disposal and no replay remain required across the target range; native
+qualification belongs to each exact connector/client/server/platform combination.
