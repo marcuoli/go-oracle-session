@@ -13,6 +13,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -20,6 +21,13 @@ import (
 	"github.com/marcuoli/go-oracle-session/transport"
 	"github.com/marcuoli/go-sqltemplate/reference"
 )
+
+type nativeProofState struct{ requested, checked, reusable atomic.Bool }
+
+type nativeSoftConnection interface {
+	BreakCurrentOperation() error
+	CancellationSettled() bool
+}
 
 type nativeConfig struct {
 	DSN                 string
@@ -29,6 +37,9 @@ type nativeConfig struct {
 	FixtureUser         string
 	FixtureToken        string
 	AllowFixtureWrites  bool
+	SettledCancellation bool
+	CancellationOutcome string
+	proof               *nativeProofState
 }
 
 func statement(t *testing.T, name, text string, args ...any) session.Statement {
@@ -51,6 +62,10 @@ func requireOK(t *testing.T, operation string, err error) {
 }
 
 func openSession(t *testing.T, cfg nativeConfig, prepared bool, expectDisposed bool) *session.Session {
+	return openSessionWithBudget(t, cfg, prepared, expectDisposed, 10*time.Second)
+}
+
+func openSessionWithBudget(t *testing.T, cfg nativeConfig, prepared bool, expectDisposed bool, budget time.Duration) *session.Session {
 	t.Helper()
 	sockets, err := transport.New(10 * time.Second)
 	requireOK(t, "transport", err)
@@ -59,18 +74,20 @@ func openSession(t *testing.T, cfg nativeConfig, prepared bool, expectDisposed b
 		t.Fatal("native driver differs from the explicitly built qualification target")
 	}
 	connector := nativeConnector(cfg.DSN, sockets)
-	s, err := session.Open(context.Background(), connector, session.Options{
+	opts := session.Options{
 		PreparedContext: prepared, ConnectTimeout: 10 * time.Second,
-		QueryTimeout: 10 * time.Second, CleanupTimeout: 3 * time.Second,
+		QueryTimeout: budget, CleanupTimeout: 3 * time.Second,
 		MaxRows: 20, MaxBytes: 16384, Dispose: sockets.Close,
-	})
+	}
+	connector, opts = configureNativeCancellation(t, cfg, connector, opts)
+	s, err := session.Open(context.Background(), connector, opts)
 	if err != nil {
 		_ = sockets.Close()
 		requireOK(t, "admission", err)
 	}
 	t.Cleanup(func() {
 		err := s.Close(context.Background())
-		if expectDisposed && onlyClosedSocket(err) {
+		if (expectDisposed || cfg.proof != nil && cfg.proof.requested.Load() && !cfg.proof.reusable.Load()) && onlyClosedSocket(err) {
 			t.Log("close retained the expected already-disposed socket error")
 			return
 		}
@@ -265,7 +282,9 @@ func TestNativeSession(t *testing.T) {
 				}
 			})
 			t.Run("early-stream-retirement", func(t *testing.T) {
-				isolated := openSession(t, cfg, mode.prepared, true)
+				defaultCfg := cfg
+				defaultCfg.SettledCancellation = false
+				isolated := openSession(t, defaultCfg, mode.prepared, true)
 				rows, err := isolated.Stream(context.Background(), statement(t, "early-stream", "select 'a' from dual union all select 'b' from dual"), session.StreamOptions{})
 				requireOK(t, "early stream", err)
 				if !rows.Next() {
@@ -279,7 +298,11 @@ func TestNativeSession(t *testing.T) {
 					t.Fatal("early-closed session was not retired")
 				}
 			})
-			t.Run("client-deadline-retirement", func(t *testing.T) {
+			t.Run("client-cancellation-policy", func(t *testing.T) {
+				if cfg.SettledCancellation {
+					nativeSettledCancellation(t, cfg, mode.prepared)
+					return
+				}
 				isolated := openSession(t, cfg, mode.prepared, true)
 				ctx, cancel := context.WithTimeout(context.Background(), 250*time.Millisecond)
 				defer cancel()

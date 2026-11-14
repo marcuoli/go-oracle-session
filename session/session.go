@@ -47,6 +47,9 @@ type Options struct {
 	MaxRows, MaxBytes                            int
 	Dispose                                      func() error
 	Codec                                        Codec
+	// Cancellation optionally preserves a proven settled native session after
+	// interruption. Nil retains conservative retirement.
+	Cancellation *Cancellation
 }
 
 // Statement is one catalog-owned query with a stable namespaced reference.
@@ -117,6 +120,13 @@ func Open(ctx context.Context, connector driver.Connector, options Options) (*Se
 	if connector == nil || options.ConnectTimeout <= 0 || options.QueryTimeout <= 0 || options.CleanupTimeout <= 0 || options.MaxRows < 1 || options.MaxBytes < 1 || options.Dispose == nil {
 		return nil, errors.New("invalid session connector/budgets")
 	}
+	if options.Cancellation != nil {
+		c := *options.Cancellation
+		if c.QueryGrace < 0 || c.Break == nil || c.Reusable == nil {
+			return nil, errors.New("invalid native cancellation callbacks/grace")
+		}
+		options.Cancellation = &c
+	}
 	if options.Codec == nil {
 		options.Codec = ExactValue
 	}
@@ -157,7 +167,11 @@ func Open(ctx context.Context, connector driver.Connector, options Options) (*Se
 
 // Query runs one leased-connection command, never database/sql's retry helper.
 // Cursor cleanup and the cancellation watcher join before any result is returned.
-func (session *Session) Query(ctx context.Context, statement Statement) (result Result, returnedErr error) {
+func (session *Session) Query(ctx context.Context, statement Statement) (Result, error) {
+	return session.query(ctx, ctx, statement)
+}
+
+func (session *Session) query(ctx, watchParent context.Context, statement Statement) (result Result, returnedErr error) {
 	operation, cancel := context.WithTimeout(ctx, session.options.QueryTimeout)
 	defer cancel()
 	// Queueing is part of this query's budget. An expired waiter never disposes
@@ -173,16 +187,18 @@ func (session *Session) Query(ctx context.Context, statement Statement) (result 
 	if err != nil {
 		return Result{}, err
 	}
-	watch, err := sessioncancel.Start(operation, ctx, sessioncancel.Policy{Query: true, QueryGrace: 0, ParentGrace: 100 * time.Millisecond}, sessioncancel.Hooks{Dispose: session.options.Dispose})
+	watch, err := session.watchCommand(operation, watchParent)
 	if err != nil {
 		return Result{}, err
 	}
+	session.commandCleanup(watch)
+	defer session.cursorErrors.setCloseHook(nil)
 	started := time.Now()
 	defer func() {
 		cleanupErr := session.cursorErrors.take()
 		returnedErr = joinCauses(returnedErr, cleanupErr)
 		outcome, err := watch.Finish(returnedErr)
-		if (session.options.PreparedContext && cleanupErr != nil) || outcome.Cause != "none" || errors.Is(err, driver.ErrBadConn) || errors.Is(err, sql.ErrConnDone) {
+		if ((session.options.PreparedContext || session.options.Cancellation != nil) && cleanupErr != nil && outcome.Health != sessioncancel.Reusable) || outcome.Health == sessioncancel.Unusable || (outcome.Cause != "none" && outcome.Health != sessioncancel.Reusable) || errors.Is(err, driver.ErrBadConn) || errors.Is(err, sql.ErrConnDone) {
 			session.unusable = true
 		}
 		returnedErr = safeError("query", statement.Reference, err)
@@ -192,7 +208,7 @@ func (session *Session) Query(ctx context.Context, statement Statement) (result 
 			result.Duration = time.Since(started)
 		}
 	}()
-	rows, err := session.runner().QueryContext(operation, text, statement.Args...)
+	rows, err := session.runner().QueryContext(session.driverContext(operation), text, statement.Args...)
 	if err != nil {
 		return Result{}, err
 	}

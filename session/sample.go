@@ -15,7 +15,11 @@ type SampleHealth struct {
 }
 
 // SampleFinalizer settles and checks the original driver after cursor cleanup.
-// It must use the bounded context, join its I/O, and retain no driver resource.
+// It must join its I/O and retain no driver resource. The default supplies a
+// bounded context. With Cancellation configured, it receives a value-preserving
+// context canceled when its owner commits to transport disposal: that Watch
+// bounds its I/O and cleanup
+// without a second native cancellation controller.
 // It must not issue application SQL, manage transactions, release or replace the
 // physical session, or call Session/Tx methods. The caller qualifies its behavior
 // and the disposal hook on the actual database, driver version and platform.
@@ -70,32 +74,39 @@ func (cursor *Stream) FinalizeSample(finalizer SampleFinalizer) (SampleFinalizat
 // to non-transaction streams: database/sql may close a bad Raw connection while
 // a transaction still owns it. Its watcher joins even when the callback panics.
 func (cursor *Stream) probeSample(finalizer SampleFinalizer) (health SampleHealth, returnedErr error, recovered any) {
-	operation, cancel := context.WithTimeout(cursor.ctx, cursor.session.options.CleanupTimeout)
-	defer cancel()
-	watch, err := sessioncancel.Start(operation, cursor.ctx, sessioncancel.Policy{}, sessioncancel.Hooks{Dispose: cursor.session.options.Dispose})
-	if err != nil {
-		return health, err, nil
+	invoke := func(operation context.Context) (err error) {
+		defer func() {
+			if value := recover(); value != nil {
+				recovered = value
+				err = joinCauses(err, ErrUnavailable)
+			}
+		}()
+		return cursor.session.connection.Raw(func(native any) error {
+			switch native := native.(type) {
+			case *directConnection:
+				health, err = finalizer(operation, native.Conn)
+			case *preparedConnection:
+				health, err = finalizer(operation, native.Conn)
+			default:
+				err = ErrUnsupported
+			}
+			return err
+		})
 	}
-	defer func() {
-		if value := recover(); value != nil {
-			recovered = value
-			returnedErr = joinCauses(returnedErr, ErrUnavailable)
+	if cursor.session.options.Cancellation != nil {
+		returnedErr = cursor.watch.Cleanup(cursor.session.options.CleanupTimeout, func(operation context.Context) error { return invoke(operation) })
+	} else {
+		operation, cancel := context.WithTimeout(cursor.ctx, cursor.session.options.CleanupTimeout)
+		defer cancel()
+		watch, err := sessioncancel.Start(operation, cursor.ctx, sessioncancel.Policy{}, sessioncancel.Hooks{Dispose: cursor.session.options.Dispose})
+		if err != nil {
+			return health, err, nil
 		}
+		returnedErr = invoke(operation)
 		_, returnedErr = watch.Finish(returnedErr)
-	}()
-	returnedErr = cursor.session.connection.Raw(func(native any) error {
-		switch native := native.(type) {
-		case *directConnection:
-			health, err = finalizer(operation, native.Conn)
-		case *preparedConnection:
-			health, err = finalizer(operation, native.Conn)
-		default:
-			err = ErrUnsupported
-		}
-		return err
-	})
+	}
 	if !health.ProtocolSettled || !health.TransactionUsable {
 		returnedErr = errors.Join(returnedErr, ErrUnavailable)
 	}
-	return health, returnedErr, nil
+	return health, returnedErr, recovered
 }

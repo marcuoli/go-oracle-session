@@ -19,7 +19,11 @@ type ExecOptions struct{ NoQueryTimeout bool }
 // A nil error establishes joined execution, not transaction commit or DDL atomicity.
 // Drivers can mutate caller-owned output destinations before returning an error;
 // discard such values on failure. Do not access destinations concurrently.
-func (s *Session) Exec(ctx context.Context, statement Statement, options ExecOptions) (result sql.Result, returnedErr error) {
+func (s *Session) Exec(ctx context.Context, statement Statement, options ExecOptions) (sql.Result, error) {
+	return s.exec(ctx, ctx, statement, options)
+}
+
+func (s *Session) exec(ctx, watchParent context.Context, statement Statement, options ExecOptions) (result sql.Result, returnedErr error) {
 	operation, cancel := operationContext(ctx, s.options.QueryTimeout, options.NoQueryTimeout)
 	defer cancel()
 	if err := s.acquire(operation); err != nil {
@@ -33,15 +37,17 @@ func (s *Session) Exec(ctx context.Context, statement Statement, options ExecOpt
 	if err != nil {
 		return nil, err
 	}
-	watch, err := sessioncancel.Start(operation, ctx, sessioncancel.Policy{Query: true, ParentGrace: min(100*time.Millisecond, s.options.CleanupTimeout)}, sessioncancel.Hooks{Dispose: s.options.Dispose})
+	watch, err := s.watchCommand(operation, watchParent)
 	if err != nil {
 		return nil, err
 	}
+	s.commandCleanup(watch)
+	defer s.cursorErrors.setCloseHook(nil)
 	defer func() {
 		cleanupErr := s.cursorErrors.take()
 		returnedErr = joinCauses(returnedErr, cleanupErr)
 		outcome, err := watch.Finish(returnedErr)
-		if cleanupErr != nil || outcome.Cause != "none" || errors.Is(err, driver.ErrBadConn) || errors.Is(err, sql.ErrConnDone) {
+		if (cleanupErr != nil && outcome.Health != sessioncancel.Reusable) || outcome.Health == sessioncancel.Unusable || (outcome.Cause != "none" && outcome.Health != sessioncancel.Reusable) || errors.Is(err, driver.ErrBadConn) || errors.Is(err, sql.ErrConnDone) {
 			s.unusable = true
 		}
 		returnedErr = safeError("exec", statement.Reference, err)
@@ -51,7 +57,7 @@ func (s *Session) Exec(ctx context.Context, statement Statement, options ExecOpt
 			result = projectedResult{Result: result, reference: statement.Reference}
 		}
 	}()
-	result, err = s.runner().ExecContext(operation, text, statement.Args...)
+	result, err = s.runner().ExecContext(s.driverContext(operation), text, statement.Args...)
 	if result == nil && err == nil {
 		err = errors.New("driver returned nil execution result")
 	}
@@ -91,7 +97,7 @@ func (p *Pool) Exec(ctx context.Context, statement Statement, options ExecOption
 			result = nil
 		}
 	}()
-	return client.Exec(operation, statement, options)
+	return client.exec(operation, ctx, statement, options)
 }
 func operationContext(ctx context.Context, budget time.Duration, optOut bool) (context.Context, context.CancelFunc) {
 	if optOut {

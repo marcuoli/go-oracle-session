@@ -126,7 +126,15 @@ func (s *Session) beginTx(parent, admission context.Context, options TxOptions, 
 	s.driverState.mu.Lock()
 	s.driverState.transaction = nil
 	s.driverState.mu.Unlock()
-	sqlTx, err := s.connection.BeginTx(lifetime, &sql.TxOptions{Isolation: options.Isolation, ReadOnly: options.ReadOnly})
+	beginContext := lifetime
+	if s.options.Cancellation != nil {
+		// Our transaction owner waits for the command and break before rollback.
+		// database/sql's automatic rollback otherwise starts when its statement
+		// lock releases, before the outer command Watch has joined its break.
+		// The native BeginTx still receives the real setup/lifetime context.
+		beginContext = context.WithValue(context.WithoutCancel(lifetime), nativeBeginContextKey{}, lifetime)
+	}
+	sqlTx, err := s.connection.BeginTx(beginContext, &sql.TxOptions{Isolation: options.Isolation, ReadOnly: options.ReadOnly})
 	stopBudget()
 	if budget.Err() != nil {
 		cancel()

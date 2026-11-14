@@ -148,7 +148,7 @@ func (pool *Pool) Query(ctx context.Context, statement Statement) (result Result
 			result = Result{}
 		}
 	}()
-	return client.Query(operation, statement)
+	return client.query(operation, ctx, statement)
 }
 
 // Stream leases one session until its native cursor finishes. NoQueryTimeout

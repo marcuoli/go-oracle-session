@@ -100,6 +100,9 @@ func (c *trackedConnection) BeginTx(ctx context.Context, opts driver.TxOptions) 
 	if !ok {
 		return nil, ErrUnsupported
 	}
+	if original, ok := ctx.Value(nativeBeginContextKey{}).(context.Context); ok {
+		ctx = original
+	}
 	tx, err := begin.BeginTx(ctx, opts)
 	if err != nil {
 		return nil, err
@@ -198,6 +201,9 @@ func (s *trackedStatement) ColumnConverter(index int) driver.ValueConverter {
 	return driver.DefaultParameterConverter
 }
 func (s *trackedStatement) Close() error {
+	if s.connection.options.Cancellation != nil {
+		return s.connection.errors.closeRows(s.Stmt.Close)
+	}
 	err := boundedCleanup(context.Background(), s.connection.options, s.Stmt.Close)
 	s.connection.errors.add(err)
 	return err

@@ -3,10 +3,10 @@ package session
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	sessioncancel "github.com/marcuoli/go-oracle-session/cancel"
 )
@@ -88,7 +88,7 @@ func (session *Session) startStream(parent, watchParent context.Context, stateme
 	if session.closing.Load() || session.closed || session.unusable {
 		return nil, ErrUnavailable
 	}
-	watch, err := sessioncancel.Start(operation, watchParent, sessioncancel.Policy{Query: true, ParentGrace: min(100*time.Millisecond, session.options.CleanupTimeout)}, sessioncancel.Hooks{Dispose: session.options.Dispose})
+	watch, err := session.watchCommand(operation, watchParent)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (session *Session) startStream(parent, watchParent context.Context, stateme
 		cancel()
 	}
 	session.streamMu.Unlock()
-	cursor.rows, err = session.runner().QueryContext(operation, text, statement.Args...)
+	cursor.rows, err = session.runner().QueryContext(session.driverContext(operation), text, statement.Args...)
 	if err == nil {
 		cursor.columns, err = cursor.rows.Columns()
 		if err == nil && (len(cursor.columns) == 0 || len(cursor.columns) > 16384) {
@@ -156,6 +156,9 @@ func (session *Session) available() bool {
 }
 
 func (cursor *Stream) closeDriverRows(closeRows func() error) error {
+	if cursor.session.options.Cancellation != nil {
+		return cursor.watch.Cleanup(cursor.session.options.CleanupTimeout, func(context.Context) error { return closeRows() })
+	}
 	parent := context.WithoutCancel(cursor.ctx)
 	bounded, cancel := context.WithTimeout(parent, cursor.session.options.CleanupTimeout)
 	defer cancel()
@@ -194,7 +197,8 @@ func (cursor *Stream) finishWithSampleLocked(cause error, exhausted bool, finali
 	outcome, cause := cursor.watch.Finish(cause)
 	cursor.sample.Evidence = outcome.Evidence
 	cursor.complete = exhausted && cause == nil
-	if cause != nil || (!cursor.complete && !qualified) {
+	reusable := outcome.Health == sessioncancel.Reusable && !errors.Is(cause, driver.ErrBadConn) && !errors.Is(cause, sql.ErrConnDone)
+	if (cause != nil || (!cursor.complete && !qualified)) && !reusable {
 		cursor.session.unusable = true
 		disposeErr := cursor.session.options.Dispose()
 		cursor.sample.Evidence.TransportDiscarded = cursor.sample.Evidence.TransportDiscarded || disposeErr == nil
@@ -212,6 +216,8 @@ func (cursor *Stream) finishWithSampleLocked(cause error, exhausted bool, finali
 	}
 	if cause != nil {
 		cursor.complete = false
+	}
+	if cause != nil && !reusable {
 		cursor.sample.Evidence.ProtocolSettled = false
 		cursor.sample.Evidence.TransactionUsable = false
 	}
