@@ -79,7 +79,9 @@ call `Stream.FinalizeSample` from the Next/Scan owner after consuming borrowed
 values. It closes the cursor without calling Next again, then invokes a
 caller-qualified `SampleFinalizer` on the original driver. Driver close/settling
 can still perform I/O. The callback is bounded by the original query context and
-positive CleanupTimeout, and must join I/O and retain no resources.
+positive CleanupTimeout, and must join I/O and retain no resources. Native health
+operations must preserve the admitted physical session; some driver health getters
+can release pooled connections and are unsuitable without explicit qualification.
 
 Only affirmative `SampleHealth` protocol/transaction evidence plus error-free
 joined cleanup allow reuse. A generic Ping or successful cursor Close is not

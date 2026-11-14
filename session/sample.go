@@ -16,8 +16,8 @@ type SampleHealth struct {
 
 // SampleFinalizer settles and checks the original driver after cursor cleanup.
 // It must use the bounded context, join its I/O, and retain no driver resource.
-// It must not issue application SQL, manage transactions, close the connection,
-// or call Session/Tx methods. The caller qualifies its driver-specific behavior
+// It must not issue application SQL, manage transactions, release or replace the
+// physical session, or call Session/Tx methods. The caller qualifies its behavior
 // and the disposal hook on the actual database, driver version and platform.
 type SampleFinalizer func(context.Context, any) (SampleHealth, error)
 
