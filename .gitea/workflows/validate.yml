@@ -55,6 +55,12 @@ jobs:
         shell: bash
         run: bash scripts/validate.sh --race --scan
 
+      - name: Validate native harness offline
+        shell: bash
+        run: |
+          bash scripts/validate.sh --native-harness 2 --scan
+          bash scripts/validate.sh --native-harness 3 --scan
+
       - name: Remove temporary source CA bundle
         if: always()
         shell: bash

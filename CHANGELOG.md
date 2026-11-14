@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Define the Oracle 9.2-through-26ai compatibility target, future-release policy and native qualification requirements; preserve existing connector workarounds and single-owner cancellation semantics before consumer migration.
+- Add an isolated opt-in native qualification module with explicit fixture admission, separate official driver targets and regression cases for NULL framing, character output capacity and session lifecycle; retain unqualified combinations and upstream gaps explicitly.
 
 ## v0.5.0
 

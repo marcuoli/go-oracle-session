@@ -29,3 +29,15 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./scripts/validate.ps1 -Scan
+      - name: Validate native harness offline on Unix
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          bash scripts/validate.sh --native-harness 2 --scan
+          bash scripts/validate.sh --native-harness 3 --scan
+      - name: Validate native harness offline on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ./scripts/validate.ps1 -NativeHarness -DriverMajor 2 -Scan
+          ./scripts/validate.ps1 -NativeHarness -DriverMajor 3 -Scan
