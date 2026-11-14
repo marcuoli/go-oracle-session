@@ -35,9 +35,9 @@ reuse the same admitted session only after affirmative qualified driver evidence
   sample.go and the minimal stream finalizer extension.
 - [x] Cover no-drain same-session continuation, pool capacity, EOF/idempotence,
   missing proof, independent failures, cancellation, callback panic and shutdown.
-- [ ] Run configured Go 1.27.3 tests, race, vet, modules, builds and advisories;
+- [ ] Run configured Go 1.27.4 tests, race, vet, modules, builds and advisories;
   obtain bounded independent review and preserve unchanged legacy contracts.
-- [ ] Have the separate native lab owner qualify its explicit driver callbacks
+- [ ] Have the native validation owner qualify its explicit driver callbacks
   and same-session continuation before claiming native acceptance.
 - [ ] Integrate/release through the source workflow, synchronize canonical source,
   verify immutable publication and remove exact issue-owned temporary source and
