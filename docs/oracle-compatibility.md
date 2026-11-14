@@ -68,13 +68,13 @@ passing a generic SELECT or a newer-server test is insufficient.
 | Bind conversion and exact values | Preserve native input/output carriers, destination identity, statement-level conversion precedence, character capacity versus byte capacity, large numeric values, typed and untyped NULLs, arrays and supported LOB ownership. |
 | Physical socket semantics | Keep actual sockets available to the selected driver's native TLS/OOB behavior; do not substitute a wrapper that hides required socket interfaces. Track redirects and dispose only the owned connection. |
 | One cancellation authority | Preserve the distinction between query, parent and stage interruption, independent cleanup budgets and joined query/cursor/break workers. Do not layer competing timeout controllers over a configured adapter. |
-| Proven cancellation reuse | A typed cancellation acknowledgement alone is insufficient. Require joined operation, rows, break and cleanup plus protocol settlement and usable transaction state. The current shared Session retires canceled sessions; intentional sample finalization does not provide cancellation-reuse compatibility. Keep the existing owner until a separately qualified shared contract preserves its behavior. |
+| Proven cancellation reuse | A typed cancellation acknowledgement alone is insufficient. Require joined operation, rows, break and cleanup plus protocol settlement and usable transaction state. Optional `session.Cancellation` uses the shared owner for native break, grace and an explicit settlement proof after all workers join. Nil configuration or unknown health retires the session; a canceled result never becomes successful. Keep the existing consumer path until its exact hooks and end-to-end behavior are qualified. |
 | Warnings and diagnostics | Retain connection-scoped login warnings and bounded stage diagnostics without global stdout/stderr interception, credential transformation or authentication payload logging. |
 | Oracle Net and admission | Preserve alias/descriptor precedence, explicit TLS/security settings, wallet scope, administrative-login semantics and the admitted physical/container identity. Product-specific SQL and recovery policy remain with callers. |
 
 For each migration, record which behavior the shared library already provides,
 which remains in the caller adapter, which depends on a retained exception and
-which is still blocked. Keep the original implementation and its regression
+which needs further qualification. Keep the original implementation and its regression
 coverage until the complete consumer path passes; do not remove it merely
 because the shared library is released. Missing upstream functionality must be
 tracked explicitly under the dependency policy rather than recreated by a shared

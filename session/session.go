@@ -95,7 +95,8 @@ func safeError(operation string, ref reference.Reference, err error) error {
 }
 
 // Session serializes operations on exactly one leased connection. It does not
-// retry SQL or pick recovery policy; interrupted sessions cannot be queried again.
+// retry SQL or pick recovery policy. Interrupted sessions require affirmative
+// configured native proof before later commands can reuse them.
 type Session struct {
 	gate             chan struct{}
 	closeOnce        sync.Once

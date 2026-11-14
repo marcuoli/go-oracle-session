@@ -63,8 +63,8 @@ func configureNativeCancellation(t *testing.T, cfg nativeConfig, connector drive
 }
 
 // The fixture function commits a unique event before sleeping. An independent
-// observer must see that event before cancellation returns; this distinguishes
-// an in-flight native operation from an already-canceled or undispatched call.
+// observer must see the canceled operation's event. Together with the owned
+// break and proof checks, this establishes actual server dispatch.
 func nativeSettledCancellation(t *testing.T, cfg nativeConfig, prepared bool) {
 	t.Helper()
 	if len(cfg.FixtureToken) != 32 {
@@ -101,8 +101,7 @@ func nativeSettledCancellation(t *testing.T, cfg nativeConfig, prepared bool) {
 			go func() {
 				switch kind {
 				case "exec":
-					var output string
-					result, err := isolated.Exec(context.Background(), statement(t, "native-soft-exec", "begin :output := native_wait(:token); end;", sql.Named("output", nativeCharacterOutput(&output, 32)), sql.Named("token", token)), session.ExecOptions{})
+					result, err := isolated.Exec(context.Background(), statement(t, "native-soft-exec", "declare output varchar2(32); begin output := native_wait(:token); end;", sql.Named("token", token)), session.ExecOptions{})
 					done <- callResult{err, result != nil}
 				case "query":
 					result, err := isolated.Query(context.Background(), statement(t, "native-soft-query", "select native_wait(:token) from dual", sql.Named("token", token)))
@@ -143,6 +142,12 @@ func nativeSettledCancellation(t *testing.T, cfg nativeConfig, prepared bool) {
 				case <-time.After(4 * time.Second):
 					t.Fatal("native cancellation did not join within its bound")
 				}
+			}
+			if !proof.requested.Load() {
+				t.Fatal("configured native break was not requested")
+			}
+			if cfg.CancellationOutcome == "qualified" && !proof.checked.Load() {
+				t.Fatal("native settlement proof was not inspected")
 			}
 			expectReuse := cfg.CancellationOutcome == "reuse" || cfg.CancellationOutcome == "qualified" && proof.checked.Load() && proof.reusable.Load()
 			if !observed || result.published || !errors.Is(result.err, context.DeadlineExceeded) || expectReuse && !nativeCancellationAcknowledged(result.err) {

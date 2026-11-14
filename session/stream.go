@@ -47,7 +47,8 @@ type Stream struct {
 
 // Stream starts a non-replayed native cursor. The session remains unavailable to
 // other operations until EOF/error/Close cleanup finishes. Early Close reports
-// cancellation and makes the physical session unavailable; Close after successful
+// cancellation and, absent qualified native proof, makes the physical session
+// unavailable; Close after successful
 // EOF is idempotently successful. A stream must be closed when not exhausted.
 func (session *Session) Stream(ctx context.Context, statement Statement, options StreamOptions) (*Stream, error) {
 	return session.startStream(ctx, ctx, statement, options, nil)
@@ -312,8 +313,9 @@ func (cursor *Stream) Complete() bool {
 }
 
 // Close cancels an unexhausted stream and joins its cleanup. It can interrupt a
-// concurrent Next via the qualified disposal hook. Early cancellation retires the
-// session and is returned as an error; after successful EOF it returns nil.
+// concurrent Next via the qualified interruption/disposal hooks. Early
+// cancellation remains an error; absent affirmative native proof it retires the
+// session. Close after successful EOF returns nil.
 func (cursor *Stream) Close() error {
 	cursor.cancel()
 	cursor.mu.Lock()

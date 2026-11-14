@@ -31,7 +31,8 @@ into the same test binary. No authentication or SQL retry selects another driver
 
 ## Dedicated fixture and private inputs
 
-The full suite writes only to a dedicated disposable schema's NATIVE_TX table.
+The base suite writes to a dedicated disposable schema's NATIVE_TX table. The
+settled profile also commits NATIVE_EVENT dispatch markers as described below.
 Never supply an application account. Before running it, the operator must create
 and own the fixture, record its initial state and approve its complete teardown:
 
@@ -92,8 +93,39 @@ The initial boundary checks used Linux/amd64, Go 1.27.4 and released Session v0.
   value regressions. That configuration is not added to or shipped by this test
   module and is not official-upstream qualification.
 
-Pool behavior, native LOB ownership, server-side termination, proven soft-break
-reuse, other exact patches/platforms and the complete consumer adapter path
-remain separate acceptance work. Keep existing consumer adapters and their
+Native pool/LOB and server-side termination coverage, other exact patches/platforms
+and the complete consumer adapter path remain separate acceptance work. The
+cancellation profiles below add specific proof-dependent transition evidence. Keep existing consumer adapters and their
 retirement/approval gates intact. Recheck official upstream releases at the next
 dependency review; no shared fork, cache patch or protocol rewrite is authorized.
+## Native cancellation profiles
+
+Add the `settled` build tag and use a shared-module version exporting
+`session.Cancellation` to exercise native continuation. For an unreleased
+first-party candidate, use a separate external modfile; do not change application
+manifests or introduce a third-party replacement. Published consumer checks use
+GOWORK=off and the released shared module without a first-party replacement.
+
+Set `SettledCancellation=true` and an explicit `CancellationOutcome` in private
+stdin. `reuse` requires same-session continuation, `retire` requires retirement
+and a separately admitted session for independent SQL, and `qualified` requires
+each transition to match recorded native settlement proof. The last mode cannot
+pass a retired session when native proof was affirmative or a reused session when
+proof was missing. Unknown joined errors fail every mode. Default retirement
+checks remain separate and the original SQL is never retried.
+
+Create the additional NATIVE_EVENT table and NATIVE_WAIT function from
+`fixture-settled.sql` in the exact disposable schema. The function commits an
+autonomous dispatch marker before a finite three-second wait. An independently
+admitted observer must see the operation's unique marker. The test then checks
+cancellation causes, native acknowledgement/settlement and physical-session
+identity before any independent continuation. These fixture writes require the
+existing explicit write opt-in and must be included in teardown. They establish
+server dispatch, not universal server-side termination or crash durability.
+
+The modern public session/validation bridge and legacy retained capability stay
+in these test adapters. Actual connection options such as FAST LOGIN=DISABLE or
+ENABLE_OOB must be recorded per profile; do not infer Windows or forwarded-port
+qualification from Linux direct-TCP results. Existing upstream value/connection
+failures remain visible and do not require replacing an approved working consumer
+configuration before this shared contract can be used.

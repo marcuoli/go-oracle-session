@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.7.0
+
+- Add opt-in per-session native cancellation hooks with one joined break/grace/cleanup owner, affirmative same-session reuse proof, preserved parent/stage causes and conservative fallback; retain default retirement and never replay interrupted SQL.
+- Preserve native transaction rollback ordering and cooperative sample finalization under that owner; add direct/prepared, pool, transaction and native continuation regressions.
+
 ## v0.6.0
 
 - Add generic rowset Query/QueryJSON and complete bounded cursor JSON, sharing native sql.Rows and existing owned Stream lifetimes without another transport, raw lease escape or Oracle fact policy.

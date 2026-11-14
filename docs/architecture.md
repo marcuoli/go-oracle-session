@@ -24,3 +24,13 @@ capabilities and caller-selected SQL must not impose a new minimum on unrelated
 baseline operations. Contextual interfaces, exact values, joined cancellation,
 physical disposal and no replay remain required across the target range; native
 qualification belongs to each exact connector/client/server/platform combination.
+
+Optional per-session Cancellation callbacks use the existing command Watch for
+native break, grace, cleanup and affirmative protocol/transaction proof. Driver
+commands preserve context values while the owner observes cancellation; there is
+no second adapter watchdog. Transaction-lifetime rollback waits for the command
+and break to join. Cooperative sample cleanup is signaled at the same owner's
+retirement decision. Expected native cancellation can leave the physical session
+reusable without making the interrupted result successful. Nil configuration,
+unknown proof and fatal connection errors retain conservative retirement. Fresh
+connection admission for later independent work remains caller policy.

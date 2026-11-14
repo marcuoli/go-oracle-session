@@ -84,7 +84,8 @@ and positive connection/cleanup budgets. Cursor cleanup remains bounded even
 when Next closes the driver cursor internally at EOF.
 
 Always close an unexhausted stream. Early Close reports cancellation, marks it
-incomplete and retires the physical session. Close after successful EOF returns
+incomplete and, by default, retires the physical session. Qualified native
+cancellation may preserve it as described below. Close after successful EOF returns
 nil. Pool Close wakes queued callers, cancels active streams and joins owned
 session cleanup. Retiring unusable sessions reduces pool capacity; exhaustion
 returns ErrUnavailable. There is no automatic SQL replay, reconnection or recovery
@@ -95,6 +96,26 @@ Native driver/version/platform qualification remains the consuming application's
 
 The `oraclenet` package resolves bounded `tnsnames.ora` aliases and wallet paths without a driver. It preserves connection-compatible alias precedence and descriptor text, handles `MY_WALLET_DIRECTORY`, `sqlnet.ora` file wallets and native environment expansion, and never reads wallet contents. Callers decide when a selected TCPS endpoint needs client credentials; ordinary TCP endpoints must not inherit a wallet. `ResolveDescriptorWallet` considers explicit descriptor settings only, without automatic file discovery. Application diagnostics and TLS negotiation remain caller-owned.
 
+
+### Native cancellation and continuation
+
+`Options.Cancellation` opts one physical session into an owned native break and
+caller-qualified reuse proof. Configure `QueryGrace`, `Break` and `Reusable` for
+that exact connection; the proof must inspect every operation/cleanup cause,
+require a typed native acknowledgement when a break was requested, and establish
+settled protocol plus usable transaction state. Nil configuration keeps the
+existing retirement behavior. A canceled operation still fails, discards any
+buffered result and leaves a stream incomplete even when the next command can
+reuse the session.
+
+The same command owner observes the original context and joins the native break,
+operation and cleanup. It gives driver commands a value-preserving noncanceling
+context to avoid a second cancellation authority. Parent/stage cancellation
+shortens query grace, and independent cleanup remains bounded. Transaction
+rollback waits for active command/break completion. Unknown proof, a blocked
+break, unexpected joined causes or fatal connection errors retire the session;
+callers may admit a fresh session for later independent SQL. Failed SQL is never
+replayed and no recovery policy is selected automatically.
 
 ### Intentional partial samples
 
@@ -111,14 +132,18 @@ Only affirmative `SampleHealth` protocol/transaction evidence plus error-free
 joined cleanup allow reuse. A generic Ping or successful cursor Close is not
 universal proof; qualify the actual native hook, disposal, database version and
 platform. The library supplies no native health implementation. A missing hook,
-missing evidence, callback/close/fetch failure or cancellation retires the session.
+missing evidence or unexpected callback/close/fetch failure retires the session.
+If Cancellation is configured, that same owner handles interruption during the
+finalizer; its cooperative context is signaled when disposal is committed, and
+only affirmative native proof permits later reuse. Cancellation remains an error.
 Transaction streams reject early finalization with ErrUnsupported.
 
 The returned `SampleFinalization` separates EOFObserved, StoppedEarly and
 cancellation/health Evidence. Successful early finalization leaves Complete false
 and Err nil; it never makes retained rows a complete result. Existing terminal
 outcomes are stable, and repeated finalization does not invoke the callback again.
-Normal Close still cancels an unfinished stream and retires its session.
+Normal Close still cancels an unfinished stream; absent qualified cancellation
+proof it retires its session.
 
 ## Execution and transactions
 
