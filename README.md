@@ -1,5 +1,8 @@
 # go-oracle-session
 
+![Module/build Go 1.27.4](https://img.shields.io/badge/module%2Fbuild-Go%201.27.4-00ADD8)
+![Source compatibility 1.27.3 tested; minimum unverified](https://img.shields.io/badge/source%20compatibility-1.27.3%20tested%3B%20minimum%20unverified-yellow)
+
 Reusable single-session query ownership, cancellation evidence, direct socket tracking and strict credential-bearing connection inventory. Use the functional imports `session`, `cancel`, `transport` and `inventory`.
 
 Applications provide an official `driver.Connector`, reviewed catalog SQL, stable command references, exact value codecs and endpoint/acceptance policy. The default requires direct `driver.QueryerContext` support and rejects fallback. `Options.PreparedContext` explicitly selects contextual prepared statements instead. No concrete driver dependency is forced on consumers; operations use one leased connection and are never replayed.
@@ -10,7 +13,24 @@ Configure positive connect, query and cleanup budgets plus a required idempotent
 
 The inventory parser preserves password bytes; do not serialize entries or log underlying error chains. Default diagnostic formatting exposes safe operation codes and CSV source-line facts. This is not a general-purpose SQL safety engine, credential store, recovery manager or database certification.
 
-Go 1.27.3 is required. Run `scripts/validate.ps1 -Race -Scan` or `scripts/validate.sh --race --scan` with configured external development storage. `examples/inventory` demonstrates synthetic parsing without contacting a database. See [architecture](docs/architecture.md), [comments](CONTRIBUTING.md) and [delivery](docs/code-management.md).
+The unchanged shipping module and current build require Go 1.27.4. Run `scripts/validate.ps1 -Race -Scan` or `scripts/validate.sh --race --scan` with configured external development storage. `examples/inventory` demonstrates synthetic parsing without contacting a database. See [architecture](docs/architecture.md), [comments](CONTRIBUTING.md) and [delivery](docs/code-management.md).
+
+## Go compatibility
+
+The declared module requirement and current build compiler are Go 1.27.4.
+Separately, unchanged source and selected dependencies passed an isolated probe
+using exact Go 1.27.3, with only the probe module's Go directive adjusted:
+Windows/amd64 tests, race, vet, module verification and builds passed;
+Linux/amd64 and macOS/arm64 test binaries cross-compiled without execution.
+This does not make the unchanged shipping module installable with Go 1.27.3.
+
+The lower source-compatibility boundary remains unverified. Exact Go 1.27.2
+was rejected by an unchanged dependency's Go 1.27.3 declaration before source
+compilation. Mingo v0.18.0 reports the Go 1.27 family from dependency metadata;
+it does not establish a patch minimum. The library's `sync.WaitGroup.Go` use
+requires at least Go 1.25, but that alone does not establish the dependency floor.
+These probes establish source compatibility under their tested configurations,
+not security support or native Oracle driver qualification.
 
 License: UPL 1.0.
 

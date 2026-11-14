@@ -13,9 +13,9 @@ export TMPDIR="$project/tmp/validate-$run" TEMP="$project/tmp/validate-$run" TMP
 export GOTMPDIR="$TMPDIR/go-build" GOCACHE="$project/caches/go-build" GOMODCACHE="$project/caches/go-modules"
 output="$project/artifacts/runs/validate-$run"
 mkdir -p "$TMPDIR" "$GOTMPDIR" "$GOCACHE" "$GOMODCACHE" "$output"
-export GOWORK=off GOFLAGS=-mod=readonly GOTOOLCHAIN=go1.27.3 CGO_ENABLED=0
+export GOWORK=off GOFLAGS=-mod=readonly GOTOOLCHAIN=go1.27.4 CGO_ENABLED=0
 unset GOOS GOARCH
-[[ "$(go env GOVERSION)" == go1.27.3 ]]
+[[ "$(go env GOVERSION)" == go1.27.4 ]]
 go_root="$(go env GOROOT)"
 format_output="$("$go_root/bin/gofmt" -l .)"
 if [[ -n "$format_output" ]]; then printf 'Formatting required:\n%s\n' "$format_output" >&2; exit 1; fi
@@ -29,7 +29,7 @@ go version -m "$output/go-oracle-session.test" > "$output/build-metadata.txt"
 go env -json GOVERSION GOOS GOARCH GOFLAGS CGO_ENABLED GOWORK > "$output/build-settings.json"
 go list -m -json all > "$output/modules.json"
 if $scan; then
-  go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...
-  go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 -mode=binary "$output/go-oracle-session.test"
+  go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+  go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary "$output/go-oracle-session.test"
 fi
 printf 'Validation passed. Evidence: %s\n' "$output"

@@ -13,9 +13,9 @@ try {
     $env:TEMP=$scratch;$env:TMP=$scratch;$env:TMPDIR=$scratch;$env:GOTMPDIR=Join-Path $scratch 'go-build'
     $env:GOCACHE=Join-Path $project 'caches\go-build';$env:GOMODCACHE=Join-Path $project 'caches\go-modules'
     foreach($directory in @($scratch,$output,$env:GOTMPDIR,$env:GOCACHE,$env:GOMODCACHE)){New-Item -ItemType Directory -Path $directory -Force|Out-Null}
-    $env:GOWORK='off';$env:GOFLAGS='-mod=readonly';$env:GOTOOLCHAIN='go1.27.3';$env:CGO_ENABLED='0'
+    $env:GOWORK='off';$env:GOFLAGS='-mod=readonly';$env:GOTOOLCHAIN='go1.27.4';$env:CGO_ENABLED='0'
     Remove-Item Env:GOOS,Env:GOARCH -ErrorAction SilentlyContinue
-    $version=& $GoExecutable env GOVERSION;if($LASTEXITCODE -ne 0 -or $version -ne 'go1.27.3'){throw "Expected go1.27.3; got $version"}
+    $version=& $GoExecutable env GOVERSION;if($LASTEXITCODE -ne 0 -or $version -ne 'go1.27.4'){throw "Expected go1.27.4; got $version"}
     $goRoot=& $GoExecutable env GOROOT;if($LASTEXITCODE -ne 0){throw 'Cannot inspect compiler root'}
     $unformatted=@(& (Join-Path $goRoot 'bin\gofmt.exe') -l .)
     if($LASTEXITCODE -ne 0 -or $unformatted.Count -ne 0){throw "Formatting required: $unformatted"}
@@ -25,7 +25,7 @@ try {
     & $GoExecutable version -m $binary | Set-Content -LiteralPath (Join-Path $output 'build-metadata.txt');if($LASTEXITCODE -ne 0){throw 'Metadata inspection failed'}
     & $GoExecutable env -json GOVERSION GOOS GOARCH GOFLAGS CGO_ENABLED GOWORK | Set-Content -LiteralPath (Join-Path $output 'build-settings.json');if($LASTEXITCODE -ne 0){throw 'Build settings inspection failed'}
     & $GoExecutable list -m -json all | Set-Content -LiteralPath (Join-Path $output 'modules.json');if($LASTEXITCODE -ne 0){throw 'Module graph inspection failed'}
-    if($Scan){Invoke-Go -Arguments @('run','golang.org/x/vuln/cmd/govulncheck@v1.7.0','./...');Invoke-Go -Arguments @('run','golang.org/x/vuln/cmd/govulncheck@v1.7.0','-mode=binary',$binary)}
+    if($Scan){Invoke-Go -Arguments @('run','golang.org/x/vuln/cmd/govulncheck@v1.9.0','./...');Invoke-Go -Arguments @('run','golang.org/x/vuln/cmd/govulncheck@v1.9.0','-mode=binary',$binary)}
     Write-Output "Validation passed. Evidence: $output"
 } finally {
     foreach($key in $settings){[Environment]::SetEnvironmentVariable($key,$saved[$key],'Process')}

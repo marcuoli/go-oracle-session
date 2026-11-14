@@ -4,7 +4,7 @@ This repository is a reusable Go library. Organize implementation and tests in c
 
 ## Development and comments
 
-- Use Go 1.27.3. Follow CONTRIBUTING.md and docs/code-management.md.
+- Use Go 1.27.4. Follow CONTRIBUTING.md and docs/code-management.md.
 - Document exported symbols with Go doc comments starting with their names. Explain observable behavior, inputs, ownership, concurrency, side effects, errors and limitations where relevant.
 - Explain the concrete reason for non-obvious code: the problem, chosen behavior and compatibility constraint. Keep comments next to the implementation and update them with behavior changes.
 - Comments must be concise and accurate. Do not restate obvious code, make unverified safety claims, name consuming/originating applications, or include private paths, credentials or transient investigation history.

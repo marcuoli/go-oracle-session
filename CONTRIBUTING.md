@@ -1,6 +1,6 @@
 # Contributing
 
-Use Go 1.27.3 and keep changes focused. Public library behavior must be independent of any particular consuming application. Read [code management](docs/code-management.md) and [architecture](docs/architecture.md).
+Use Go 1.27.4 and keep changes focused. Public library behavior must be independent of any particular consuming application. Read [code management](docs/code-management.md) and [architecture](docs/architecture.md).
 
 ## Code comments
 
@@ -13,3 +13,8 @@ Update comments when behavior changes. Avoid obvious restatements, speculative c
 ## Checks and integration
 
 On Windows, run `./scripts/validate.ps1 -Race` with an existing supported C compiler. On Linux/macOS, run `bash scripts/validate.sh --race`. The scripts require configured project storage, keep caches/output out of source and do not publish. Commit go.mod/go.sum, tests, documentation and the changelog together. Implementation PRs belong on the configured source forge; public-copy branches must not diverge.
+
+The indirect module version floors intentionally cover the upstream graph,
+including metadata-only nodes. A plain tidy removes unused floors; a dependency
+refresh must reconcile and reapply current official graph versions afterward.
+Do not patch upstream manifests or caches to retain those constraints.

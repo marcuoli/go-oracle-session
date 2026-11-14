@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.1
+
+- Update the module/build requirement and validation workflows to Go 1.27.4.
+- Refresh official dependency versions across the full module graph and update govulncheck to v1.9.0; retain explicit indirect version floors for metadata-only dependencies.
+- Update official upstream snapshots where no stable release exists, including the metadata-only gomarkdown security fix (GHSA-cv23-7vc5-jfh7).
+- Keep stable x/tools v0.52.0 with a compatible official x/exp snapshot; the newest x/exp snapshot requires an unreleased x/tools version.
+- Document separately tested source compatibility and its unresolved lower boundary in the README; preserve runtime APIs and behavior.
+
 ## v0.4.0
 
 - Add non-replayed Exec, owned transactions and native input/output bind forwarding without a concrete driver dependency.
