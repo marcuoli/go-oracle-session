@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Define the Oracle 9.2-through-26ai compatibility target, forward compatibility policy and native qualification requirements; preserve capability-gated optional features without a version ceiling.
+- Define the Oracle 9.2-through-26ai compatibility target, future-release policy and native qualification requirements; preserve existing connector workarounds and single-owner cancellation semantics before consumer migration.
 
 ## v0.4.1
 

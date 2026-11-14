@@ -17,6 +17,8 @@ This repository is a reusable Go library. Organize implementation and tests in c
 - Gate optional newer features without raising the baseline or rejecting unknown newer releases solely by version. Keep numeric server versions, marketing names and observed capabilities distinct.
 - Preserve contextual driver, cancellation, disposal, exact-value and no-replay contracts. Record exact native driver/client/server/patch/platform evidence; synthetic tests or another application's acceptance do not qualify this module.
 
+- Before a consumer migration, inventory and preserve existing connection adapters, regression tests and separately approved retained driver exceptions. Do not replace one cancellation authority with competing watchers or treat sample health as cancellation-reuse proof. Keep the original path until equivalent end-to-end behavior is qualified.
+
 ## Change workflow
 
 - Track one bounded change per issue using a typed imperative title, one type:* label and applicable area:* labels. Include the exact heading `## Validation and acceptance` and evidence-backed checkboxes.
