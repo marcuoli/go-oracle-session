@@ -77,13 +77,7 @@ func (session *Session) startStream(parent, watchParent context.Context, stateme
 	if options.MaxRows < 0 {
 		return nil, errors.New("negative stream row bound")
 	}
-	if err := statement.Reference.Validate(); err != nil {
-		return nil, err
-	}
-	if statement.Text == "" || len(statement.Text) > 1<<20 {
-		return nil, errors.New("invalid catalog statement")
-	}
-	text, err := statement.Reference.Annotate(statement.Text)
+	text, err := session.statementText(statement)
 	if err != nil {
 		return nil, err
 	}

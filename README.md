@@ -7,6 +7,14 @@ Reusable single-session query ownership, cancellation evidence, direct socket tr
 
 Applications provide an official `driver.Connector`, reviewed catalog SQL, stable command references, exact value codecs and endpoint/acceptance policy. The default requires direct `driver.QueryerContext` support and rejects fallback. `Options.PreparedContext` explicitly selects contextual prepared statements instead. No concrete driver dependency is forced on consumers; operations use one leased connection and are never replayed.
 
+Set `Options.PreserveStatementText` only when caller-approved SQL must reach the
+driver unchanged, such as a prepared plan whose visible SQL hash must match the
+executed text. The default still inserts the stable-reference comment. Both modes
+require a valid Reference and the same nonempty/1 MiB text bound; safe error
+references, binds, limits and admission are unchanged. The option applies to
+Query/Stream/Exec and transaction views; pool factories configure each Session.
+It supplies no SQL authorization or read-only guarantee.
+
 Numeric catalog expressions should produce explicit text, for example `TO_CHAR` with a stable numeric convention. Default values preserve text, integers and SQL NULL; floats are rejected. A result is returned only after the cursor, terminal error, cleanup cause and cancellation watcher have joined. No retained prefix counts as a complete result.
 
 Configure positive connect, query and cleanup budgets plus a required idempotent physical-disposal hook. The hook must unblock and join all owned connector/driver I/O. Cleanup includes admission and may outlive the parent cancellation to release owned resources. Query admission honors its own context without cancelling another active query. These contracts cannot provide a hard deadline for a driver, codec or hook that does not return as required. Actual database/version/platform qualification belongs to consumers.
