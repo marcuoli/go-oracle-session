@@ -40,11 +40,13 @@ yet natively qualified by this module.
 ## Go compatibility
 
 The declared module requirement and current build compiler are Go 1.27.4.
-Separately, unchanged source and selected dependencies passed an isolated probe
+Separately, earlier source and selected dependencies passed an isolated probe
 using exact Go 1.27.3, with only an alternate probe module's Go directive adjusted:
 Windows/amd64 tests, race, vet, module verification and builds passed;
 Linux/amd64 and macOS/arm64 test binaries cross-compiled without execution.
 This does not make the unchanged shipping module installable with Go 1.27.3.
+That historical probe predates rowset; the new package is qualified with the
+configured Go 1.27.4 compiler.
 
 The lower source-compatibility boundary remains unverified. Exact Go 1.27.2
 was rejected by an unchanged dependency's Go 1.27.3 declaration before source
@@ -172,3 +174,6 @@ multi-command sequences require a caller-owned `Session`. Independent `Pool.Exec
 calls need not use the same connection, and a transaction should not be used merely
 to obtain affinity. Connect settings, admission, recovery, SQL policy, native driver
 qualification and publication of complete output values remain caller-owned.
+## Full query datasets
+
+The functional rowset package provides native Query/QueryJSON and complete Read/ReadJSON for borrowed sql.Rows or existing lease-owning Stream cursors. Preserve cursor ownership and context; only complete, bounded JSON succeeds. See [rowset contracts and examples](docs/rowsets.md). Oracle fact selection and application policy remain outside this generic layer.
