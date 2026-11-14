@@ -29,13 +29,7 @@ func (s *Session) Exec(ctx context.Context, statement Statement, options ExecOpt
 	if s.closing.Load() || s.closed || s.unusable {
 		return nil, ErrUnavailable
 	}
-	if err := statement.Reference.Validate(); err != nil {
-		return nil, err
-	}
-	if statement.Text == "" || len(statement.Text) > 1<<20 {
-		return nil, errors.New("invalid catalog statement")
-	}
-	text, err := statement.Reference.Annotate(statement.Text)
+	text, err := s.statementText(statement)
 	if err != nil {
 		return nil, err
 	}

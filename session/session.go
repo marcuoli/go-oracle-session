@@ -37,6 +37,9 @@ type Codec func(any) (Value, error)
 // must be idempotent and must unblock/join all owned connector/driver I/O;
 // callers qualify that hook and their official driver on actual native targets.
 type Options struct {
+	// PreserveStatementText forwards approved Text without inserting a reference
+	// comment. The default annotates; Reference validation is always required.
+	PreserveStatementText bool
 	// PreparedContext selects context-prepared statements instead of direct queries.
 	// The default retains the direct QueryerContext requirement and rejects fallback.
 	PreparedContext                              bool
@@ -166,13 +169,7 @@ func (session *Session) Query(ctx context.Context, statement Statement) (result 
 	if session.closing.Load() || session.closed || session.unusable {
 		return Result{}, ErrUnavailable
 	}
-	if err := statement.Reference.Validate(); err != nil {
-		return Result{}, err
-	}
-	if statement.Text == "" || len(statement.Text) > 1<<20 {
-		return Result{}, errors.New("invalid catalog statement")
-	}
-	annotated, err := statement.Reference.Annotate(statement.Text)
+	text, err := session.statementText(statement)
 	if err != nil {
 		return Result{}, err
 	}
@@ -195,7 +192,7 @@ func (session *Session) Query(ctx context.Context, statement Statement) (result 
 			result.Duration = time.Since(started)
 		}
 	}()
-	rows, err := session.runner().QueryContext(operation, annotated, statement.Args...)
+	rows, err := session.runner().QueryContext(operation, text, statement.Args...)
 	if err != nil {
 		return Result{}, err
 	}

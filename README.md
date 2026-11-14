@@ -7,6 +7,14 @@ Reusable single-session query ownership, cancellation evidence, direct socket tr
 
 Applications provide an official `driver.Connector`, reviewed catalog SQL, stable command references, exact value codecs and endpoint/acceptance policy. The default requires direct `driver.QueryerContext` support and rejects fallback. `Options.PreparedContext` explicitly selects contextual prepared statements instead. No concrete driver dependency is forced on consumers; operations use one leased connection and are never replayed.
 
+Set `Options.PreserveStatementText` only when caller-approved SQL must reach the
+driver unchanged, such as a prepared plan whose visible SQL hash must match the
+executed text. The default still inserts the stable-reference comment. Both modes
+require a valid Reference and the same nonempty/1 MiB text bound; safe error
+references, binds, limits and admission are unchanged. The option applies to
+Query/Stream/Exec and transaction views; pool factories configure each Session.
+It supplies no SQL authorization or read-only guarantee.
+
 Numeric catalog expressions should produce explicit text, for example `TO_CHAR` with a stable numeric convention. Default values preserve text, integers and SQL NULL; floats are rejected. A result is returned only after the cursor, terminal error, cleanup cause and cancellation watcher have joined. No retained prefix counts as a complete result.
 
 Configure positive connect, query and cleanup budgets plus a required idempotent physical-disposal hook. The hook must unblock and join all owned connector/driver I/O. Cleanup includes admission and may outlive the parent cancellation to release owned resources. Query admission honors its own context without cancelling another active query. These contracts cannot provide a hard deadline for a driver, codec or hook that does not return as required. Actual database/version/platform qualification belongs to consumers.
@@ -29,7 +37,7 @@ yet natively qualified by this module.
 
 The declared module requirement and current build compiler are Go 1.27.4.
 Separately, unchanged source and selected dependencies passed an isolated probe
-using exact Go 1.27.3, with only the probe module's Go directive adjusted:
+using exact Go 1.27.3, with only an alternate probe module's Go directive adjusted:
 Windows/amd64 tests, race, vet, module verification and builds passed;
 Linux/amd64 and macOS/arm64 test binaries cross-compiled without execution.
 This does not make the unchanged shipping module installable with Go 1.27.3.
@@ -80,6 +88,31 @@ The original Session.Open/Query options and exact result behavior remain stable.
 Native driver/version/platform qualification remains the consuming application's work.
 
 The `oraclenet` package resolves bounded `tnsnames.ora` aliases and wallet paths without a driver. It preserves connection-compatible alias precedence and descriptor text, handles `MY_WALLET_DIRECTORY`, `sqlnet.ora` file wallets and native environment expansion, and never reads wallet contents. Callers decide when a selected TCPS endpoint needs client credentials; ordinary TCP endpoints must not inherit a wallet. `ResolveDescriptorWallet` considers explicit descriptor settings only, without automatic file discovery. Application diagnostics and TLS negotiation remain caller-owned.
+
+
+### Intentional partial samples
+
+For an intentional sample that must continue on the same admitted connection,
+call `Stream.FinalizeSample` from the Next/Scan owner after consuming borrowed
+values. It closes the cursor without calling Next again, then invokes a
+caller-qualified `SampleFinalizer` on the original driver. Driver close/settling
+can still perform I/O. The callback is bounded by the original query context and
+positive CleanupTimeout, and must join I/O and retain no resources. Native health
+operations must preserve the admitted physical session; some driver health getters
+can release pooled connections and are unsuitable without explicit qualification.
+
+Only affirmative `SampleHealth` protocol/transaction evidence plus error-free
+joined cleanup allow reuse. A generic Ping or successful cursor Close is not
+universal proof; qualify the actual native hook, disposal, database version and
+platform. The library supplies no native health implementation. A missing hook,
+missing evidence, callback/close/fetch failure or cancellation retires the session.
+Transaction streams reject early finalization with ErrUnsupported.
+
+The returned `SampleFinalization` separates EOFObserved, StoppedEarly and
+cancellation/health Evidence. Successful early finalization leaves Complete false
+and Err nil; it never makes retained rows a complete result. Existing terminal
+outcomes are stable, and repeated finalization does not invoke the callback again.
+Normal Close still cancels an unfinished stream and retires its session.
 
 ## Execution and transactions
 

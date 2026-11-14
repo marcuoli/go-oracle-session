@@ -4,6 +4,12 @@
 
 - Define the Oracle 9.2-through-26ai compatibility target, future-release policy and native qualification requirements; preserve existing connector workarounds and single-owner cancellation semantics before consumer migration.
 
+## v0.5.0
+
+- Add explicit preserved statement text across Query, Stream, Exec and transaction views, retaining default reference annotation and mandatory validation/bounds.
+- Add explicit bounded sample finalization with caller-qualified native health, separate EOF/reuse evidence and no implicit fetch drain.
+- Preserve early Close retirement and complete-result semantics; join finalizer interruption/panics, reject transaction Raw access, and retain independent terminal causes.
+
 ## v0.4.1
 
 - Update the module/build requirement and validation workflows to Go 1.27.4.
