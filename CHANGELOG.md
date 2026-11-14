@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.6.0
+
 - Add generic rowset Query/QueryJSON and complete bounded cursor JSON, sharing native sql.Rows and existing owned Stream lifetimes without another transport, raw lease escape or Oracle fact policy.
 - Require the pure-Go go-ora connection path without Oracle Client installation or shared libraries; qualify legacy and future compatibility on that path.
 - Define the Oracle 9.2-through-26ai compatibility target, future-release policy and native qualification requirements; preserve existing connector workarounds and single-owner cancellation semantics before consumer migration.
