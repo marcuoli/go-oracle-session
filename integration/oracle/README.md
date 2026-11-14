@@ -70,11 +70,11 @@ condition flags; external driver diagnostics must also be reviewed for secrets.
 
 The suite covers direct/prepared queries, numeric text and SQL NULL, untyped NULL
 framing, multibyte OUT capacity, repeated named/OUT binds, streaming EOF,
-transaction visibility/outcomes, early retirement and active client cancellation.
+transaction visibility across independent sessions, early retirement and client deadline retirement.
 An intentionally disposed socket can produce a later driver-logoff close error;
 only an exclusively already-closed-socket chain is accepted in those retirement
 cases. Other or joined unexpected cleanup errors remain failures. Client return
-and retirement do not establish server-side query termination.
+and retirement do not establish server-side dispatch or query termination.
 
 ## Recorded limits
 

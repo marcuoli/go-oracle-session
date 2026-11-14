@@ -201,10 +201,14 @@ func TestNativeSession(t *testing.T) {
 				}
 			})
 			t.Run("transaction-outcomes", func(t *testing.T) {
-				count := func() string {
-					return scalar(t, s, "count", "select to_char(count(*)) from native_tx where id=:id", sql.Named("id", mode.rowID))
+				observer := openSession(t, cfg, mode.prepared, false)
+				if scalar(t, s, "writer-identity", "select sys_context('USERENV','SESSIONID') from dual") == scalar(t, observer, "observer-identity", "select sys_context('USERENV','SESSIONID') from dual") {
+					t.Fatal("transaction observer is not an independent database session")
 				}
-				if count() != "0" {
+				count := func(client *session.Session) string {
+					return scalar(t, client, "count", "select to_char(count(*)) from native_tx where id=:id", sql.Named("id", mode.rowID))
+				}
+				if count(s) != "0" || count(observer) != "0" {
 					t.Fatal("disposable fixture row is not initially empty")
 				}
 				for _, commit := range []bool{false, true} {
@@ -215,6 +219,9 @@ func TestNativeSession(t *testing.T) {
 					requireOK(t, "transaction insert", err)
 					if scalar(t, tx, "transaction-count", "select to_char(count(*)) from native_tx where id=:id", sql.Named("id", mode.rowID)) != "1" {
 						t.Fatal("insert is not visible inside its own transaction")
+					}
+					if count(observer) != "0" {
+						t.Fatal("uncommitted insert became visible to the observer")
 					}
 					rows, err := tx.Stream(context.Background(), statement(t, "transaction-stream", "select payload from native_tx where id=:id", sql.Named("id", mode.rowID)), session.StreamOptions{})
 					requireOK(t, "transaction stream", err)
@@ -252,7 +259,7 @@ func TestNativeSession(t *testing.T) {
 					if commit {
 						expected = "1"
 					}
-					if count() != expected {
+					if count(s) != expected || count(observer) != expected {
 						t.Fatal("transaction visibility differs from terminal outcome")
 					}
 				}
@@ -264,31 +271,31 @@ func TestNativeSession(t *testing.T) {
 				if !rows.Next() {
 					t.Fatal("stream produced no first row")
 				}
-				if err := rows.Close(); err == nil || rows.Complete() {
+				if err := rows.Close(); !expectedInterruption(err, context.Canceled) || rows.Complete() {
 					t.Fatal("early close incorrectly established completeness")
 				}
 				_, err = isolated.Query(context.Background(), statement(t, "retired-query", "select 'x' from dual"))
-				if !errors.Is(err, session.ErrUnavailable) {
+				if !allErrorLeaves(err, func(leaf error) bool { return leaf == session.ErrUnavailable }) {
 					t.Fatal("early-closed session was not retired")
 				}
 			})
-			t.Run("active-cancellation", func(t *testing.T) {
+			t.Run("client-deadline-retirement", func(t *testing.T) {
 				isolated := openSession(t, cfg, mode.prepared, true)
 				ctx, cancel := context.WithTimeout(context.Background(), 250*time.Millisecond)
 				defer cancel()
 				started := time.Now()
 				_, err := isolated.Exec(ctx, statement(t, "cancel", "begin dbms_lock.sleep(5); end;"), session.ExecOptions{})
-				if !errors.Is(err, context.DeadlineExceeded) {
-					t.Fatalf("active deadline was not retained (%T)", err)
+				if ctx.Err() != context.DeadlineExceeded || !expectedInterruption(err, context.DeadlineExceeded) {
+					t.Fatalf("client deadline was not retained (%T)", err)
 				}
 				if time.Since(started) > 3*time.Second {
-					t.Fatal("active cancellation exceeded the qualified client bound")
+					t.Fatal("client cancellation exceeded the qualified client bound")
 				}
 				_, err = isolated.Query(context.Background(), statement(t, "cancel-retired", "select 'x' from dual"))
-				if !errors.Is(err, session.ErrUnavailable) {
+				if !allErrorLeaves(err, func(leaf error) bool { return leaf == session.ErrUnavailable }) {
 					t.Fatal("cancelled session was not retired")
 				}
-				t.Log("client operation joined and session retired; server termination requires separate observation")
+				t.Log("client operation joined and session retired; server dispatch and termination require separate observation")
 			})
 		})
 	}
@@ -298,6 +305,18 @@ func TestNativeSession(t *testing.T) {
 // logoff. Accept only that terminal close condition, preserving other failures
 // even when database/sql or the library has joined them with a socket error.
 func onlyClosedSocket(err error) bool {
+	return allErrorLeaves(err, func(leaf error) bool { return leaf == net.ErrClosed })
+}
+
+// expectedInterruption rejects unexpected causes even when joined with the
+// required cancellation. EOF and arbitrary driver errors are not exemptions.
+func expectedInterruption(err, cause error) bool {
+	return errors.Is(err, cause) && allErrorLeaves(err, func(leaf error) bool {
+		return leaf == cause || leaf == net.ErrClosed
+	})
+}
+
+func allErrorLeaves(err error, allowed func(error) bool) bool {
 	if err == nil {
 		return false
 	}
@@ -307,16 +326,16 @@ func onlyClosedSocket(err error) bool {
 			return false
 		}
 		for _, child := range children {
-			if !onlyClosedSocket(child) {
+			if !allErrorLeaves(child, allowed) {
 				return false
 			}
 		}
 		return true
 	}
 	if child := errors.Unwrap(err); child != nil {
-		return onlyClosedSocket(child)
+		return allErrorLeaves(child, allowed)
 	}
-	return errors.Is(err, net.ErrClosed)
+	return allowed(err)
 }
 
 func TestDisposedCloseClassification(t *testing.T) {
@@ -338,5 +357,30 @@ func TestDisposedCloseClassification(t *testing.T) {
 				t.Fatalf("closed-only=%t, want %t", got, tc.want)
 			}
 		})
+	}
+}
+
+func TestInterruptionClassification(t *testing.T) {
+	unexpected := errors.New("unexpected cursor failure")
+	for _, cause := range []error{context.Canceled, context.DeadlineExceeded} {
+		for _, tc := range []struct {
+			name string
+			err  error
+			want bool
+		}{
+			{"cause", cause, true},
+			{"closed-and-cause", errors.Join(cause, &net.OpError{Op: "write", Net: "tcp", Err: net.ErrClosed}), true},
+			{"unexpected-and-cause", errors.Join(cause, unexpected), false},
+			{"nested-unexpected", errors.Join(cause, errors.Join(net.ErrClosed, unexpected)), false},
+			{"closed-only", net.ErrClosed, false},
+			{"EOF-and-cause", errors.Join(cause, io.EOF), false},
+			{"nil", nil, false},
+		} {
+			t.Run(cause.Error()+"/"+tc.name, func(t *testing.T) {
+				if got := expectedInterruption(tc.err, cause); got != tc.want {
+					t.Fatalf("expected interruption=%t, want %t", got, tc.want)
+				}
+			})
+		}
 	}
 }
