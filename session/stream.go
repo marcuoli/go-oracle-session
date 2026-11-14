@@ -123,7 +123,7 @@ func (session *Session) startStream(parent, watchParent context.Context, stateme
 		cancel()
 	}
 	session.streamMu.Unlock()
-	cursor.rows, err = session.connection.QueryContext(operation, text, statement.Args...)
+	cursor.rows, err = session.runner().QueryContext(operation, text, statement.Args...)
 	if err == nil {
 		cursor.columns, err = cursor.rows.Columns()
 		if err == nil && (len(cursor.columns) == 0 || len(cursor.columns) > 16384) {
@@ -146,6 +146,9 @@ func (session *Session) startStream(parent, watchParent context.Context, stateme
 func (session *Session) cancelActiveStream() {
 	session.streamMu.Lock()
 	defer session.streamMu.Unlock()
+	if session.activeTx != nil {
+		session.activeTx.cancel()
+	}
 	if session.activeStream != nil {
 		session.activeStream.cancel()
 	}

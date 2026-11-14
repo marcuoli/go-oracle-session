@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.0
+
+- Add non-replayed Exec, owned transactions and native input/output bind forwarding without a concrete driver dependency.
+- Add explicit contextual prepared execution and scoped driver metadata callbacks; preserve direct mode and existing query/stream defaults.
+- Retain pool transaction affinity through joined commit/rollback/cancellation cleanup, safe unknown outcomes and single lease retirement.
+
 ## v0.3.0
 
 - Add fixed-capacity admitted-session pools and owned native streaming cursors,

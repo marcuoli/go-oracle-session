@@ -1,5 +1,5 @@
-// Package session owns one leased connection and bounded, non-replayed queries.
-// Callers provide an official QueryerContext driver connector, reviewed SQL and value codec.
+// Package session owns leased connections and bounded, non-replayed operations.
+// Callers provide official contextual drivers, reviewed SQL and value codecs.
 package session
 
 import (
@@ -37,6 +37,9 @@ type Codec func(any) (Value, error)
 // must be idempotent and must unblock/join all owned connector/driver I/O;
 // callers qualify that hook and their official driver on actual native targets.
 type Options struct {
+	// PreparedContext selects context-prepared statements instead of direct queries.
+	// The default retains the direct QueryerContext requirement and rejects fallback.
+	PreparedContext                              bool
 	ConnectTimeout, QueryTimeout, CleanupTimeout time.Duration
 	MaxRows, MaxBytes                            int
 	Dispose                                      func() error
@@ -100,6 +103,9 @@ type Session struct {
 	streamMu         sync.Mutex
 	activeStream     *Stream
 	streamFinalizers sync.WaitGroup
+	commands         commandRunner
+	driverState      *driverState
+	activeTx         *Tx
 }
 
 // Open authenticates one connector under the explicit connection budget.
@@ -118,7 +124,8 @@ func Open(ctx context.Context, connector driver.Connector, options Options) (*Se
 		return nil, err
 	}
 	cursorErrors := &cursorErrors{}
-	pool := sql.OpenDB(trackedConnector{Connector: connector, errors: cursorErrors})
+	state := &driverState{}
+	pool := sql.OpenDB(trackedConnector{Connector: connector, errors: cursorErrors, options: options, state: state})
 	pool.SetMaxOpenConns(1)
 	pool.SetMaxIdleConns(1)
 	connection, err := pool.Conn(operation)
@@ -142,7 +149,7 @@ func Open(ctx context.Context, connector driver.Connector, options Options) (*Se
 	}
 	gate := make(chan struct{}, 1)
 	gate <- struct{}{}
-	return &Session{db: pool, connection: connection, options: options, gate: gate, cursorErrors: cursorErrors}, nil
+	return &Session{db: pool, connection: connection, options: options, gate: gate, cursorErrors: cursorErrors, driverState: state}, nil
 }
 
 // Query runs one leased-connection command, never database/sql's retry helper.
@@ -175,9 +182,10 @@ func (session *Session) Query(ctx context.Context, statement Statement) (result 
 	}
 	started := time.Now()
 	defer func() {
-		returnedErr = joinCauses(returnedErr, session.cursorErrors.take())
+		cleanupErr := session.cursorErrors.take()
+		returnedErr = joinCauses(returnedErr, cleanupErr)
 		outcome, err := watch.Finish(returnedErr)
-		if outcome.Cause != "none" || errors.Is(err, driver.ErrBadConn) || errors.Is(err, sql.ErrConnDone) {
+		if (session.options.PreparedContext && cleanupErr != nil) || outcome.Cause != "none" || errors.Is(err, driver.ErrBadConn) || errors.Is(err, sql.ErrConnDone) {
 			session.unusable = true
 		}
 		returnedErr = safeError("query", statement.Reference, err)
@@ -187,7 +195,7 @@ func (session *Session) Query(ctx context.Context, statement Statement) (result 
 			result.Duration = time.Since(started)
 		}
 	}()
-	rows, err := session.connection.QueryContext(operation, annotated, statement.Args...)
+	rows, err := session.runner().QueryContext(operation, annotated, statement.Args...)
 	if err != nil {
 		return Result{}, err
 	}
