@@ -34,3 +34,7 @@ This repository is a reusable Go library. Organize implementation and tests in c
 The configured Gitea origin owns implementation history. GitHub is the public distribution copy. Audit source and commit metadata before public pushes; use the configured public noreply identity. Libraries use conventional immutable module tags, starting at v0.1.0. Validate consumers with GOWORK=off and no local replace. Distinguish implemented, merged, released and integrated outcomes.
 
 - Before adding a reusable mechanism, inspect existing modules and record additional sharing candidates in the owning issue. Extract only a cohesive contract needed by real consumers; keep product policy at the boundary.
+
+## Dataset ownership
+
+Generic query cursors, complete bounded JSON and result finalization belong in the functional rowset package. Reuse existing owned Stream lifetime/cancellation and never expose its private native cursor. Database resultsets use rows/JSON, not CSV/plaintext; genuine DBMS_OUTPUT is the text exception. Oracle facts, version-selected views, filters and application policy belong to their callers.
