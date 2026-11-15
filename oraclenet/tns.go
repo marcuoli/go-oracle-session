@@ -3,7 +3,6 @@ package oraclenet
 
 import (
 	"errors"
-	"fmt"
 	"io"
 
 	"os"
@@ -93,43 +92,8 @@ func readTNSNames(alias, adminDirectory string) ([]byte, error) {
 }
 
 func parseTNSNames(content string) (map[string]string, error) {
-	content = stripTNSComments(content)
-	result := make(map[string]string)
-	for cursor := 0; cursor < len(content); {
-		cursor = skipTNSWhitespace(content, cursor)
-		if cursor >= len(content) {
-			break
-		}
-		equals := strings.IndexByte(content[cursor:], '=')
-		if equals < 0 {
-			break
-		}
-		equals += cursor
-		aliases := strings.TrimSpace(content[cursor:equals])
-		cursor = skipTNSWhitespace(content, equals+1)
-		if cursor >= len(content) || content[cursor] != '(' {
-			if next := strings.IndexByte(content[cursor:], '\n'); next >= 0 {
-				cursor += next + 1
-				continue
-			}
-			break
-		}
-
-		end, err := scanTNSDescriptor(content, cursor)
-		if err != nil {
-			return nil, err
-		}
-		descriptor := strings.TrimSpace(content[cursor:end])
-		for _, rawAlias := range strings.Split(aliases, ",") {
-			alias := strings.TrimSpace(rawAlias)
-			if !tnsAliasPattern.MatchString(alias) {
-				return nil, fmt.Errorf("invalid TNS alias")
-			}
-			result[strings.ToUpper(alias)] = descriptor
-		}
-		cursor = end
-	}
-	return result, nil
+	entries, _, err := parseTNSContent(content, false)
+	return entries, err
 }
 
 func stripTNSComments(content string) string {

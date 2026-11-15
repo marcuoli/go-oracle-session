@@ -208,3 +208,27 @@ qualification and publication of complete output values remain caller-owned.
 ## Full query datasets
 
 The functional rowset package provides native Query/QueryJSON and complete Read/ReadJSON for borrowed sql.Rows or existing lease-owning Stream cursors. Preserve cursor ownership and context; only complete, bounded JSON succeeds. See [rowset contracts and examples](docs/rowsets.md). Oracle fact selection and application policy remain outside this generic layer.
+
+## Explicit Oracle Net text parsing
+
+`oraclenet.ParseTNSNames([]byte)` and `oraclenet.ParseSQLNet([]byte)` parse
+caller-supplied NUL-free UTF-8 up to 1 MiB without file, environment, wallet or
+network access. Typed results retain complete parsed values with JSON field tags.
+Callers retain the original bytes and their provenance separately; comment
+removal and effective-alias selection are not a lossless source archive.
+
+TNS aliases are uppercase and sorted by name. Multiple aliases are supported;
+duplicate aliases use the last definition, matching resolver lookup. Descriptor
+text is retained after comment removal. The pure API additionally rejects
+unsupported scalar assignments and trailing syntax rather than silently skipping
+them; existing resolver admission and lookup behavior are unchanged. SQLNet
+assignments retain source order and duplicates, with uppercase names and opaque
+nested values. These parsers do not validate parameter-specific meanings or
+connection reachability.
+
+Both APIs retain literal `IFILE` declarations without expanding or reading them.
+An include means only the supplied file has been parsed, not the effective
+configuration across its include graph. SQLNet entries include the `IFILE`
+assignment as well as listing it separately in `Includes`; TNS `Entries` contains
+only effective aliases. Errors use static capacity, encoding or syntax sentinels
+and never return a partial prefix or supplied values.
