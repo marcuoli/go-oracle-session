@@ -77,3 +77,44 @@ func TestPureNetParsingSizeBoundaryAndEmptyIncludes(t *testing.T) {
 		}
 	}
 }
+
+func TestParseSQLNetRejectsIncompleteOrMultipleScalarTokens(t *testing.T) {
+	for _, tc := range []struct{ name, value string }{
+		{"opening_quote", `"1.2`},
+		{"middle_quote", `1".2`},
+		{"closing_quote", `1.2"`},
+		{"third_quote", `"1.2""`},
+		{"trailing_quoted_token", `"1.2" "tail"`},
+		{"trailing_unquoted_token", `"1.2" tail`},
+		{"embedded_quoted_token", `1."2"`},
+		{"trailing_scalar_token", `one two`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := oraclenet.ParseSQLNet([]byte("VALID_SCALAR=first\nTEST_SCALAR=" + tc.value + "\n"))
+			if !errors.Is(err, oraclenet.ErrNetConfigSyntax) || len(got.Entries) != 0 || len(got.Includes) != 0 {
+				t.Fatalf("malformed scalar returned a parsed prefix: %#v, %v", got, err)
+			}
+			gotTNS, err := oraclenet.ParseTNSNames([]byte("VALID=(DESCRIPTION=(HOST=example.invalid))\nIFILE=" + tc.value + "\n"))
+			if !errors.Is(err, oraclenet.ErrNetConfigSyntax) || len(gotTNS.Entries) != 0 || len(gotTNS.Includes) != 0 {
+				t.Fatalf("malformed include scalar returned a parsed prefix: %#v, %v", gotTNS, err)
+			}
+		})
+	}
+}
+
+func TestParseSQLNetRetainsSupportedWholeScalarsAndComments(t *testing.T) {
+	for _, tc := range []struct{ name, input, want string }{
+		{"unquoted", "TEST_SCALAR=literal.token # comment\n", "literal.token"},
+		{"quoted", "TEST_SCALAR=\"literal with whitespace\" # comment\n", `"literal with whitespace"`},
+		{"quoted_hash", "TEST_SCALAR=\"literal#(value)\" # comment with unmatched \"\n", `"literal#(value)"`},
+		{"comment_quote", "TEST_SCALAR=literal # comment with unmatched \"\n", "literal"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := oraclenet.ParseSQLNet([]byte(tc.input))
+			want := oraclenet.SQLNetConfig{Entries: []oraclenet.NetSetting{{Name: "TEST_SCALAR", Value: tc.want}}}
+			if err != nil || !reflect.DeepEqual(got, want) {
+				t.Fatalf("got %#v, %v; want %#v", got, err, want)
+			}
+		})
+	}
+}

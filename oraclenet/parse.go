@@ -4,6 +4,7 @@ import (
 	"errors"
 	"slices"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -79,6 +80,8 @@ func ParseTNSNames(data []byte) (TNSNamesConfig, error) {
 // ParseSQLNet parses at most 1 MiB of NUL-free UTF-8 using the existing top-level
 // assignment parser. Comments are removed outside double quotes; nested values,
 // quoted paths and duplicate assignments retain their existing literal semantics.
+// A nonempty scalar is one unquoted token without whitespace or quotes, or one complete
+// double-quoted token; nested values remain opaque to scalar admission.
 // IFILE values are recorded without expansion or I/O. Parsing does not validate
 // parameter-specific meanings or included files. Static sentinel errors return
 // no prefix, and original source bytes remain the caller's responsibility.
@@ -92,6 +95,9 @@ func ParseSQLNet(data []byte) (SQLNetConfig, error) {
 	}
 	var result SQLNetConfig
 	for _, setting := range settings {
+		if !completeNetScalar(setting.value) {
+			return SQLNetConfig{}, ErrNetConfigSyntax
+		}
 		result.Entries = append(result.Entries, NetSetting{Name: setting.name, Value: setting.value})
 		if setting.name == "IFILE" {
 			if netScalar(setting.value) == "" {
@@ -103,6 +109,19 @@ func ParseSQLNet(data []byte) (SQLNetConfig, error) {
 	return result, nil
 }
 
+// The shared scanner frames assignments and parenthesized values. Pure parsing
+// additionally requires a whole scalar token: unmatched/embedded quotes or a
+// second token cannot count as complete metadata. Legacy resolver and wallet
+// callers retain their existing value admission through netAssignments.
+func completeNetScalar(value string) bool {
+	if strings.HasPrefix(value, "(") {
+		return true
+	}
+	if strings.HasPrefix(value, `"`) {
+		return len(value) >= 2 && strings.HasSuffix(value, `"`) && strings.Count(value, `"`) == 2
+	}
+	return !strings.ContainsRune(value, '"') && strings.IndexFunc(value, unicode.IsSpace) < 0
+}
 func validateNetConfig(data []byte) error {
 	if len(data) > maxTNSNamesSize {
 		return ErrNetConfigCapacity
@@ -143,7 +162,7 @@ func parseTNSContent(content string, strict bool) (map[string]string, []NetInclu
 				end += cursor
 			}
 			settings, err := netAssignments("IFILE=" + content[cursor:end])
-			if err != nil || len(settings) != 1 || netScalar(settings[0].value) == "" {
+			if err != nil || len(settings) != 1 || !completeNetScalar(settings[0].value) || netScalar(settings[0].value) == "" {
 				return nil, nil, ErrNetConfigSyntax
 			}
 			includes = append(includes, NetInclude{Value: settings[0].value})

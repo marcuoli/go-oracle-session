@@ -223,7 +223,9 @@ text is retained after comment removal. The pure API additionally rejects
 unsupported scalar assignments and trailing syntax rather than silently skipping
 them; existing resolver admission and lookup behavior are unchanged. SQLNet
 assignments retain source order and duplicates, with uppercase names and opaque
-nested values. These parsers do not validate parameter-specific meanings or
+nested values. Pure parsing requires nonempty scalar values to be one unquoted token
+without whitespace or quotes, or one fully double-quoted token; unmatched quotes
+and trailing tokens are rejected. These parsers do not validate parameter-specific meanings or
 connection reachability.
 
 Both APIs retain literal `IFILE` declarations without expanding or reading them.

@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Add bounded pure Oracle Net text parsing with full typed entries, literal unresolved include declarations and static errors; preserve existing resolver behavior (#30).
+- Add bounded pure Oracle Net text parsing with full typed entries, literal unresolved include declarations, strict whole-scalar admission and static errors; preserve existing resolver behavior (#30).
 
 - Add immutable per-call QueryOptions and QueryWithOptions on Session, Pool and Tx; preserve default budgets and existing codec, cancellation, lease and finalization behavior (#26).
 
