@@ -189,9 +189,7 @@ func (tx *Tx) Exec(ctx context.Context, statement Statement, options ExecOptions
 
 // Query returns one exact buffered result within the retained transaction.
 func (tx *Tx) Query(ctx context.Context, statement Statement) (Result, error) {
-	ctx, finish := tx.operationContext(ctx)
-	defer finish()
-	return tx.view.Query(ctx, statement)
+	return tx.QueryWithOptions(ctx, statement, QueryOptions{})
 }
 
 // Stream retains the transaction's operation gate until cursor finalization.

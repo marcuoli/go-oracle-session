@@ -66,6 +66,12 @@ application factory opens and admits each fresh physical session, including its
 settings and disposal hook. Ownership transfers to the pool. The query budget
 includes waiting for a free session; a session's own budget may expire earlier.
 `Pool.Query` retains the existing complete, exact buffered result contract.
+For one larger or smaller complete inventory, use the additive
+`Session.QueryWithOptions`, `Pool.QueryWithOptions` or `Tx.QueryWithOptions` with
+`session.QueryOptions{MaxRows: ..., MaxBytes: ...}`. Zero fields inherit defaults;
+negative limits fail before lease admission. These copied limits affect only that
+call's retained rows/text bytes, preserving codecs and cancellation/cleanup. See
+[per-call buffered-query limits](docs/query-limits.md).
 
 `Session.Stream` and `Pool.Stream` take `session.StreamOptions` and expose an
 owned cursor with `Next`, `Scan`, `Columns`, `Err`, `Close` and `Complete`.

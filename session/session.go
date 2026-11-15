@@ -33,7 +33,8 @@ type Value struct {
 // Codec admits driver-owned values without float conversion or shared buffers.
 type Codec func(any) (Value, error)
 
-// Options bounds every operation. Codec must return promptly. Dispose is required,
+// Options supplies default operation bounds. QueryOptions may override one buffered
+// query's row/text retention limits. Codec must return promptly. Dispose is required,
 // must be idempotent and must unblock/join all owned connector/driver I/O;
 // callers qualify that hook and their official driver on actual native targets.
 type Options struct {
@@ -169,10 +170,14 @@ func Open(ctx context.Context, connector driver.Connector, options Options) (*Se
 // Query runs one leased-connection command, never database/sql's retry helper.
 // Cursor cleanup and the cancellation watcher join before any result is returned.
 func (session *Session) Query(ctx context.Context, statement Statement) (Result, error) {
-	return session.query(ctx, ctx, statement)
+	return session.QueryWithOptions(ctx, statement, QueryOptions{})
 }
 
-func (session *Session) query(ctx, watchParent context.Context, statement Statement) (result Result, returnedErr error) {
+func (session *Session) query(ctx, watchParent context.Context, statement Statement, options QueryOptions) (result Result, returnedErr error) {
+	bounds, err := options.resolve(session.options.MaxRows, session.options.MaxBytes)
+	if err != nil {
+		return Result{}, safeError("query", statement.Reference, err)
+	}
 	operation, cancel := context.WithTimeout(ctx, session.options.QueryTimeout)
 	defer cancel()
 	// Queueing is part of this query's budget. An expired waiter never disposes
@@ -228,7 +233,7 @@ func (session *Session) query(ctx, watchParent context.Context, statement Statem
 		if err := operation.Err(); err != nil {
 			return Result{}, err
 		}
-		if len(result.Rows) >= session.options.MaxRows {
+		if len(result.Rows) >= bounds.MaxRows {
 			return Result{}, ErrCapacity
 		}
 		raw := make([]any, len(columns))
@@ -248,7 +253,7 @@ func (session *Session) query(ctx, watchParent context.Context, statement Statem
 			if admitted.Null && admitted.Text != "" {
 				return Result{}, errors.New("NULL transport value contains text")
 			}
-			if len(admitted.Text) > session.options.MaxBytes-retained {
+			if len(admitted.Text) > bounds.MaxBytes-retained {
 				return Result{}, ErrCapacity
 			}
 			retained += len(admitted.Text)

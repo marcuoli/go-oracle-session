@@ -135,20 +135,8 @@ func (pool *Pool) release(client *Session) error {
 // Query leases one session and returns its complete exact buffered result. The
 // pool deadline includes queueing. A failed query is never replayed on another
 // session; cleanup failures also invalidate the returned result.
-func (pool *Pool) Query(ctx context.Context, statement Statement) (result Result, returnedErr error) {
-	operation, cancel := context.WithTimeout(ctx, pool.options.QueryTimeout)
-	defer cancel()
-	client, err := pool.acquire(operation)
-	if err != nil {
-		return Result{}, safeError("pool-query", statement.Reference, err)
-	}
-	defer func() {
-		returnedErr = joinCauses(returnedErr, pool.release(client))
-		if returnedErr != nil {
-			result = Result{}
-		}
-	}()
-	return client.query(operation, ctx, statement)
+func (pool *Pool) Query(ctx context.Context, statement Statement) (Result, error) {
+	return pool.QueryWithOptions(ctx, statement, QueryOptions{})
 }
 
 // Stream leases one session until its native cursor finishes. NoQueryTimeout
