@@ -4,6 +4,8 @@
 
 - Add bounded pure Oracle Net text parsing with full typed entries, literal unresolved include declarations, strict whole-scalar admission and static errors; preserve existing resolver behavior (#30).
 
+## v0.8.0
+
 - Add immutable per-call QueryOptions and QueryWithOptions on Session, Pool and Tx; preserve default budgets and existing codec, cancellation, lease and finalization behavior (#26).
 
 - Validate both native driver targets against released v0.7.0 without a first-party replacement; include cancellation-continuation checks in their normal integration builds and scans.
