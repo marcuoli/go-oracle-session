@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.9.0
+
 - Add bounded pure Oracle Net text parsing with full typed entries, literal unresolved include declarations, strict whole-scalar admission and static errors; preserve existing resolver behavior (#30).
 
 ## v0.8.0
