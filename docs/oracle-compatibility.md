@@ -19,7 +19,9 @@ needs evidence for the exact library commit, upstream driver, server patch level
 operating system and architecture. Record Oracle Client as `not used` for this
 path. Neither a successful connection nor synthetic module CI qualifies every
 operation.
-Native range qualification is tracked in the source repository's issue #16; it remains incomplete.
+Official driver boundary qualification is tracked in the source repository's
+issue #25. Full native range qualification remains incomplete; issue #16 records
+the completed shared cancellation delivery.
 
 ## Compatibility boundaries
 

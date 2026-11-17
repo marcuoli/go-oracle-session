@@ -199,15 +199,20 @@ func (tx *Tx) Stream(ctx context.Context, statement Statement, options StreamOpt
 	return tx.view.startStream(operation, ctx, statement, options, func() error { finish(); return nil })
 }
 func (tx *Tx) operationContext(ctx context.Context) (context.Context, func()) {
-	operation, cancel := context.WithCancel(ctx)
+	operation, cancel := context.WithCancelCause(ctx)
 	done := make(chan struct{})
-	stop := context.AfterFunc(tx.ctx, func() { cancel(); close(done) })
+	// The lifetime is independent of this command's caller. Retain both its
+	// cancellation/deadline identity and any separately supplied stage cause.
+	stop := context.AfterFunc(tx.ctx, func() {
+		cancel(joinCauses(tx.ctx.Err(), context.Cause(tx.ctx)))
+		close(done)
+	})
 	return operation, func() {
 		if stop() {
 			close(done)
 		}
 		<-done
-		cancel()
+		cancel(nil)
 	}
 }
 
@@ -261,7 +266,11 @@ func (tx *Tx) terminate(ctx context.Context, commit, callback bool) error {
 		won = true
 		finishHere = tx.stopCancel()
 		tx.view.closing.Store(true)
-		tx.view.cancelActiveStream()
+		// Lifetime cancellation already reaches commands through their cause-aware
+		// bridge. A second plain stream cancel could win and erase that cause.
+		if tx.ctx.Err() == nil {
+			tx.view.cancelActiveStream()
+		}
 		var terminalErr error
 		cleanupErr := boundedCleanup(ctx, tx.parent.options, func() error {
 			<-tx.view.gate

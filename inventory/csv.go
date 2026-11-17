@@ -84,15 +84,18 @@ func Parse(data []byte, options ...Options) ([]Entry, error) {
 		if err != nil {
 			return nil, &ValidationError{Code: CSVInvalid}
 		}
+		// Keep at most the header and admitted rows. Even a byte-bounded file
+		// can otherwise retain many small records before its row limit is checked.
+		// Input after the first overflow row is outside this admission boundary.
+		if len(records) > maxRows {
+			return nil, &ValidationError{Code: TooManyRows, Limit: maxRows}
+		}
 		line, _ := reader.FieldPos(0)
 		records = append(records, record)
 		sourceLines = append(sourceLines, line)
 	}
 	if len(records) == 0 {
 		return nil, &ValidationError{Code: CSVEmpty}
-	}
-	if len(records)-1 > maxRows {
-		return nil, &ValidationError{Code: TooManyRows, Limit: maxRows}
 	}
 
 	headers := records[0]

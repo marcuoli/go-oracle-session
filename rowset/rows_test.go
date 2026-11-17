@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math"
+	"slices"
 	"strings"
 	"testing"
 
@@ -17,7 +18,7 @@ var schema = []rowset.Column{{Name: "ID", Kind: rowset.Integer}, {Name: "VALUE",
 
 func TestReadJSONPreservesNativeMeaningAndOrder(t *testing.T) {
 	t.Parallel()
-	db, state := testsql.New(t, testsql.Step{Columns: []string{"ID", "VALUE"}, Values: [][]driver.Value{{int64(9007199254740993), []byte("  a,b\n雪  ")}, {nil, nil}, {int64(0), ""}}})
+	db, state := testsql.New(t, testsql.Step{Columns: []string{"id", "Value"}, Values: [][]driver.Value{{int64(9007199254740993), []byte("  a,b\n雪  ")}, {nil, nil}, {int64(0), ""}}})
 	rows, err := rowset.Query(t.Context(), db, "SELECT fixture")
 	if err != nil {
 		t.Fatal(err)
@@ -37,6 +38,10 @@ func TestReadJSONPreservesNativeMeaningAndOrder(t *testing.T) {
 	decoder.UseNumber()
 	if err := decoder.Decode(&table); err != nil {
 		t.Fatal(err)
+	}
+	wantColumns := []rowset.Column{{Name: "id", Kind: rowset.Integer}, {Name: "Value", Kind: rowset.Text}}
+	if !slices.Equal(table.Columns, wantColumns) {
+		t.Fatalf("column names, order or kinds changed: got%+v want%+v", table.Columns, wantColumns)
 	}
 	if len(table.Rows) != 3 || table.Rows[0][0] != json.Number("9007199254740993") || table.Rows[0][1] != "  a,b\n雪  " || table.Rows[1][0] != nil || table.Rows[1][1] != nil || table.Rows[2][0] != json.Number("0") || table.Rows[2][1] != "" {
 		t.Fatalf("raw/null/zero/order changed: %#v", table)

@@ -3,6 +3,7 @@ package oraclenet_test
 import (
 	"github.com/marcuoli/go-oracle-session/oraclenet"
 	"path/filepath"
+	"slices"
 	"testing"
 )
 
@@ -14,19 +15,24 @@ func TestSecuritySettingsRetainPolicyWithoutInterpretingQuotedDecoys(t *testing.
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(settings) != 5 {
-		t.Fatal(settings)
+	want := []oraclenet.SecuritySetting{
+		{Name: "SSL_SERVER_DN_MATCH", Value: "yes", Descriptor: true},
+		{Name: "SSL_SERVER_CERT_DN", Value: "CN=expected,O=Example", Descriptor: true},
+		{Name: "MY_WALLET_DIRECTORY", Value: "wallet (SSL_VERSION=decoy)", Descriptor: true},
+		{Name: "SSL_SERVER_DN_MATCH", Value: "yes"},
+		{Name: "SSL_SERVER_CERT_DN", Value: "CN=file-pin,O=Example"},
 	}
-	if settings[1].Name != "SSL_SERVER_CERT_DN" || settings[1].Value != "CN=expected,O=Example" || !settings[1].Descriptor {
-		t.Fatal(settings)
-	}
-	if settings[4].Value != "CN=file-pin,O=Example" || settings[4].Descriptor {
-		t.Fatal(settings)
+	if !slices.Equal(settings, want) {
+		t.Fatalf("security values/order/origin changed: got%+v want%+v", settings, want)
 	}
 }
 func TestSecuritySettingsPreserveDuplicatesAndMissingFile(t *testing.T) {
 	settings, err := oraclenet.ReadSecuritySettings(`(DESCRIPTION=(SECURITY=(SSL_SERVER_DN_MATCH=yes)(SSL_SERVER_DN_MATCH=no)))`, t.TempDir())
-	if err != nil || len(settings) != 2 || settings[0].Value != "yes" || settings[1].Value != "no" {
+	want := []oraclenet.SecuritySetting{
+		{Name: "SSL_SERVER_DN_MATCH", Value: "yes", Descriptor: true},
+		{Name: "SSL_SERVER_DN_MATCH", Value: "no", Descriptor: true},
+	}
+	if err != nil || !slices.Equal(settings, want) {
 		t.Fatal(settings, err)
 	}
 }

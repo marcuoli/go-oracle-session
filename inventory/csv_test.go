@@ -2,6 +2,9 @@ package inventory
 
 import (
 	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -189,5 +192,149 @@ func TestParseUsesTheFileByteLimit(t *testing.T) {
 	failure, ok := err.(*ValidationError)
 	if !ok || failure.Code != FileTooLarge {
 		t.Fatalf("unbounded byte admission: %v", err)
+	}
+}
+
+func TestParseRowCapacityStopsAtFirstOverflow(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		rows     int
+		tail     string
+		overflow bool
+	}{
+		{"exact", maxRows, "", false},
+		{"overflow", maxRows + 1, "", true},
+		{"malformed first extra record", maxRows, "\"private malformed", false},
+		{"unadmitted malformed tail", maxRows + 1, "\"private malformed", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var data strings.Builder
+			data.WriteString("name,connect,username,password\n")
+			for i := range tc.rows {
+				fmt.Fprintf(&data, "db%d,TNS,app,  private-password  \n", i)
+			}
+			data.WriteString(tc.tail)
+			entries, err := Parse([]byte(data.String()))
+			if tc.tail != "" && !tc.overflow {
+				var failure *ValidationError
+				if entries != nil || !errors.As(err, &failure) || failure.Code != CSVInvalid {
+					t.Fatal("malformed first extra record lost syntax failure", err)
+				}
+			} else if tc.overflow {
+				var failure *ValidationError
+				if entries != nil || !errors.As(err, &failure) || failure.Code != TooManyRows || failure.Limit != maxRows {
+					t.Fatalf("row admission did not stop at capacity: entries=%d error=%v", len(entries), err)
+				}
+				if strings.Contains(err.Error(), "private") {
+					t.Fatal("overflow exposed an unadmitted value")
+				}
+			} else if err != nil || len(entries) != maxRows || entries[maxRows-1].Name != "db9999" || entries[maxRows-1].Password != "  private-password  " {
+				t.Fatal("exact row boundary or credential bytes changed", err)
+			}
+		})
+	}
+}
+
+func TestReadFilePreservesValuesAndRejectsUnsafeInputs(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "private-inventory.csv")
+	const input = "name,connect,username,password\nsample,private-host,private-user,\"  private,password  \"\n"
+	if err := os.WriteFile(path, []byte(input), 0600); err != nil {
+		t.Fatal(err)
+	}
+	entries, err := ReadFile(path)
+	if err != nil || len(entries) != 1 || entries[0].Connect != "private-host" || entries[0].Username != "private-user" || entries[0].Password != "  private,password  " {
+		t.Fatal("file admission changed parsed values", err)
+	}
+	for _, tc := range []struct {
+		name, path string
+		code       ValidationCode
+	}{
+		{"missing", filepath.Join(root, "private-missing.csv"), FileUnreadable},
+		{"directory", root, FileUnsafe},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			entries, err := ReadFile(tc.path)
+			var failure *ValidationError
+			if entries != nil || !errors.As(err, &failure) || failure.Code != tc.code || strings.Contains(err.Error(), "private") || strings.Contains(err.Error(), root) {
+				t.Fatal("file failure lost its typed/redacted contract", err)
+			}
+		})
+	}
+	t.Run("symlink", func(t *testing.T) {
+		link := filepath.Join(root, "link.csv")
+		if err := os.Symlink(path, link); err != nil {
+			t.Skip("symbolic links unavailable on this host")
+		}
+		entries, err := ReadFile(link)
+		var failure *ValidationError
+		if entries != nil || !errors.As(err, &failure) || failure.Code != FileUnsafe {
+			t.Fatal("symbolic link admitted", err)
+		}
+	})
+}
+
+func TestReadFileByteBoundary(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "inventory.csv")
+	const prefix = "name,connect,username,password\nsample,TNS,app,password\n#"
+	data := prefix + strings.Repeat(" ", maxFileSize-len(prefix)-1) + "\n"
+	if err := os.WriteFile(path, []byte(data), 0600); err != nil {
+		t.Fatal(err)
+	}
+	entries, err := ReadFile(path)
+	if err != nil || len(entries) != 1 || entries[0].Name != "sample" || entries[0].Password != "password" {
+		t.Fatal("exact byte boundary rejected or changed", err)
+	}
+	if err := os.Truncate(path, maxFileSize+1); err != nil {
+		t.Fatal(err)
+	}
+	entries, err = ReadFile(path)
+	var failure *ValidationError
+	if entries != nil || !errors.As(err, &failure) || failure.Code != FileTooLarge || failure.Limit != maxFileSize {
+		t.Fatal("file byte overflow did not reject before parsing", err)
+	}
+}
+
+func TestURLValidationDelegatesThroughParseAndReadFile(t *testing.T) {
+	const connect = "custom://db.example/service?future-mode=enabled"
+	input := []byte("name,connect,username,password\nsample," + connect + ",private-user,private-password\n")
+	path := filepath.Join(t.TempDir(), "inventory.csv")
+	if err := os.WriteFile(path, input, 0600); err != nil {
+		t.Fatal(err)
+	}
+	for _, fromFile := range []bool{false, true} {
+		for _, reject := range []bool{false, true} {
+			t.Run(fmt.Sprintf("file=%t/reject=%t", fromFile, reject), func(t *testing.T) {
+				calls := 0
+				options := Options{ValidateURL: func(value string) error {
+					calls++
+					if value != connect {
+						t.Error("URL callback received a changed connection value")
+					}
+					if reject {
+						return errors.New("private engine failure")
+					}
+					return nil
+				}}
+				var entries []Entry
+				var err error
+				if fromFile {
+					entries, err = ReadFile(path, options)
+				} else {
+					entries, err = Parse(input, options)
+				}
+				if calls != 1 {
+					t.Fatal("URL callback was skipped or repeated", calls)
+				}
+				if reject {
+					var failure *ValidationError
+					if entries != nil || !errors.As(err, &failure) || failure.Code != EmbeddedCredentials || strings.Contains(err.Error(), "private") || strings.Contains(err.Error(), connect) {
+						t.Fatal("callback failure lost redacted admission semantics", err)
+					}
+				} else if err != nil || len(entries) != 1 || entries[0].Connect != connect || entries[0].Password != "private-password" {
+					t.Fatal("callback success changed admitted values", err)
+				}
+			})
+		}
 	}
 }

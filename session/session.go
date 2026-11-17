@@ -204,7 +204,7 @@ func (session *Session) query(ctx, watchParent context.Context, statement Statem
 		cleanupErr := session.cursorErrors.take()
 		returnedErr = joinCauses(returnedErr, cleanupErr)
 		outcome, err := watch.Finish(returnedErr)
-		if ((session.options.PreparedContext || session.options.Cancellation != nil) && cleanupErr != nil && outcome.Health != sessioncancel.Reusable) || outcome.Health == sessioncancel.Unusable || (outcome.Cause != "none" && outcome.Health != sessioncancel.Reusable) || errors.Is(err, driver.ErrBadConn) || errors.Is(err, sql.ErrConnDone) {
+		if (cleanupErr != nil && outcome.Health != sessioncancel.Reusable) || outcome.Health == sessioncancel.Unusable || (outcome.Cause != "none" && outcome.Health != sessioncancel.Reusable) || errors.Is(err, driver.ErrBadConn) || errors.Is(err, sql.ErrConnDone) {
 			session.unusable = true
 		}
 		returnedErr = safeError("query", statement.Reference, err)

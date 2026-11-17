@@ -160,15 +160,7 @@ func (cursor *Stream) closeDriverRows(closeRows func() error) error {
 	if cursor.session.options.Cancellation != nil {
 		return cursor.watch.Cleanup(cursor.session.options.CleanupTimeout, func(context.Context) error { return closeRows() })
 	}
-	parent := context.WithoutCancel(cursor.ctx)
-	bounded, cancel := context.WithTimeout(parent, cursor.session.options.CleanupTimeout)
-	defer cancel()
-	watch, err := sessioncancel.Start(bounded, parent, sessioncancel.Policy{}, sessioncancel.Hooks{Dispose: cursor.session.options.Dispose})
-	if err != nil {
-		return err
-	}
-	_, err = watch.Finish(closeRows())
-	return err
+	return boundedCleanup(cursor.ctx, cursor.session.options, closeRows)
 }
 
 func (cursor *Stream) finishLocked(cause error, exhausted bool) bool {

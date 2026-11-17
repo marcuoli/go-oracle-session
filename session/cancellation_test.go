@@ -567,3 +567,78 @@ func TestAcknowledgedCancellationFromPreparedCleanupCanRetainSession(t *testing.
 		})
 	}
 }
+
+func TestTransactionCommandRetainsLifetimeCauses(t *testing.T) {
+	for _, prepared := range []bool{false, true} {
+		for _, kind := range []string{"exec", "query", "fetch"} {
+			for _, cancellation := range []string{"cause", "deadline", "deadline-cause"} {
+				name := kind + "/" + cancellation
+				if prepared {
+					name += "/prepared"
+				}
+				t.Run(name, func(t *testing.T) {
+					synctest.Test(t, func(t *testing.T) {
+						c := newSoftConnection(kind)
+						opts := softOptions(c, prepared)
+						opts.QueryTimeout = time.Hour
+						client, err := session.Open(context.Background(), softConnector{c, nil}, opts)
+						if err != nil {
+							t.Fatal(err)
+						}
+						defer client.Close(context.Background())
+						stage := errors.New("transaction stage ended")
+						var lifetime context.Context
+						var stop context.CancelFunc
+						var trigger func()
+						expected := error(context.DeadlineExceeded)
+						cause := error(stage)
+						switch cancellation {
+						case "cause":
+							var cancel context.CancelCauseFunc
+							lifetime, cancel = context.WithCancelCause(context.Background())
+							stop = func() { cancel(nil) }
+							trigger = func() { cancel(stage) }
+							expected = context.Canceled
+						case "deadline":
+							lifetime, stop = context.WithTimeout(context.Background(), time.Second)
+							cause = context.DeadlineExceeded
+						case "deadline-cause":
+							lifetime, stop = context.WithTimeoutCause(context.Background(), time.Second, stage)
+						}
+						defer stop()
+						tx, err := client.BeginTx(lifetime, session.TxOptions{})
+						if err != nil {
+							t.Fatal(err)
+						}
+						defer tx.Rollback(context.Background())
+						if trigger != nil {
+							go func() { <-c.entered; trigger() }()
+						}
+						switch kind {
+						case "exec":
+							_, err = tx.Exec(context.Background(), statement(), session.ExecOptions{})
+						case "query":
+							_, err = tx.Query(context.Background(), statement())
+						case "fetch":
+							var cursor *session.Stream
+							cursor, err = tx.Stream(context.Background(), statement(), session.StreamOptions{})
+							if err == nil {
+								if cursor.Next() || cursor.Complete() {
+									t.Error("canceled transaction stream published a row/completion")
+								}
+								err = errors.Join(cursor.Err(), cursor.Close())
+							}
+						}
+						if !errors.Is(err, expected) || !errors.Is(err, cause) || !errors.Is(err, nativeAcknowledgement) {
+							t.Fatalf("transaction command lost lifetime or native cause: expected=%t cause=%t acknowledgement=%t", errors.Is(err, expected), errors.Is(err, cause), errors.Is(err, nativeAcknowledgement))
+						}
+						_ = tx.Rollback(context.Background())
+						if c.rollbacks.Load() != 1 || c.operations.Load() != 1 {
+							t.Fatal("transaction operation or rollback was replayed")
+						}
+					})
+				})
+			}
+		}
+	}
+}

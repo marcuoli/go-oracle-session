@@ -50,11 +50,12 @@ func (s *Session) driverContext(operation context.Context) context.Context {
 }
 
 func (s *Session) commandCleanup(watch *sessioncancel.Watch) {
-	if s.options.Cancellation != nil {
-		s.cursorErrors.setCloseHook(func(closeOwned func() error) error {
-			return watch.Cleanup(s.options.CleanupTimeout, func(context.Context) error { return closeOwned() })
-		})
-	}
+	// Buffered rows can close inside Next at EOF or in the deferred Close.
+	// Use the command owner in both modes so a cleanup cutoff also retires the
+	// session, while an active native break retains its existing grace.
+	s.cursorErrors.setCloseHook(func(closeOwned func() error) error {
+		return watch.Cleanup(s.options.CleanupTimeout, func(context.Context) error { return closeOwned() })
+	})
 }
 
 // nativeBeginContextKey preserves native setup cancellation while the Session

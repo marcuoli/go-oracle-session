@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.9.1
+
+- Bound buffered cursor cleanup under the command owner and retire failed cleanup; preserve transaction lifetime cancellation causes and stop CSV ingestion at its row limit (#33).
+- Reuse default stream cleanup, strengthen file/schema/security/queue regressions and correct ongoing qualification tracking (#33).
+
 ## v0.9.0
 
 - Add bounded pure Oracle Net text parsing with full typed entries, literal unresolved include declarations, strict whole-scalar admission and static errors; preserve existing resolver behavior (#30).

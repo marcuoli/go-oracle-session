@@ -8,6 +8,7 @@ import (
 	"github.com/marcuoli/go-sqltemplate/reference"
 	"io"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -26,10 +27,12 @@ type reviewConn struct {
 	release             chan struct{}
 	once                sync.Once
 	releaseOnce         sync.Once
+	queries, disposals  atomic.Int32
 	rowErr, rowCloseErr error
 }
 
 func (c *reviewConn) dispose() error {
+	c.disposals.Add(1)
 	if c.release != nil {
 		c.releaseOnce.Do(func() { close(c.release) })
 	}
@@ -40,6 +43,7 @@ func (*reviewConn) Begin() (driver.Tx, error)           { return nil, errors.New
 func (*reviewConn) Close() error                        { return nil }
 func (*reviewConn) Ping(context.Context) error          { return nil }
 func (c *reviewConn) QueryContext(context.Context, string, []driver.NamedValue) (driver.Rows, error) {
+	c.queries.Add(1)
 	if c.entered != nil {
 		c.once.Do(func() { close(c.entered) })
 		<-c.release
@@ -81,16 +85,25 @@ func TestReviewQueuedQueryHonorsCancellation(t *testing.T) {
 	started := time.Now()
 	go func() { _, err := s.Query(ctx, reviewStatement()); second <- err }()
 	var blocked bool
+	var secondErr error
 	select {
-	case <-second:
+	case secondErr = <-second:
 	case <-time.After(200 * time.Millisecond):
 		blocked = true
 	}
+	if c.queries.Load() != 1 || c.disposals.Load() != 0 {
+		t.Error("expired waiter dispatched SQL or interrupted the active command")
+	}
 	c.dispose()
-	<-first
+	if err := <-first; err != nil {
+		t.Error("queued cancellation affected the active query", err)
+	}
 	if blocked {
-		<-second
+		secondErr = <-second
 		t.Errorf("queued query still blocked after %s despite 15ms caller deadline", time.Since(started))
+	}
+	if !errors.Is(secondErr, context.DeadlineExceeded) {
+		t.Error("queued query did not retain its deadline", secondErr)
 	}
 	if err := s.Close(context.Background()); err != nil {
 		t.Fatal(err)
@@ -120,10 +133,14 @@ func TestReviewCloseBudgetIncludesQueuedWait(t *testing.T) {
 }
 func TestReviewJoinsFetchAndCloseFailures(t *testing.T) {
 	fetchErr, closeErr := errors.New("fetch marker"), errors.New("close marker")
-	s := reviewOpen(t, &reviewConn{rowErr: fetchErr, rowCloseErr: closeErr})
+	c := &reviewConn{rowErr: fetchErr, rowCloseErr: closeErr}
+	s := reviewOpen(t, c)
 	_, err := s.Query(context.Background(), reviewStatement())
 	if !errors.Is(err, fetchErr) || !errors.Is(err, closeErr) {
 		t.Errorf("joined failure lost a cause: fetch=%v cleanup=%v error=%v", errors.Is(err, fetchErr), errors.Is(err, closeErr), err)
+	}
+	if _, err := s.Query(context.Background(), reviewStatement()); !errors.Is(err, session.ErrUnavailable) || c.queries.Load() != 1 {
+		t.Fatal("failed default cursor cleanup allowed another dispatch", err)
 	}
 	if err := s.Close(context.Background()); err != nil {
 		t.Fatal(err)

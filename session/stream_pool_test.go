@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/marcuoli/go-oracle-session/session"
@@ -455,5 +456,50 @@ func TestStreamRejectsNegativeLimitBeforeExecution(t *testing.T) {
 	}
 	if _, err := s.Query(context.Background(), statement()); err != nil {
 		t.Fatal("invalid options retired an unused session:", err)
+	}
+}
+
+func TestBufferedQueryCleanupUsesIndependentBudget(t *testing.T) {
+	for _, capacity := range []bool{false, true} {
+		name := "EOF"
+		if capacity {
+			name = "capacity"
+		}
+		t.Run(name, func(t *testing.T) {
+			synctest.Test(t, func(t *testing.T) {
+				c := &connection{disposed: make(chan struct{})}
+				if capacity {
+					c.values = []driver.Value{"first", "extra"}
+				}
+				opts := options(c)
+				opts.QueryTimeout = time.Hour
+				opts.CleanupTimeout = 20 * time.Millisecond
+				opts.MaxRows = 1
+				client, err := session.Open(context.Background(), blockingCursorConnector{c, make(chan struct{}), true}, opts)
+				if err != nil {
+					t.Fatal(err)
+				}
+				defer client.Close(context.Background())
+				started := time.Now()
+				result, err := client.Query(context.Background(), statement())
+				if !errors.Is(err, context.DeadlineExceeded) || capacity && !errors.Is(err, session.ErrCapacity) {
+					t.Fatal("cleanup deadline or independent query failure lost", err)
+				}
+				if elapsed := time.Since(started); elapsed > 2*opts.CleanupTimeout {
+					t.Fatalf("cursor cleanup took %v with budget %v", elapsed, opts.CleanupTimeout)
+				}
+				if result.Columns != nil || result.Rows != nil || result.Duration != 0 || !c.cursorClosed.Load() {
+					t.Fatal("failed cursor was not joined or published a prefix")
+				}
+				select {
+				case <-c.disposed:
+				default:
+					t.Fatal("cleanup did not discard its physical transport")
+				}
+				if _, err := client.Query(context.Background(), statement()); !errors.Is(err, session.ErrUnavailable) || c.calls.Load() != 1 {
+					t.Fatal("disposed buffered session was reused or query replayed", err)
+				}
+			})
+		})
 	}
 }
