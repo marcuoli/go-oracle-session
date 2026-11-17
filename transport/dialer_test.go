@@ -57,3 +57,15 @@ func TestDialCompletingAfterDiscardIsNotReturned(t *testing.T) {
 		t.Fatal("racing socket remained open")
 	}
 }
+
+func TestCloseWithoutDialIsIdempotent(t *testing.T) {
+	dialer, err := transport.New(time.Second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for range 2 {
+		if err := dialer.Close(); err != nil {
+			t.Fatal("closing an unused dialer failed", err)
+		}
+	}
+}

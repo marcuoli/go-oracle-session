@@ -161,3 +161,22 @@ func TestErrorProjectionDoesNotEchoCredentials(t *testing.T) {
 		t.Fatal("unsafe error projection")
 	}
 }
+
+func TestExactValueKeepsIntegralPrecisionAndRejectsFloats(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		value   any
+		want    session.Value
+		wantErr bool
+	}{
+		{"beyond float precision", int64(9007199254740993), session.Value{Text: "9007199254740993"}, false},
+		{"representable float still refused", float64(1), session.Value{}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := session.ExactValue(tc.value)
+			if (err != nil) != tc.wantErr || got != tc.want {
+				t.Fatalf("ExactValue() = %#v, %v; want %#v, error=%v", got, err, tc.want, tc.wantErr)
+			}
+		})
+	}
+}

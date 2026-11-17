@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Strengthen exact-value, unused transport closure and Oracle Net security boundary/ownership regressions (#36).
+
 ## v0.10.0
 
 - Add explicit bounded Oracle diagnostic extraction with credential redaction, preserved error chains and no partial stack on overflow (#32).

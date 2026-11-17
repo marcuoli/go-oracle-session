@@ -84,9 +84,11 @@ func TestWalletDescriptorPrecedenceAndQuotedValues(t *testing.T) {
 	if _, err := oraclenet.ResolveWallet(conflict, root); err == nil {
 		t.Fatal("conflicting descriptor wallets accepted")
 	}
-	got, err = oraclenet.ResolveWallet("(DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)))", root)
-	if err != nil || got != filepath.Join(root, "sql wallet") {
-		t.Fatal(got, err)
+	for _, directory := range []string{root, " " + root + " "} {
+		got, err = oraclenet.ResolveWallet("(DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)))", directory)
+		if err != nil || got != filepath.Join(root, "sql wallet") {
+			t.Fatal(got, err)
+		}
 	}
 }
 func TestWalletFallbackDoesNotOverrideExplicitInvalidConfiguration(t *testing.T) {
@@ -169,9 +171,11 @@ func TestFinalUnicodeConfigurationLineCannotBeDiscarded(t *testing.T) {
 		if _, err := oraclenet.ResolveWallet("(DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)))", root); err == nil {
 			t.Fatal("explicit unsupported IFILE silently selected a fallback wallet")
 		}
-		write(t, filepath.Join(root, "tnsnames.ora"), "DB=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=host)(PORT=1521)))\u3000"+ending)
-		if _, err := oraclenet.ResolveAlias("DB", root); err != nil {
-			t.Fatal("final Unicode whitespace discarded the alias", err)
+		want := "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=host)(PORT=1521)))"
+		write(t, filepath.Join(root, "tnsnames.ora"), "DB="+want+"\u3000"+ending)
+		got, err := oraclenet.ResolveAlias("DB", root)
+		if err != nil || got != want {
+			t.Fatalf("final Unicode whitespace changed the descriptor: got %q, %v; want %q", got, err, want)
 		}
 	}
 }
