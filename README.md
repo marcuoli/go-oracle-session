@@ -234,3 +234,21 @@ configuration across its include graph. SQLNet entries include the `IFILE`
 assignment as well as listing it separately in `Includes`; TNS `Entries` contains
 only effective aliases. Errors use static capacity, encoding or syntax sentinels
 and never return a partial prefix or supplied values.
+
+## Explicit Oracle diagnostics
+
+Use the functional `diagnostic` package only when a caller explicitly needs retained
+Oracle messages in a private diagnostic artifact. Ordinary session errors keep their safe
+operation/code formatting. `diagnostic.Oracle(err, knownSecrets...)` traverses bounded
+wrapped/joined causes and returns owned `Message` values; it never mutates the errors or
+the secret slice. Non-Oracle and code-only errors have no message. Include all known
+connection secrets; Oracle text may contain object names and data from the database.
+
+Credential assignments, authorization values and connection URLs are redacted before
+known secrets and before stack splitting. Code tokens remain literal when a supplied
+secret is contained entirely within the code. Invalid UTF-8 leaf text is ignored.
+Oversized messages, more than 32 unique messages, graphs beyond 64 nodes, more than
+64 supplied secrets or secret bytes beyond `diagnostic.MaxBytes` return
+`diagnostic.ErrCapacity` with no diagnostic prefix. Each complete output is also bounded
+by `diagnostic.MaxBytes`. A code-only historical error cannot recover its original server
+message through this API.

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.10.0
+
+- Add explicit bounded Oracle diagnostic extraction with credential redaction, preserved error chains and no partial stack on overflow (#32).
+
 ## v0.9.1
 
 - Bound buffered cursor cleanup under the command owner and retire failed cleanup; preserve transaction lifetime cancellation causes and stop CSV ingestion at its row limit (#33).
