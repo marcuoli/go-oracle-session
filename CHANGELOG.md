@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.11.0
+
 - Add opt-in goora.PrepareURL full-login policy with canonical query serialization, preserved option values and atomic safe errors (#38).
 
 - Strengthen exact-value, unused transport closure and Oracle Net security boundary/ownership regressions (#36).
