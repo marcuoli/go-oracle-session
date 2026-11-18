@@ -252,3 +252,24 @@ Oversized messages, more than 32 unique messages, graphs beyond 64 nodes, more t
 `diagnostic.ErrCapacity` with no diagnostic prefix. Each complete output is also bounded
 by `diagnostic.MaxBytes`. A code-only historical error cannot recover its original server
 message through this API.
+
+## Optional go-ora URL policy
+
+The optional `github.com/marcuoli/go-oracle-session/goora` package exposes
+`PrepareURL(*url.URL) error`. Call it on the caller-owned URL before creating
+the official go-ora connector, including connectors created by a pool's admission
+factory. It selects full login by replacing all driver-recognized `FAST LOGIN`
+keys with one `FALSE` value.
+
+The helper uses `url.ParseQuery` and `url.Values.Encode`: other option values
+and duplicate values remain, while query order and escaping are canonicalized.
+Credentials and all non-query URL fields are unchanged. A nil URL or malformed
+query returns static `goora.ErrInvalidURL` without mutation. Endpoint and
+remaining driver-option validation still belong to the caller and driver.
+
+This package imports no concrete driver and opens or wraps no connection.
+Original driver interfaces, connection ownership, cancellation and streaming
+remain with the configured path. Prefetch, LOB fetching and session SQL tuning
+remain caller-owned. The supported full-login setting addresses cached-login
+admission failures described in [upstream #732](https://github.com/sijms/go-ora/issues/732);
+it does not establish native qualification for every driver/server combination.

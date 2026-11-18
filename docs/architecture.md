@@ -1,5 +1,7 @@
 # Package ownership
 
+- `goora` owns opt-in full-login URL preparation with standard query validation/serialization and static errors. It imports no concrete driver and opens or wraps no connection.
+
 - `inventory` owns bounded RFC 4180 headers, credential-byte preservation, duplicate/effective labels and redacted validation categories. Optional URL validation delegates engine policy to the caller. File and byte admission share the same size limit.
 - `transport` returns actual sockets and terminally tracks one physical connection plus redirects. Repeated/concurrent closure joins the same result. It contacts only the requested endpoint.
 - `cancel` owns joined cancellation watchers, deadline provenance and explicit health evidence. A returned operation alone does not establish reusable protocol state.
