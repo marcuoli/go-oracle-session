@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.12.0
+
 - Add opt-in authenticated inventory admission with exact wallet references, safe validation and unchanged legacy structs/contracts (#40).
 
 - Document distinct go-ora login/parser failures, upstream ownership, official-fix adoption and exact compatibility qualification.
