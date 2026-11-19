@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 
 	modern "github.com/marcuoli/go-oracle-session/internal/compatdriver/v3"
+	modernNetwork "github.com/marcuoli/go-oracle-session/internal/compatdriver/v3/network"
 )
 
 type modernDriverConnector struct {
@@ -65,6 +66,12 @@ func (c *modernDriverConnection) Prepare(query string) (driver.Stmt, error) {
 	return &modernDriverStatement{Stmt: stmt.(*modern.Stmt), health: c.health}, nil
 }
 func (c *modernDriverConnection) PrepareContext(ctx context.Context, query string) (driver.Stmt, error) {
+	// Native PrepareContext can reopen a disconnected connection. Reject it here
+	// so a retired physical lease never starts another authentication attempt.
+	session, ok := c.GetSession().(*modernNetwork.Session)
+	if !c.IsValid() || !ok || session == nil || !session.Connected {
+		return nil, driver.ErrBadConn
+	}
 	stmt, err := c.Connection.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, err

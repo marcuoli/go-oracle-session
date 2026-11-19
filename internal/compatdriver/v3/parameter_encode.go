@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"reflect"
 
-	"github.com/marcuoli/go-oracle-session/internal/compatdriver/v3/converters"
 	"github.com/marcuoli/go-oracle-session/internal/compatdriver/v3/parameter_coder"
 	oraTypes "github.com/marcuoli/go-oracle-session/internal/compatdriver/v3/types"
 )
@@ -782,62 +781,5 @@ func (par *ParameterInfo) encodeValue(size int64, connection *Connection) error 
 	//		par.MaxCharLen = int64(size)
 	//	}
 	//}
-	return nil
-
-	//if par.MaxNoOfArrayElements > 0 && par.MaxNoOfArrayElements < int(size) {
-	//	par.MaxNoOfArrayElements = int(size)
-	//}
-	//err = par.encodeWithType(connection)
-	//if err != nil {
-	//	return err
-	//}
-	//err = par.encodePrimValue(connection)
-	//if err != nil {
-	//	return err
-	//}
-
-	// check if the data length beyond max length for some types
-	//switch par.DataType {
-	//case NCHAR:
-	//	if len(par.BValue) > connection.maxLen.varchar {
-	//		return fmt.Errorf("passing varchar value with size: %d bigger than max size: %d", len(par.BValue), connection.maxLen.varchar)
-	//	}
-	//case RAW:
-	//	if len(par.BValue) > connection.maxLen.raw {
-	//		return fmt.Errorf("passing raw value with size: %d bigger than max size: %d", len(par.BValue), connection.maxLen.raw)
-	//	}
-	//}
-
-	if par.Direction != Input {
-		if par.DataType == oraTypes.NCHAR {
-			if par.MaxCharLen < int64(size) {
-				par.MaxCharLen = int64(size)
-			}
-			conv, err := connection.GetStringCoder(par.CharsetID, par.CharsetForm)
-			if err != nil {
-				return err
-			}
-			par.MaxLen = par.MaxCharLen * int64(converters.MaxBytePerChar(conv.GetLangID()))
-		}
-		if par.DataType == oraTypes.RAW {
-			if par.MaxLen < int64(size) {
-				par.MaxLen = int64(size)
-			}
-		}
-	}
-
-	if par.Direction == Output && !(par.DataType == oraTypes.XMLType) {
-		par.BValue = nil
-		// fix max size for each array item (non-xml arrays)
-		//if par.MaxNoOfArrayElements > 0 {
-		//	switch par.DataType {
-		//	case oraTypes.NCHAR:
-		//		par.MaxLen = connection.maxLen.varchar
-		//		par.MaxCharLen = connection.maxLen.varchar
-		//	case oraTypes.RAW:
-		//		par.MaxLen = connection.maxLen.raw
-		//	}
-		//}
-	}
 	return nil
 }

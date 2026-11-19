@@ -660,7 +660,8 @@ func (stmt *defaultStmt) fetch(resultSet *ResultSet) error {
 		if isBadConn(err) {
 			stmt.connection.setBad()
 			tracer.Print("Error: ", err)
-			return driver.ErrBadConn
+			// The operation may have executed; preserve its cause without permitting SQL replay.
+			return err
 		}
 		return err
 	}
@@ -1946,7 +1947,8 @@ func (stmt *Stmt) Exec(args []driver.Value) (driver.Result, error) {
 		if isBadConn(err) {
 			stmt.connection.setBad()
 			tracer.Print("Error: ", err)
-			return nil, driver.ErrBadConn
+			// The operation may have executed; preserve its cause without permitting SQL replay.
+			return nil, err
 		}
 		return nil, err
 	}
@@ -2062,7 +2064,8 @@ func (stmt *Stmt) Query_(namedArgs []driver.NamedValue) (*DataSet, error) {
 		if isBadConn(err) {
 			stmt.connection.setBad()
 			tracer.Print("Error: ", err)
-			return nil, driver.ErrBadConn
+			// The operation may have executed; preserve its cause without permitting SQL replay.
+			return nil, err
 		}
 		return nil, err
 	}

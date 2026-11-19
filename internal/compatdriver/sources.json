@@ -24,7 +24,8 @@
     "Module-owned internal import paths",
     "Unique registrations go-oracle-session/v2 and go-oracle-session/v3",
     "Generic synthetic Ping projection alias",
-    "gofmt only"
+    "gofmt only",
+    "Key standard-library nullable struct fields and remove unreachable parameter tails; executable semantics unchanged"
   ],
   "patch_contracts": [
     "Connection-scoped login warnings",
@@ -34,7 +35,10 @@
     "Joined legacy break and settlement capability",
     "Optional scalar modern connection diagnostics",
     "SDK strict pre-authentication cleanup preserves the original close failure; joined cleanup errors prohibit selecting another backend",
-    "SDK terminal transport-only discard invalidates physical state after lazy CLOB protocol failures; no post-execution retry sentinel"
+    "SDK terminal transport-only discard invalidates physical state after lazy CLOB protocol failures; no post-execution retry sentinel",
+    "SDK exact decimal validation and low-exponent zero distinction",
+    "SDK joined terminal lazy-read cancellation closes captured transport outside protocol locks and closes once",
+    "SDK post-dispatch/cursor-cleanup errors preserve causes without replay markers"
   ],
   "inclusion": "All reviewed production files, MIT licenses and retained regressions; nested module metadata and unrelated upstream integration/examples omitted",
   "files": {
@@ -184,7 +188,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/command.go": {
-      "sha256": "9f4dcff7d5ddc9e1a5c4916ec86d8bcf58d49030b35229a63bd58fc52d990633",
+      "sha256": "adb90e1ea36dc70fa99b7cce62cc38b28afca3903799d3a971f4252f2ac0562f",
       "upstream_sha256": "be552ee8a4369cbf5dccb7edc78f18658988788756688f9b092e4b740bea64ae",
       "kind": "retained-production-or-license"
     },
@@ -344,7 +348,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/lob.go": {
-      "sha256": "422b97ebd62593719c380335580050b3ac541c5c693073bd8f3da913505383d7",
+      "sha256": "8596147d1942bbd877b914381743623c8d9a7dd2c1077c664dd7d62b46e87170",
       "upstream_sha256": "6997e5f705cfeb6d06f324c0d890c2dffd4157dc8cbb8722195daae2e4e4e786",
       "kind": "retained-production-or-license"
     },
@@ -454,7 +458,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/network/session.go": {
-      "sha256": "2ba227d2bbeff745d45bbccc77add81c909a1d90a39a387aa6f585c5e1a66682",
+      "sha256": "f8c238db0990c9d89c4429faea0489be6167905d01b834ce98fb4308ac7f4073",
       "upstream_sha256": "a884fffb0858f72b1203eff05b3c5fe225f94937bbf2af727625efb849cca8a9",
       "kind": "retained-production-or-license"
     },
@@ -569,12 +573,12 @@
       "kind": "retained-production-or-license"
     },
     "v3/parameter_encode.go": {
-      "sha256": "264f76399d73ca17d93a649d6182e5054097146f4f569bc3adf7fc364dd938a7",
+      "sha256": "ee9c5a58584ec134332ba09483a95d5bd27c4000887baae042ba7ae31b4468a7",
       "upstream_sha256": "6118484fb5f284ecde670488426cc777c8abbc976035fa6f281ddd3d8637c7a0",
       "kind": "retained-production-or-license"
     },
     "v3/parameter.go": {
-      "sha256": "211412b298d48a460b264f227b83379551e47f60c1806b5e3872d440c03c821f",
+      "sha256": "1bad46356b7aedf569153e9db4d66a79f86628a06b28bc22044f3756bd1711d6",
       "upstream_sha256": "05c46f85ad2a5b26eed11684afe3d44170e2b299563ff33f7c0f1e1cfdf63807",
       "kind": "retained-production-or-license"
     },
@@ -589,7 +593,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/simple_object.go": {
-      "sha256": "4d60a0a1d124813f3ae91156c04aaef0c220271ef4f77f85fed31e2f6630c449",
+      "sha256": "02afaac5fce94e3e11e3e12881436d406d18e781353c6814bded5f424f905d5f",
       "upstream_sha256": "c61453f036169f78640b806fad50a36920ce5b7638665a710e543f23c9e205e5",
       "kind": "retained-production-or-license"
     },
@@ -679,7 +683,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/types/lob.go": {
-      "sha256": "3838b42c037f8398d1b6b0b28b4e8b90c4641b484b2ee6f74979c062b83c4c58",
+      "sha256": "e92ca4adcbbba407709a410011a5d5771ad508fb5c480ee7697aefb33478e681",
       "upstream_sha256": "dbf201d772558f7c957a020e9a9cd4e48691fae192c897271d1ea7b8bdf5fd55",
       "kind": "retained-production-or-license"
     },
@@ -944,7 +948,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/command.go": {
-      "sha256": "4e0d6652499e1198f94e62f3cfb5c4b363cdc3b4553ba72c79c2fdf6c364cb09",
+      "sha256": "f26dd2b3f1651701c8edda0c2eb31b30c72a51ca034697f434238e21f20c88b7",
       "upstream_sha256": "ace8366523a16b08a2a79725fa6f2565cb72f5e60fd6824cb159ffef83d18b69",
       "kind": "retained-production-or-license"
     },
@@ -1194,7 +1198,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/number.go": {
-      "sha256": "6cbaa71418c6824c2472c509ff055e079bd9bdfaaf0db315e2e6fc65e0d305ad",
+      "sha256": "21809dc7bbdc75e0dd04beef357757ec6de17af962eec045cdd7960c6ad51574",
       "upstream_sha256": "5ee3160451cd6fdc7578fe881d43fd3801b7709c76dd3b4ac1c1c350a3d0e0ff",
       "kind": "retained-production-or-license"
     },
@@ -1234,7 +1238,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/simple_object.go": {
-      "sha256": "b3958d80d6ade2d2cbc170a899540fc0df8c1e5ed22df33e2ff9292f2d5e798b",
+      "sha256": "fa73e9ef5c96abbc1c610171f7c519e5bfcc8446b6805a75741c56c9303c1c1d",
       "upstream_sha256": "bba8c5b17d26f7976fae5a085ab57b4abf603fd30264a363aa6985dd2b39bf1e",
       "kind": "retained-production-or-license"
     },
@@ -1289,7 +1293,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/value_setter.go": {
-      "sha256": "0b4547ab4193423c636f9ba0cf0665281c97d04485f5a61fb7da69eba19d203d",
+      "sha256": "cb076eeff99e71320533f7fb59f430cb23133c596f174e45539e128620cb3cdc",
       "upstream_sha256": "a4fd62da68762b8535160a114647ae98f2dcbaf96ee5271c63d502574dcd6e90",
       "kind": "retained-production-or-license"
     },
@@ -1337,6 +1341,26 @@
       "kind": "SDK terminal-disposal safety implementation or regression",
       "sha256": "0e037b2bc9f0348445e3a9ecedf98049cb706cb026c9aefda17a17e48c293c74",
       "upstream_sha256": null
+    },
+    "v2/cleanup_replay_test.go": {
+      "upstream_sha256": null,
+      "kind": "SDK-regression-or-compatibility-addition",
+      "sha256": "9d02eb0664db80f04d8ec8fd3ad240752d164d67be05478c03bc4d8c43ccdda2"
+    },
+    "v3/cleanup_replay_test.go": {
+      "upstream_sha256": null,
+      "kind": "SDK-regression-or-compatibility-addition",
+      "sha256": "4d56adb3366a2176ea96746ae1a2ef5645a04f4bb2daa7fc70d82f856666cdc7"
+    },
+    "v3/network/read_context_test.go": {
+      "upstream_sha256": null,
+      "kind": "SDK-regression-or-compatibility-addition",
+      "sha256": "d33693b7cae8e6da62836f67aefc49f5082857874691dcdeff420fa173a88550"
+    },
+    "v3/network/read_context.go": {
+      "upstream_sha256": null,
+      "kind": "SDK-regression-or-compatibility-addition",
+      "sha256": "e3c9bb911db382fa65ea24f3baeb7071a99ffd93df9f4c081ee19ab59e76e23b"
     }
   }
 }

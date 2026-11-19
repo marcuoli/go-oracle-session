@@ -41,6 +41,7 @@ type SessionState struct {
 }
 
 type Session struct {
+	readInterrupt     *readInterrupt
 	mu                sync.Mutex
 	conn              net.Conn
 	sslConn           *tls.Conn
@@ -1044,6 +1045,17 @@ func (session *Session) readPacket() (PacketInterface, error) {
 func (session *Session) DisconnectWithError() error {
 	session.mu.Lock()
 	defer session.mu.Unlock()
+	// A canceled lazy read has already closed and joined its captured raw
+	// transport. Clear ownership without a second close or TLS logoff exchange.
+	if scope := session.readInterrupt; scope != nil {
+		<-scope.done
+		session.readInterrupt = nil
+		if scope.fired {
+			session.sslConn = nil
+			session.conn = nil
+			return scope.err
+		}
+	}
 	if session.sslConn != nil {
 		connection := session.sslConn
 		session.sslConn = nil

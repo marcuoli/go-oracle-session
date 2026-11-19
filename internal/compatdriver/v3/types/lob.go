@@ -119,6 +119,14 @@ func (l *lobBase) ReadFromPos(ctx context.Context, pos int64) ([]byte, error) {
 
 func (l *lobBase) ReadBytesFromPos(ctx context.Context, pos, count int64) ([]byte, error) {
 	if !l.IsQuasi() {
+		if owner, ok := l.stream.(interface {
+			StartReadContext(context.Context) func() error
+		}); ok {
+			join := owner.StartReadContext(ctx)
+			data, err := l.stream.Read(pos, count)
+			err = errors.Join(err, join(), ctx.Err(), context.Cause(ctx))
+			return data, err
+		}
 		done := l.stream.StartContext(ctx)
 		defer l.stream.EndContext(done)
 		return l.stream.Read(pos, count)

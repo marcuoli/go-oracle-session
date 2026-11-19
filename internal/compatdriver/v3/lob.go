@@ -731,3 +731,9 @@ func (lob *LobStream) DiscardConnection() error {
 	}
 	return lob.conn.Discard()
 }
+
+// StartReadContext arms terminal cancellation for one lazy read. It replaces,
+// rather than supplements, StartContext for that read and joins before disposal.
+func (lob *LobStream) StartReadContext(ctx context.Context) func() error {
+	return lob.conn.session.StartReadContext(ctx)
+}

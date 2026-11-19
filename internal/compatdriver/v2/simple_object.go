@@ -1,7 +1,6 @@
 package go_ora
 
 import (
-	"database/sql/driver"
 	"errors"
 
 	"github.com/marcuoli/go-oracle-session/internal/compatdriver/v2/network"
@@ -66,7 +65,8 @@ func (obj *simpleObject) exec() error {
 		if isBadConn(err) {
 			obj.connection.setBad()
 			tracer.Print("Error: ", err)
-			return driver.ErrBadConn
+			// The operation may have executed; preserve its cause without permitting SQL replay.
+			return err
 		}
 		return err
 	}

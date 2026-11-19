@@ -21,7 +21,8 @@ func (num Number) SetDataType(conn *Connection, par *ParameterInfo) error {
 	return nil
 }
 func (num *Number) isZero() bool {
-	return len(num.data) > 0 && num.data[0] == 0x80
+	// Only the single-byte encoding is zero; a low exponent can share its prefix.
+	return len(num.data) == 1 && num.data[0] == 0x80
 }
 
 func (num *Number) isPositive() bool {
