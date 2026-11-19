@@ -1,0 +1,15 @@
+# Shared pure-Go compatibility specification
+
+Additive package `goora/compat` owns SDK connector/value adapters. Existing packages and caller behavior remain unchanged. Retained v2/v3 implementation sources become actual root-module `internal/compatdriver/v2` and `v3` content with no nested go.mod or local replace. Unique internal registrations and one public compatibility registration coexist with one existing official driver import. Keep MIT notices and exact upstream baselines plus complete source/patch hashes. Private origin/approval records remain outside Git.
+
+Explicit policies: zero/default V2 matches the reviewed current production choice; V3 opts into the modern driver; Negotiated is opt-in pre-authentication legacy-capability selection, not a qualified automatic default. Only the reviewed sentinel after first transport cleanup may select v2; arbitrary, joined cleanup, authentication, transport or recovered-panic failures never trigger selection. Original context/deadline, endpoint and credential bytes survive; permitted driver-option preparation is explicit and documented.
+
+Connector API returns driver.Connector-compatible owned objects for database/sql and existing SDK Session consumers. Public options select mode, caller-owned DialContext and connection-local warning callback. No process-global logging capture, endpoint policy, driver-specific application SQL, competing cancellation watcher or SQL replay.
+
+Generic Out retains Dest/Size/In and standard sql.Out interoperability at both connection and prepared-statement checkers. Exact Number conversion is text preserving, never float mediated. Generic CLOB handling retains the owning connection/statement through consumption and locator disposal; v2 materialization versus modern lazy-LOB behavior is explicit, not represented as identical memory behavior. Preserve streaming rows, column metadata, context methods and native bind/cancellation capability interfaces. No new public raw native cursor.
+
+Import reviewed bounded ACCEPT/TTC decoders and their regressions, then add explicit 32/40/41/44/45/61-byte/malformed-length cases. Preserve patched legacy authentication/lifecycle and fresh prepared cursors between independent executions without replaying failures.
+
+Qualification separately records synthetic parser/selection, standalone distribution/registry, and exact native server/patch/platform/login/container evidence. Exercise authorized repeated/concurrent physical admissions, typed values/binds/LOBs and joined cancellation/discard paths. Missing or stopped targets are unqualified; no new account/grant/customer endpoint mutation. Existing retained consumer sources and retirement approval requirements remain protected.
+
+Completion: configured Go1.27.4 validation/race/modules/target builds/scans, bounded independent review, docs+skill updates, normal source PR and immutable release, exact official downstream GOWORK=off/no-replace proof, canonical synchronization and issue-owned source cleanup. Never claim rollout/adoption for other consumers.

@@ -1,0 +1,53 @@
+package go_ora
+
+import (
+	"context"
+	"database/sql/driver"
+)
+
+type Transaction struct {
+	conn *Connection
+	ctx  context.Context
+}
+
+func (tx *Transaction) Commit() error {
+	if err := tx.ctx.Err(); err != nil {
+		return err
+	}
+	if tx.conn.State != Opened {
+		return driver.ErrBadConn
+	}
+	if tx.conn.usesLegacyOperations() {
+		_, err := tx.conn.ExecContext(tx.ctx, "COMMIT", nil)
+		if err == nil {
+			tx.conn.autoCommit = true
+		}
+		return err
+	}
+	tx.conn.autoCommit = true
+	tx.conn.session.ResetBuffer()
+	done := tx.conn.session.StartContext(tx.ctx)
+	defer tx.conn.session.EndContext(done)
+	return (&simpleObject{connection: tx.conn, operationID: 0xE}).exec()
+}
+
+func (tx *Transaction) Rollback() error {
+	if err := tx.ctx.Err(); err != nil {
+		return err
+	}
+	if tx.conn.State != Opened {
+		return driver.ErrBadConn
+	}
+	if tx.conn.usesLegacyOperations() {
+		_, err := tx.conn.ExecContext(tx.ctx, "ROLLBACK", nil)
+		if err == nil {
+			tx.conn.autoCommit = true
+		}
+		return err
+	}
+	tx.conn.autoCommit = true
+	tx.conn.session.ResetBuffer()
+	done := tx.conn.session.StartContext(tx.ctx)
+	defer tx.conn.session.EndContext(done)
+	return (&simpleObject{connection: tx.conn, operationID: 0xF}).exec()
+}

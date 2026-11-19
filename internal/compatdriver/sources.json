@@ -1,0 +1,1310 @@
+{
+  "schema_version": 1,
+  "upstream": {
+    "v3": {
+      "sum": "h1:BU9j2MEji/hqprUFvY8DBbnfmVrt5TpVf4ngy9tqpWY=",
+      "version": "v3.0.1",
+      "commit": "025c51529284177330cde75c2e60c137c5f30fe1",
+      "go_mod_sum": "h1:9NMI4/C/J9ExE/YNgQQlZXic2U1aCLHchJmmnDOK0jM=",
+      "license": "MIT",
+      "module": "github.com/sijms/go-ora/v3"
+    },
+    "v2": {
+      "sum": "h1:+iQbUeTeCOFMb5BsOMgUhV8KWyrv9yjKpcK4x7+MFrg=",
+      "version": "v2.9.0",
+      "commit": "f8dc23ec168d75fba8e70cccffdaa43023feee07",
+      "go_mod_sum": "h1:QgFInVi3ZWyqAiJwzBQA+nbKYKH77tdp1PYoCqhR2dU=",
+      "license": "MIT",
+      "module": "github.com/sijms/go-ora/v2"
+    }
+  },
+  "retention": "Explicit user-authorized SDK compatibility exception tracked in issue46; this is retained implementation content, not an unmodified official driver release.",
+  "hash_encoding": "UTF-8, CRLF normalized to LF",
+  "transforms": [
+    "Module-owned internal import paths",
+    "Unique registrations go-oracle-session/v2 and go-oracle-session/v3",
+    "Generic synthetic Ping projection alias",
+    "gofmt only"
+  ],
+  "patch_contracts": [
+    "Connection-scoped login warnings",
+    "Bounded ACCEPT/TTC decoding",
+    "Pre-authentication legacy capability indication and cleanup",
+    "Legacy authentication and session lifecycle",
+    "Joined legacy break and settlement capability",
+    "Optional scalar modern connection diagnostics"
+  ],
+  "inclusion": "All reviewed production files, MIT licenses and retained regressions; nested module metadata and unrelated upstream integration/examples omitted",
+  "files": {
+    "v3/advanced_nego/advanced_nego.go": {
+      "sha256": "e8f8ba27e1da80f5bef8e7f996a0cf1ee7982997ca320a4a214b28d0479f907c",
+      "upstream_sha256": "9f444910d62bf68a8e0dc06d758cc957041ca7d6c1719940a89754f3d067ee3a",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/auth_service.go": {
+      "sha256": "37e7c63af35058501d1b31afae0f961ea89594af46bfdc7686d45c73a495df26",
+      "upstream_sha256": "ae1952f8b10ca791c7b9720f9b0faf91321d77ee86e07137d499b22619aaa705",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/comm.go": {
+      "sha256": "00fbd1806b79b0057354a9ee3c36367eeb205f2ea3d39626bb783d9bad5f3771",
+      "upstream_sha256": "30dc1b6e9bdc98ab17c28e9bde4ebb76db48d8199cd5d23d6bfe0d2a41e6fb73",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/connection_diagnostics_test.go": {
+      "sha256": "48bad4f0ea7fa63d1a8b44256165985dac5054a859f015d3004fbdb2f3e264b2",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v3/advanced_nego/connection_diagnostics.go": {
+      "sha256": "da28adfb1fe5054f3e0669bd250567f02cef51848fbd6e4b33659319de883d4a",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v3/advanced_nego/data_integrity_service.go": {
+      "sha256": "299f55eae8e872cb5bf7c808f4c5d5dfe1c56cc7d038a953a94291de09a5093c",
+      "upstream_sha256": "dc5a9d1c4f040b3eedcf97fe5a13f3eb718dfd14770b7e6eadd931cbb4d8df40",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/default_service.go": {
+      "sha256": "f46d435c324e3fe2cde97b66c173b6ccb67f4dca4f5558578e17fcfd5ec2515e",
+      "upstream_sha256": "f46d435c324e3fe2cde97b66c173b6ccb67f4dca4f5558578e17fcfd5ec2515e",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/encrypt_service.go": {
+      "sha256": "3032c8d4b9343c3370e188939f9922ec332de15ab5ab7f55e542c0e88d0fdc33",
+      "upstream_sha256": "6869878582577b971100bbcffd27047729a82d3b0873a1d1244731a5ce2ff717",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/ntlmssp/authenticate_message.go": {
+      "sha256": "3d10adf34054497b5b41a40c3411e0114812363d7695ce49d3cd6c8ed2d14a20",
+      "upstream_sha256": "3d10adf34054497b5b41a40c3411e0114812363d7695ce49d3cd6c8ed2d14a20",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/ntlmssp/authheader.go": {
+      "sha256": "d3891c33eac62954b1e2ab53634a413d7389af40c76d68d4659c76653c2c06bd",
+      "upstream_sha256": "d3891c33eac62954b1e2ab53634a413d7389af40c76d68d4659c76653c2c06bd",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/ntlmssp/avids.go": {
+      "sha256": "32a1f52fad6e169e475968088d4fd650ce0556591d7f8a9b5b4615b55fa99cd9",
+      "upstream_sha256": "32a1f52fad6e169e475968088d4fd650ce0556591d7f8a9b5b4615b55fa99cd9",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/ntlmssp/challenge_message.go": {
+      "sha256": "db99a85307992e49bb732664e432f2d8d2e34b33b5f0a91daced70cf8294dcd6",
+      "upstream_sha256": "db99a85307992e49bb732664e432f2d8d2e34b33b5f0a91daced70cf8294dcd6",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/ntlmssp/messageheader.go": {
+      "sha256": "c3362f68457ee6c0e7029d787b481321c1bcfd96caef4afc2e69941419f026a4",
+      "upstream_sha256": "c3362f68457ee6c0e7029d787b481321c1bcfd96caef4afc2e69941419f026a4",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/ntlmssp/negotiate_flags.go": {
+      "sha256": "4c94a994e19dcbf5d6185b753c54443d010f8cb110e8e074b9daf5a24a1bcdb1",
+      "upstream_sha256": "4c94a994e19dcbf5d6185b753c54443d010f8cb110e8e074b9daf5a24a1bcdb1",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/ntlmssp/negotiate_message.go": {
+      "sha256": "14cab5b046e434e8e24d84571665def12c50cf670b0eb175a326aae15d9dfc8b",
+      "upstream_sha256": "14cab5b046e434e8e24d84571665def12c50cf670b0eb175a326aae15d9dfc8b",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/ntlmssp/nlmp.go": {
+      "sha256": "ea3cf66a76d04374737b2b4362f39aa5406549f99a795d70a21b119710aea550",
+      "upstream_sha256": "0fd5981f94252c85a15cca87ea22d3176edf1fc96bdfb2baebf75e1cfd5de435",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/ntlmssp/unicode.go": {
+      "sha256": "378bd868075a4133f17981f6b62021fba9760cc23fa8321839b5b88921dc94e0",
+      "upstream_sha256": "378bd868075a4133f17981f6b62021fba9760cc23fa8321839b5b88921dc94e0",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/ntlmssp/varfield.go": {
+      "sha256": "fcd43600294bf3047251d9d2723f2cd1bee05eda416929436df7273c46c963a7",
+      "upstream_sha256": "fcd43600294bf3047251d9d2723f2cd1bee05eda416929436df7273c46c963a7",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/ntlmssp/version.go": {
+      "sha256": "5c2131142f015b0d70f7991d6a824a4d38317d580f2014d0befe2e7fa44629d4",
+      "upstream_sha256": "5c2131142f015b0d70f7991d6a824a4d38317d580f2014d0befe2e7fa44629d4",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/nts.go": {
+      "sha256": "82385a7d7a03a55b9c0dde979ed4285a489757ee817dd50e2f130f8825d86a9b",
+      "upstream_sha256": "cba6dca178951d84f4c2c2c7b3acf27bf4c6b2d23ed576d56c27b1c0cf1120a0",
+      "kind": "retained-production-or-license"
+    },
+    "v3/advanced_nego/supervisor_service.go": {
+      "sha256": "1e85c2902b3556f692ac626817200c6f7803dd0688122c270cfc5d7469eac3d0",
+      "upstream_sha256": "1e85c2902b3556f692ac626817200c6f7803dd0688122c270cfc5d7469eac3d0",
+      "kind": "retained-production-or-license"
+    },
+    "v3/aq/array_in_param.go": {
+      "sha256": "e1520d97f4addb75319535f4f3a01e89e8a0f1f719c1d4ef0c7202c41b58e659",
+      "upstream_sha256": "e1520d97f4addb75319535f4f3a01e89e8a0f1f719c1d4ef0c7202c41b58e659",
+      "kind": "retained-production-or-license"
+    },
+    "v3/aq/array.go": {
+      "sha256": "8815fb0f57130376cca47dee84094ad5bb68f41b80ed4fec3065ed7b073ff1ad",
+      "upstream_sha256": "8815fb0f57130376cca47dee84094ad5bb68f41b80ed4fec3065ed7b073ff1ad",
+      "kind": "retained-production-or-license"
+    },
+    "v3/aq/dequeue_options.go": {
+      "sha256": "d19901804533c1a81d6a95de111ee4c21741cdff74e9894541dddb38467cca18",
+      "upstream_sha256": "d19901804533c1a81d6a95de111ee4c21741cdff74e9894541dddb38467cca18",
+      "kind": "retained-production-or-license"
+    },
+    "v3/aq/interfaces.go": {
+      "sha256": "c6eff04d5af4c235e40201dbb419abb27d8bdec16f1871b0a360f67a394b3ea3",
+      "upstream_sha256": "c9936d704966063e62571d8471273eabc19b62bb0b045f3801c5ecffa8f8b182",
+      "kind": "retained-production-or-license"
+    },
+    "v3/aq/message.go": {
+      "sha256": "95cb04efacc622291cad800e59ae9aa377f42f8729008ce089ce991b4b51437e",
+      "upstream_sha256": "30a907b8337e5afc89548df403facc896adb1232a619886d9ef1e3481cc3ce55",
+      "kind": "retained-production-or-license"
+    },
+    "v3/aq/queue.go": {
+      "sha256": "0c602c153d95466a873c9cf08f0cf6a1de8465bfe0a0b0f11d1bfcfdf8c323b7",
+      "upstream_sha256": "1fbb189875bc74fe7fe6b2202c05fb9cb8d3858b80f41b2926c338ebd7a3bfe5",
+      "kind": "retained-production-or-license"
+    },
+    "v3/auth_object.go": {
+      "sha256": "25f23f759f5e91ac057aac95e9601bd4ec1c2275e265caf0165884f3da049cae",
+      "upstream_sha256": "68caead6a1906dff549e102093617d4f98c0a38b245892af88d4ed07833aeb69",
+      "kind": "retained-production-or-license"
+    },
+    "v3/bulk_copy.go": {
+      "sha256": "4d08c8c193582a88f014cd69195a741af09d27d189dfdb57f443f223d17c6d78",
+      "upstream_sha256": "4d08c8c193582a88f014cd69195a741af09d27d189dfdb57f443f223d17c6d78",
+      "kind": "retained-production-or-license"
+    },
+    "v3/command.go": {
+      "sha256": "9f4dcff7d5ddc9e1a5c4916ec86d8bcf58d49030b35229a63bd58fc52d990633",
+      "upstream_sha256": "be552ee8a4369cbf5dccb7edc78f18658988788756688f9b092e4b740bea64ae",
+      "kind": "retained-production-or-license"
+    },
+    "v3/configurations/client_info.go": {
+      "sha256": "9950ec8d647c7b8feead819018881130c150fef068ebde566d1591d63a781d16",
+      "upstream_sha256": "9950ec8d647c7b8feead819018881130c150fef068ebde566d1591d63a781d16",
+      "kind": "retained-production-or-license"
+    },
+    "v3/configurations/connect_config.go": {
+      "sha256": "cee6d06dfb255ee864f9af94c2bf179cb7407d4c0f920026cf481a0c6a445372",
+      "upstream_sha256": "cee6d06dfb255ee864f9af94c2bf179cb7407d4c0f920026cf481a0c6a445372",
+      "kind": "retained-production-or-license"
+    },
+    "v3/configurations/database_info.go": {
+      "sha256": "cc38a79537b55c0af62a0bd2920b101197480a78ffd2cd7b14528037257384f8",
+      "upstream_sha256": "cc38a79537b55c0af62a0bd2920b101197480a78ffd2cd7b14528037257384f8",
+      "kind": "retained-production-or-license"
+    },
+    "v3/configurations/session_info.go": {
+      "sha256": "56252eb2f13327e802164ddcf5f226b9d4f2abc14966fbadde0cc7fc2a0e3946",
+      "upstream_sha256": "56252eb2f13327e802164ddcf5f226b9d4f2abc14966fbadde0cc7fc2a0e3946",
+      "kind": "retained-production-or-license"
+    },
+    "v3/configurations/utils.go": {
+      "sha256": "ccd24a91212cdee70c8d930ce23d0beeff37db70bd385b90e8ac4c76d4d44809",
+      "upstream_sha256": "ccd24a91212cdee70c8d930ce23d0beeff37db70bd385b90e8ac4c76d4d44809",
+      "kind": "retained-production-or-license"
+    },
+    "v3/configurations/wallet_algo.go": {
+      "sha256": "8970d6df1243e7a35bffe29489aad066cc9f94a1b7af9dcad750bbf3bff015d5",
+      "upstream_sha256": "8970d6df1243e7a35bffe29489aad066cc9f94a1b7af9dcad750bbf3bff015d5",
+      "kind": "retained-production-or-license"
+    },
+    "v3/configurations/wallet_utils.go": {
+      "sha256": "068455d07e7eec9bf6c5b0b0630c3547b92830c9736ad98141cff8a769614e82",
+      "upstream_sha256": "068455d07e7eec9bf6c5b0b0630c3547b92830c9736ad98141cff8a769614e82",
+      "kind": "retained-production-or-license"
+    },
+    "v3/configurations/wallet.go": {
+      "sha256": "f9762b4fe4286105f8bc92a55c5bf947058f86849c30be0313e6ede52e9f18d4",
+      "upstream_sha256": "f9762b4fe4286105f8bc92a55c5bf947058f86849c30be0313e6ede52e9f18d4",
+      "kind": "retained-production-or-license"
+    },
+    "v3/connection_cookie.go": {
+      "sha256": "f3816c4e323719ac5437e87a6dd916c80ade8e4163796e7ace9eeb36e1c76efe",
+      "upstream_sha256": "bce7183798e832000cd4d983f73b1eca7ad7bb652f3d231ea339105cc56dc329",
+      "kind": "retained-production-or-license"
+    },
+    "v3/connection_diagnostics_test.go": {
+      "sha256": "035959f6f4eb8ce28d60d61eecb58f02c5bfb1fc397bb534ef8f807bf7898fc2",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v3/connection_diagnostics.go": {
+      "sha256": "86d1456a54316c5a3032273e32a0a569f2f40fd96963b4692b5e5e252341aa61",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v3/connection_string.go": {
+      "sha256": "c95ec5cfaef84dd99813fb18d02181ad419c82f954623a874e7b136d827255ee",
+      "upstream_sha256": "28ede2c1a0fb34bccbf153fae6d7cdb4f24c8ac1c38cc906fb8056067df4678d",
+      "kind": "retained-production-or-license"
+    },
+    "v3/connection.go": {
+      "sha256": "28046fb1fbc7de2acd19cd3b88c0b063f9cfbac45105536385586d55dc1939d6",
+      "upstream_sha256": "5af4cb323d90197ecd2d7bd890992b27a4c6529fd1825b285b388daf659d4c83",
+      "kind": "retained-production-or-license"
+    },
+    "v3/converters/generatefloat/main.go": {
+      "sha256": "6eb5fefa3022e1dba4c744ffb099cc8abfb8b045355b05eaf62931cc605612af",
+      "upstream_sha256": "b6b859cbdce92f2af72828fb47691cbbbea1747c3a596a2c4f3e084d5a235e6a",
+      "kind": "retained-production-or-license"
+    },
+    "v3/converters/max_len.go": {
+      "sha256": "0830b35e0ee330b29e0eb5db9f00e34375cb5d4667c23a6f355d48a0aecc2894",
+      "upstream_sha256": "0830b35e0ee330b29e0eb5db9f00e34375cb5d4667c23a6f355d48a0aecc2894",
+      "kind": "retained-production-or-license"
+    },
+    "v3/converters/oracle_number.go": {
+      "sha256": "be903fb78526f2d41edef9c2a14f7fa8544a1c86aedab0dfe619f28333ecdb4d",
+      "upstream_sha256": "be903fb78526f2d41edef9c2a14f7fa8544a1c86aedab0dfe619f28333ecdb4d",
+      "kind": "retained-production-or-license"
+    },
+    "v3/converters/other_types.go": {
+      "sha256": "0dc85bb57b19cbacafb1e467f33894c257b139f78aaab989781022b5040bad79",
+      "upstream_sha256": "0dc85bb57b19cbacafb1e467f33894c257b139f78aaab989781022b5040bad79",
+      "kind": "retained-production-or-license"
+    },
+    "v3/converters/string_coder.go": {
+      "sha256": "b051742f044f62df9a8df7d68c3ebdab658000b4be867c9a0c892fef43a1a67c",
+      "upstream_sha256": "b051742f044f62df9a8df7d68c3ebdab658000b4be867c9a0c892fef43a1a67c",
+      "kind": "retained-production-or-license"
+    },
+    "v3/converters/string_conversion_new.go": {
+      "sha256": "64de3ab57d74673cf113c2bbce013830798597a5fd8ee7c7e1dc04e850465ae9",
+      "upstream_sha256": "64de3ab57d74673cf113c2bbce013830798597a5fd8ee7c7e1dc04e850465ae9",
+      "kind": "retained-production-or-license"
+    },
+    "v3/converters/string_conversion.go": {
+      "sha256": "f39816d6adf4e14fadd5907c44bb3930d6c656244e182f5c9ef24f40af8eab6d",
+      "upstream_sha256": "f39816d6adf4e14fadd5907c44bb3930d6c656244e182f5c9ef24f40af8eab6d",
+      "kind": "retained-production-or-license"
+    },
+    "v3/converters/testfloatsvalues.go": {
+      "sha256": "b0ccdc699e503f75c4dc0581acaf18c91220d845fcedf6b4006109a955775963",
+      "upstream_sha256": "b0ccdc699e503f75c4dc0581acaf18c91220d845fcedf6b4006109a955775963",
+      "kind": "retained-production-or-license"
+    },
+    "v3/converters/type_conversion.go": {
+      "sha256": "61873790a42b06d26ad3cb8e0118084e2b9803090b77420f7b362eb7e4f55882",
+      "upstream_sha256": "61873790a42b06d26ad3cb8e0118084e2b9803090b77420f7b362eb7e4f55882",
+      "kind": "retained-production-or-license"
+    },
+    "v3/custom_types.go": {
+      "sha256": "6b09cd3d346e3e852ebbb14ad96120fcc57bb1f9ef332c691e52ddc16384bf4f",
+      "upstream_sha256": "6b09cd3d346e3e852ebbb14ad96120fcc57bb1f9ef332c691e52ddc16384bf4f",
+      "kind": "retained-production-or-license"
+    },
+    "v3/data_set.go": {
+      "sha256": "5e308adfecd9a80ad8c5dac25c18b40cb116beb5cbeea6fa344e5351c94b9670",
+      "upstream_sha256": "0814a02a95c4026d3ec541521e038d14eab7fb5ac7d7a1ad0bda717f4ded3057",
+      "kind": "retained-production-or-license"
+    },
+    "v3/data_type_nego.go": {
+      "sha256": "0a4d0d6888f185475add953b5e7a856dffb06291a21a084c86f3a63a11c1bba4",
+      "upstream_sha256": "a52ad8e5e76c38441b11d0f91c6c6c4eba17a9e7d92d7b5c91f861d1008de1a1",
+      "kind": "retained-production-or-license"
+    },
+    "v3/db_version.go": {
+      "sha256": "30517ef1274d6b1163c29f85b0dc69e69f6e5e60460caf598c029aa3f81b3244",
+      "upstream_sha256": "6e60e1eda57326d8b0d4a8e73c9f39a9d506576d47cdd779ca8273094c7d06b1",
+      "kind": "retained-production-or-license"
+    },
+    "v3/driver.go": {
+      "sha256": "2760cac4a235aea870c91816b9ee91bb513c9be0ac2c90f16e809b446d1457bd",
+      "upstream_sha256": "f453799e9834fdf3063740361345bfff5d357692373b810a7da050e053a81dd4",
+      "kind": "retained-production-or-license"
+    },
+    "v3/lazy_init/lazy_init.go": {
+      "sha256": "d00d3e03f1bab95380ad5d5f2fcebc28ca958a96666f8eebe3d5698ecb4b845a",
+      "upstream_sha256": "d00d3e03f1bab95380ad5d5f2fcebc28ca958a96666f8eebe3d5698ecb4b845a",
+      "kind": "retained-production-or-license"
+    },
+    "v3/legacy_detection_test.go": {
+      "sha256": "7bca49fe9ee7dc0aed026a5ae167ac6fc14a5826bdf19d565ff0628692727b5d",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v3/legacy_detection.go": {
+      "sha256": "8eaa476991abdac6486f7b11ca3afac2d3ce045efc7964547f5bac3991a602ca",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v3/LICENSE": {
+      "sha256": "86b6a31a08af7288285c3f242fd257d8d985587182c6af3796cb421daa0b8339",
+      "upstream_sha256": "86b6a31a08af7288285c3f242fd257d8d985587182c6af3796cb421daa0b8339",
+      "kind": "retained-production-or-license"
+    },
+    "v3/lob.go": {
+      "sha256": "8f44d20dda9eff5fa0e3cf2e69d1e7e32ced1b1b1e86062281eb9eb6bce792f4",
+      "upstream_sha256": "6997e5f705cfeb6d06f324c0d890c2dffd4157dc8cbb8722195daae2e4e4e786",
+      "kind": "retained-production-or-license"
+    },
+    "v3/login_warning_test.go": {
+      "sha256": "1bba4c995a5baeb1889206d4915a9416dcced90241319d07c7101ef40659407e",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v3/network/accept_packet_legacy_test.go": {
+      "sha256": "0d711a395cee1b4b6563942d75176536feac10f8a733d6c40c78f17250f21afd",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v3/network/accept_packet.go": {
+      "sha256": "08784c1f69433d9153d6bf07203fb7b810843a92c041dd61590a2960dbaaea1b",
+      "upstream_sha256": "049fdb9d48c91d36e47484a89d8f16f2a6b3cbd258d1c833d5c59436eaee3d2c",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/basic_session.go": {
+      "sha256": "62b43124b43c42ca2f1f55f405822046af280c9ffbd902db0f8e7e537a643bc2",
+      "upstream_sha256": "62b43124b43c42ca2f1f55f405822046af280c9ffbd902db0f8e7e537a643bc2",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/connect_option.go": {
+      "sha256": "c4540bc34162f601dc404171a5e8156a677735b04ee9444fa8d158f1da24d555",
+      "upstream_sha256": "c4540bc34162f601dc404171a5e8156a677735b04ee9444fa8d158f1da24d555",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/connect_packet.go": {
+      "sha256": "33f3539a401ff2a0b97e4e7ce9cb978b0a13c2110a9453bac863debe49d317e9",
+      "upstream_sha256": "33f3539a401ff2a0b97e4e7ce9cb978b0a13c2110a9453bac863debe49d317e9",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/data_packet.go": {
+      "sha256": "3eb4574fecf0d235033bf1ac23e7972b9e47aff2fdcc23f36843cc69574638f7",
+      "upstream_sha256": "ad34cbfb88a9ef186f6b92fab8923b231d9e8ede3eb6760fb8637881876e4786",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/marker_packet.go": {
+      "sha256": "94706732bfecf771030cfe13e2fcc7383b126cf5ba2977577c3635ac32614e84",
+      "upstream_sha256": "94706732bfecf771030cfe13e2fcc7383b126cf5ba2977577c3635ac32614e84",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/memory_session.go": {
+      "sha256": "2c929d3acca58e9fb8d7ed89d60be167f981c72f90fecc6543d857601a3d2048",
+      "upstream_sha256": "2c929d3acca58e9fb8d7ed89d60be167f981c72f90fecc6543d857601a3d2048",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/net_others.go": {
+      "sha256": "187cb76e4a8eeed6ce7332268cb9b7fd01a9ff426e2086a18606cac4b4f6107a",
+      "upstream_sha256": "187cb76e4a8eeed6ce7332268cb9b7fd01a9ff426e2086a18606cac4b4f6107a",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/net_windows.go": {
+      "sha256": "6d00f95e6693571f859b1a41f0accbf51e8c9c23c908488efdb1e9a9aacf5446",
+      "upstream_sha256": "6d00f95e6693571f859b1a41f0accbf51e8c9c23c908488efdb1e9a9aacf5446",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/oracle_error.go": {
+      "sha256": "e35901706c891fd44bf43ffa159d9e4ce809346af709218cfaedce51276554cf",
+      "upstream_sha256": "e35901706c891fd44bf43ffa159d9e4ce809346af709218cfaedce51276554cf",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/packets.go": {
+      "sha256": "5f45ab6a8d30d8635e17031da3effba3e1089a8be6bd4f69ec4931149ce61998",
+      "upstream_sha256": "5f45ab6a8d30d8635e17031da3effba3e1089a8be6bd4f69ec4931149ce61998",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/redirect_packet.go": {
+      "sha256": "2972d6f3662b7af10df60875cc1a548e3ff5599f8aa702694a29d24a6e60b43f",
+      "upstream_sha256": "2972d6f3662b7af10df60875cc1a548e3ff5599f8aa702694a29d24a6e60b43f",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/refuse_packet.go": {
+      "sha256": "b99680da469c236072b5fbff96039133b780e288cb989962bab4645957bf959b",
+      "upstream_sha256": "8fbe47762497bfedbfbe93b8f56e80784efcb817294aada3debef30f31498896",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/security/des_cryptor.go": {
+      "sha256": "e5c6b74683fc72a0e58e71d967b551ed1d31eca2c6326a5bb650ffb8bd82af8a",
+      "upstream_sha256": "e5c6b74683fc72a0e58e71d967b551ed1d31eca2c6326a5bb650ffb8bd82af8a",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/security/general.go": {
+      "sha256": "f2ce558941e953a4ec27fed555e199018ccd7a5bfec51f1ba9b3370e47e4ec10",
+      "upstream_sha256": "f2ce558941e953a4ec27fed555e199018ccd7a5bfec51f1ba9b3370e47e4ec10",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/security/md4/md4.go": {
+      "sha256": "578cc0bdb418e122e4116696558ba588ec1b6346151a9928bd36aacdef8b5f82",
+      "upstream_sha256": "578cc0bdb418e122e4116696558ba588ec1b6346151a9928bd36aacdef8b5f82",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/security/md4/md4block.go": {
+      "sha256": "f668d5262906ad4ede782ba9e2663772d5a780347ff77c5db3700a6768b9bafa",
+      "upstream_sha256": "f668d5262906ad4ede782ba9e2663772d5a780347ff77c5db3700a6768b9bafa",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/security/rc4_cryptor.go": {
+      "sha256": "bb4db1985e9459539a21d65d8e7972297815bc2c17da39c5a9f3ab34fa8da7f5",
+      "upstream_sha256": "bb4db1985e9459539a21d65d8e7972297815bc2c17da39c5a9f3ab34fa8da7f5",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/session_ctx.go": {
+      "sha256": "b995e0368d7e578cbf76220d8bb3a6b581b90f11cd4a83e7281eab9d168e12be",
+      "upstream_sha256": "027635d3a69112fd8867b775fc0abce40c36628b1fa0a777d06847144fbd8e2a",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/session.go": {
+      "sha256": "8b92f0114a994defa30fe712b3b3bb2da8c33d9ab1dbc7eeeac32c6a0af5090d",
+      "upstream_sha256": "a884fffb0858f72b1203eff05b3c5fe225f94937bbf2af727625efb849cca8a9",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/streamer.go": {
+      "sha256": "7ff06a2c096a4b32057fede652c40b219cc4789725703a2b39cc43d7a187f731",
+      "upstream_sha256": "7ff06a2c096a4b32057fede652c40b219cc4789725703a2b39cc43d7a187f731",
+      "kind": "retained-production-or-license"
+    },
+    "v3/network/summary_object.go": {
+      "sha256": "6223076a5f10d1c5839de578cd765103622176df3f71f5bd470c3128bf33f776",
+      "upstream_sha256": "6223076a5f10d1c5839de578cd765103622176df3f71f5bd470c3128bf33f776",
+      "kind": "retained-production-or-license"
+    },
+    "v3/number.go": {
+      "sha256": "0e1460462ef07ccf593d26dbaf5439b8ad1936e1500a1fd43471141f6c9353e3",
+      "upstream_sha256": "aff4a1cf344513ddbcd44b4847f4c2fe6636259a5d9fb246781c499c333953d4",
+      "kind": "retained-production-or-license"
+    },
+    "v3/object_parameter.go": {
+      "sha256": "b4d0619b916aae6ba091e066f6a049cebaa6ab83dbfe5c91b36e2fc92782ddc7",
+      "upstream_sha256": "8d1bd46278a0973f5f06e73f859fba7d9df6ff8ced1730c7dfbe9a9402757e16",
+      "kind": "retained-production-or-license"
+    },
+    "v3/oracletype_string.go": {
+      "sha256": "110d56684d60ffb8c55f02f13722baeb7a5739b5a3c0c10915d90b3f8ec2bf56",
+      "upstream_sha256": "4db93a8189ce431dbffbf364ec0b87c2789b7cf82504f6587e3cf54816dedd0a",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/array.go": {
+      "sha256": "d6973a363700173090fe5654e9801c831f87cf9f9ff7e0a2e43408453ba777c4",
+      "upstream_sha256": "1f9cf8aa7e0fd180924d993fc64f6d3c80bc3e54f273b110aa2f23dd9bb5262b",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/basic_parameter.go": {
+      "sha256": "9888acbf042c1388ab6bdc6839c60e2b69e39e69e44f704fef31bba6a262ff23",
+      "upstream_sha256": "82101a03514a4e72b949442005ec45333ca4df578b9ab40e0dc65ac3c11d90f7",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/bfile.go": {
+      "sha256": "208e191b1c2498a9300fcd72c41e0e2933277e584c7479d87b4a64e99ae8c4a2",
+      "upstream_sha256": "b47121f7f20b9be476c7c8ca270915ba0e69e864f60aeb785c785805081a11c2",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/blob.go": {
+      "sha256": "b6d82d31e536a716051cecde39004f84671dbd787cdaadf7fc21499a7b629cc2",
+      "upstream_sha256": "4fd6a79bafdd3c82bbf044fe647a875892aa1a0ad72eab72e19684edf7d05f79",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/bool.go": {
+      "sha256": "dfcb7f9a5ef79c4318ee82d13aa94b809c94e3340fa237dd77ed794af5cd9580",
+      "upstream_sha256": "c605bcdb2ad05ca517c314529315a918751dfb2739f8456353f2ee50c5264886",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/clob.go": {
+      "sha256": "f4c9ca3044caeaf1e7157a6493fcd8de791e2c44bc21ebe0d8b96764723317b3",
+      "upstream_sha256": "8a59bb6e99e943481ed2151f23a59ca1d8d0e40d82e8aceacf8551c4335f5eb1",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/cursor.go": {
+      "sha256": "aa95f12c60fb43870316d286f8cde57fd71d8df298eb8c10bd6c8dab463311f1",
+      "upstream_sha256": "9c081ee114cfa7292ca5cb01e4f18c74300e9ec505dbfc931531e51197a613a4",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/date.go": {
+      "sha256": "0e036482f50fa9ae5c5e436202badec27c448b6127fa7355c388e9cfc42ccc89",
+      "upstream_sha256": "9fcdfa721def6204a09c8fcd74a6c0cd716453318abf437af0c82ab7118e2f73",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/interfaces.go": {
+      "sha256": "561449de8d0ec4fca528d7008107e93fd274480c2d819c9d96df375937494519",
+      "upstream_sha256": "e5131177ff69e6db6bb463404b5df83c7c6d33e2a82832891136deab54e070cf",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/interval.go": {
+      "sha256": "e27dee1b822fe9ec33f0d3db63a9b57d8e34b87deaf2c8cf1634ccf80c9889d1",
+      "upstream_sha256": "9db784182cdd315af40364041a19021bf40d34e28bcdf932d153e29439df2060",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/json.go": {
+      "sha256": "0cc200ea3fabd581ece03214a79ec2a14cccc174d6f0b7db9fd0579e1887db2b",
+      "upstream_sha256": "4ad6716953bd5baa91f64f7bb57a495ffd042a1551a19eb8e44616b7213b8d17",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/lob.go": {
+      "sha256": "15d2fcf55cb9515f81c70bb13156ec2579c819df0f8ffad4664142e034afe38c",
+      "upstream_sha256": "24a43ca1dd334c33e7c8bf7c343a4b59cd1300979bb06891c225307d6f2f17c3",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/number.go": {
+      "sha256": "70ff0590a44eebf948e167c9ced88e779231a9dfccb27fee91380a03f2e29e33",
+      "upstream_sha256": "e42587c400ae478b99357f0cd085eeb5dba4b4598338645cb212240df0164ec8",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/raw.go": {
+      "sha256": "8ce7ccb9b74540be235c79746cbcf65ac8ddf83f804e347039cfe8c48cb6c34b",
+      "upstream_sha256": "906f12aa637a988057ffeb45318871f4daa183e937847db9275a10a8d6b54032",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/rowid.go": {
+      "sha256": "f108692177919fa878ebd377c59235a95956b00d5954bc1677c61b82368abdaf",
+      "upstream_sha256": "ff67b46ba1a50721ac264f0cebafb26c1b3ecf62f7d617ff918e821c42fcb298",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/string.go": {
+      "sha256": "b5cee6711f43d3299a68786954f05f522aaf4db96f25556466b0e2fbbbaf6b99",
+      "upstream_sha256": "b8b5d4879966fcd4548249bb1f903bbde87d1e4279909624348d6ff2cae9469c",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_coder/vector.go": {
+      "sha256": "d7f3676098b3a0a830dffd7e518900617c37e48f5eee3f62ce9bfd9d1c646a7d",
+      "upstream_sha256": "9ba1c85d56dd34a4d4f321ed7f022597c666e3f308ad61b56a6ffc4d435266b2",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter_encode.go": {
+      "sha256": "264f76399d73ca17d93a649d6182e5054097146f4f569bc3adf7fc364dd938a7",
+      "upstream_sha256": "6118484fb5f284ecde670488426cc777c8abbc976035fa6f281ddd3d8637c7a0",
+      "kind": "retained-production-or-license"
+    },
+    "v3/parameter.go": {
+      "sha256": "211412b298d48a460b264f227b83379551e47f60c1806b5e3872d440c03c821f",
+      "upstream_sha256": "05c46f85ad2a5b26eed11684afe3d44170e2b299563ff33f7c0f1e1cfdf63807",
+      "kind": "retained-production-or-license"
+    },
+    "v3/ref_cursor.go": {
+      "sha256": "e811cfea44ca304f38a2f1dcc1621bc78131bb28de743e9ae4239698fa7a0ec2",
+      "upstream_sha256": "288996da2d2cb2bc2655699c4bd352453e6b739bfc1c07e0008fcb8de7ed4f92",
+      "kind": "retained-production-or-license"
+    },
+    "v3/result_set.go": {
+      "sha256": "5cb2520f076536fec91bcb9574524031e5b42eca8c169f35506ffbbacde038e8",
+      "upstream_sha256": "56c3d352fc96076eec8e7a8347b5597f782e64b0bd551b4134f4f67f17494702",
+      "kind": "retained-production-or-license"
+    },
+    "v3/simple_object.go": {
+      "sha256": "4d60a0a1d124813f3ae91156c04aaef0c220271ef4f77f85fed31e2f6630c449",
+      "upstream_sha256": "c61453f036169f78640b806fad50a36920ce5b7638665a710e543f23c9e205e5",
+      "kind": "retained-production-or-license"
+    },
+    "v3/tcp_protocol_nego_safety_test.go": {
+      "sha256": "095c92402bd9c4299413d5ffabf1ee8dae953131be8f057ee7b256cee09bb079",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v3/tcp_protocol_nego.go": {
+      "sha256": "f935278999e0e63b013dc2beda48295e680f6fd6074e4b842437b3723bb795dd",
+      "upstream_sha256": "3e6d072f0af228c07841e9ede846c1a8d11fca6e8fa0918bddcfcbf84e7c07ad",
+      "kind": "retained-production-or-license"
+    },
+    "v3/timestamp.go": {
+      "sha256": "29c015c325b0162e34d0d24789db0ee0729d8e8ba38e8ec68fb5beadf322387c",
+      "upstream_sha256": "4757e734a1ef0eaf209d42a84e234d9111df916e7a87b138dfa16c806ab6267a",
+      "kind": "retained-production-or-license"
+    },
+    "v3/timestampTZ.go": {
+      "sha256": "08d216ccbcd50825b082b36f9b40f7931de1566185eee0d037e80b6756714188",
+      "upstream_sha256": "08d216ccbcd50825b082b36f9b40f7931de1566185eee0d037e80b6756714188",
+      "kind": "retained-production-or-license"
+    },
+    "v3/trace/trace.go": {
+      "sha256": "037392f72c9bb3dc04712752da310397e97378b21abb98faf1524f3fdb6ae420",
+      "upstream_sha256": "037392f72c9bb3dc04712752da310397e97378b21abb98faf1524f3fdb6ae420",
+      "kind": "retained-production-or-license"
+    },
+    "v3/transaction.go": {
+      "sha256": "3a469ebf7083fcb77f1dab0cf8bbd319024a3ed9d5d40d3dfe70b52daf780f35",
+      "upstream_sha256": "3a469ebf7083fcb77f1dab0cf8bbd319024a3ed9d5d40d3dfe70b52daf780f35",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/basic.go": {
+      "sha256": "586ba270f208242519ab3d15fc64a900d23411c1e0bf83c16a6ae8a39d7f2b88",
+      "upstream_sha256": "586ba270f208242519ab3d15fc64a900d23411c1e0bf83c16a6ae8a39d7f2b88",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/bfile.go": {
+      "sha256": "f5104430821c58d626b71db4a308a8a3ed57f50dbe32d7bdd193bee95b289707",
+      "upstream_sha256": "61f14188afc55cdd9ea7ea5084cfb8623fa9d73f651e018be78e3c551bb1c489",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/blob.go": {
+      "sha256": "4560a34b2dc7385a9bd441f1d8260a1d81d5ccb630ed75d99d6f1e7bef434804",
+      "upstream_sha256": "4560a34b2dc7385a9bd441f1d8260a1d81d5ccb630ed75d99d6f1e7bef434804",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/bool.go": {
+      "sha256": "5d7578713c1a92aa2c22084ed00668cf1e2bbe71af6549a7c674fac618d89b5d",
+      "upstream_sha256": "5d7578713c1a92aa2c22084ed00668cf1e2bbe71af6549a7c674fac618d89b5d",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/clob.go": {
+      "sha256": "637083235b0f04663914fea8403accffe7162b526773a6a46c96b5392f354f37",
+      "upstream_sha256": "64767091c8e77d0072f08c34cdd1b5747ccca6ab3bef118b45c67c0a28bc690c",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/copy.go": {
+      "sha256": "abd196a27b7baacea5a220f480a53adabbc5058bf30ad102eed3043288b7f2f5",
+      "upstream_sha256": "abd196a27b7baacea5a220f480a53adabbc5058bf30ad102eed3043288b7f2f5",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/copyx.go": {
+      "sha256": "20e10c45f8afe2d63dec47485217d2f658676e04c476efee12799e706d99e71c",
+      "upstream_sha256": "20e10c45f8afe2d63dec47485217d2f658676e04c476efee12799e706d99e71c",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/date.go": {
+      "sha256": "67ffc50f14e06998b2d87e8cf77cf1f1d928ddb4fa123005acf8747c5648cdc3",
+      "upstream_sha256": "67ffc50f14e06998b2d87e8cf77cf1f1d928ddb4fa123005acf8747c5648cdc3",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/interfaces.go": {
+      "sha256": "9609352d15db24a35dcb2113e4ade9023edca60c13460f2677d82cc080afa0fb",
+      "upstream_sha256": "aa139cf9cacef2e48e0fdc6abd45bbc708d167c3aadc9362d658b17e61fcf34d",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/interval.go": {
+      "sha256": "cf4f7374df87816b21dad38e8f0e416b5899266249e9a8eff82698eff1c75a2c",
+      "upstream_sha256": "cf4f7374df87816b21dad38e8f0e416b5899266249e9a8eff82698eff1c75a2c",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/json.go": {
+      "sha256": "124c1a386c70cd9908ce579c3d45b78d157e4d8d1d74147d567ef4761482c7f4",
+      "upstream_sha256": "72aea3b09fe89bd780e1f8224ed2e5ad878db424dc3dd67014f2870de401f48f",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/lob.go": {
+      "sha256": "3838b42c037f8398d1b6b0b28b4e8b90c4641b484b2ee6f74979c062b83c4c58",
+      "upstream_sha256": "dbf201d772558f7c957a020e9a9cd4e48691fae192c897271d1ea7b8bdf5fd55",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/locator.go": {
+      "sha256": "1ccaeb515d16d540c6d12bb38c9bd3048c7e2c2142f3d72ce5f4e254efdf37c3",
+      "upstream_sha256": "1ccaeb515d16d540c6d12bb38c9bd3048c7e2c2142f3d72ce5f4e254efdf37c3",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/number.go": {
+      "sha256": "bd02024b0b677b5e32003746d06bac1ffc54b0f073ca27027c713cd456c1f399",
+      "upstream_sha256": "bd02024b0b677b5e32003746d06bac1ffc54b0f073ca27027c713cd456c1f399",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/object.go": {
+      "sha256": "bbc2e0f15792cdb762694637b24a28fcc5d76c85ccf756158a6c64c915ca42bf",
+      "upstream_sha256": "bbc2e0f15792cdb762694637b24a28fcc5d76c85ccf756158a6c64c915ca42bf",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oracle_type.go": {
+      "sha256": "8c72d9e38c66472a5576a29702de3d9cf98808084975f35c9f53b952ec02ec3e",
+      "upstream_sha256": "affd135c7b7df727925e7b9858620cbe48addc2feb09146c5b97f810d3c4f032",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oracle_zones.go": {
+      "sha256": "243fb5dda7027ba3c61b17e0cf3bac9b43695dccbcb09ce3bcf5782d885070d1",
+      "upstream_sha256": "243fb5dda7027ba3c61b17e0cf3bac9b43695dccbcb09ce3bcf5782d885070d1",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oson/array_field.go": {
+      "sha256": "30d9ebc8df2de07d9241368188049d2591aaa69dd25da8a16ccdf23437e0c24d",
+      "upstream_sha256": "4a56b3b3caa9ef5d2158dc0c39e5ce86167a7e130401d9afb8433b57f96d4713",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oson/basic_field.go": {
+      "sha256": "e5c9d4c59a838fdc8d9a03cf2c339b547ddf2c48ccf6b83de5035de3b3f97339",
+      "upstream_sha256": "e5c9d4c59a838fdc8d9a03cf2c339b547ddf2c48ccf6b83de5035de3b3f97339",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oson/date_field.go": {
+      "sha256": "f1fafba91f82cb781dafc67608abdfbd25065aa9e8bfd7c88aaee61389ec2101",
+      "upstream_sha256": "624a1ffab4964194a3d881e7bb1f98d56f0e48f449cb8914002bc4406476c281",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oson/header.go": {
+      "sha256": "ca04dc76ee8d74328fac5897214789cfd0e4435827cfe8d4125ade39995da8f1",
+      "upstream_sha256": "ca04dc76ee8d74328fac5897214789cfd0e4435827cfe8d4125ade39995da8f1",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oson/interfaces.go": {
+      "sha256": "c1c7d5a48dde15d2272b981bf50b0dec3fa788bdf0deeb04e6140f6c99cdc7f4",
+      "upstream_sha256": "c1c7d5a48dde15d2272b981bf50b0dec3fa788bdf0deeb04e6140f6c99cdc7f4",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oson/key.go": {
+      "sha256": "2feaddf3b80380e494497ae8622bc4dfd54590130d6fb91abad90b022252cbc7",
+      "upstream_sha256": "2feaddf3b80380e494497ae8622bc4dfd54590130d6fb91abad90b022252cbc7",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oson/number_field.go": {
+      "sha256": "1b484f5d00a096a5dc48c6b16071b68096ed2490d8fbe5cad5ca4fd77fd9433a",
+      "upstream_sha256": "dce9deb17f629e2a09858b8f949f76f5ccc30dd2beb09e87892c5237d09e71f5",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oson/object_field.go": {
+      "sha256": "25405f660b80d1c3cb97880e1bf06a3a772730c55419e3877494c87bee25ae1b",
+      "upstream_sha256": "b7bff47c9f5d7b8d62e817d97b73d75454c498e6190ccb18fecd2944e912732b",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oson/object_header.go": {
+      "sha256": "3c5cc347785e389e92dd0472bc4decfefc49db4002f55c08eff76cd07d0bbd67",
+      "upstream_sha256": "3c5cc347785e389e92dd0472bc4decfefc49db4002f55c08eff76cd07d0bbd67",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oson/oson.go": {
+      "sha256": "c75224ade3457ad0ad26d47da7082bdb6f12bade66b357fc84ab9d80ff09950f",
+      "upstream_sha256": "c75224ade3457ad0ad26d47da7082bdb6f12bade66b357fc84ab9d80ff09950f",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oson/string_field.go": {
+      "sha256": "50076bafb5ce6334859ff209a3f53b1b696a14006e31dcb526a7aafb7b68c151",
+      "upstream_sha256": "50076bafb5ce6334859ff209a3f53b1b696a14006e31dcb526a7aafb7b68c151",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oson/struct_filed.go": {
+      "sha256": "916ff700cbcf1034435d6780b729443ab26aff0f410dc5b1fce253dd909d3110",
+      "upstream_sha256": "916ff700cbcf1034435d6780b729443ab26aff0f410dc5b1fce253dd909d3110",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/oson/utils.go": {
+      "sha256": "940521d7feb3388e1ef39898b8a5ec4186ee07cde1ebe78373d1555c03ae5fcc",
+      "upstream_sha256": "ea8514cc040c83cd50b1b8a10a8a892d10131447632c44ef2e729515bbd019a7",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/raw.go": {
+      "sha256": "a93b87b4c45cdb0a99b918a586710ad3f4ed24609dbc8e0a187db4843e74cf32",
+      "upstream_sha256": "a93b87b4c45cdb0a99b918a586710ad3f4ed24609dbc8e0a187db4843e74cf32",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/rowid.go": {
+      "sha256": "5b8124387a4ba32c84e399da0c45c6cc6b2aa9b94b10e9ff7db6f9ee9d052e48",
+      "upstream_sha256": "5b8124387a4ba32c84e399da0c45c6cc6b2aa9b94b10e9ff7db6f9ee9d052e48",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/string.go": {
+      "sha256": "faab3eb25800bfc163a2f1b691e83c328c5fde3265d72af9cf6d5c11b15a4d95",
+      "upstream_sha256": "cf4fc10a8c79aa359b7208a4a588f77a3818f119820d2397c9c0a472609f1fe9",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/utils.go": {
+      "sha256": "beeb96bc4199e1ef8d16fa61efc6494a71ef23979645434d1f60e86516a2dc87",
+      "upstream_sha256": "beeb96bc4199e1ef8d16fa61efc6494a71ef23979645434d1f60e86516a2dc87",
+      "kind": "retained-production-or-license"
+    },
+    "v3/types/vector.go": {
+      "sha256": "ec6c082730aaa0b733f10814dc42d54aa71184787fab82b2b86cb2c88dd4bca5",
+      "upstream_sha256": "ec6c082730aaa0b733f10814dc42d54aa71184787fab82b2b86cb2c88dd4bca5",
+      "kind": "retained-production-or-license"
+    },
+    "v3/udt.go": {
+      "sha256": "faa15364ee7223a9225d3969acbee6b91b93ee468956beda8c0baf25ad96e7fd",
+      "upstream_sha256": "faa15364ee7223a9225d3969acbee6b91b93ee468956beda8c0baf25ad96e7fd",
+      "kind": "retained-production-or-license"
+    },
+    "v3/utils.go": {
+      "sha256": "979183558bf2dc74c5cfbd068ea05bc75da198aa95c858eef8396f4afc618634",
+      "upstream_sha256": "9f5a2c707a7bc9ca59d1c93fafa59043c9f51627485ee455499fc88a2ab83b2f",
+      "kind": "retained-production-or-license"
+    },
+    "v3/utils/enums.go": {
+      "sha256": "c4c367226ede1c68ce7570d1dadb0326717fa9d7a2efc7fc32b1422fa43f5b15",
+      "upstream_sha256": "c4c367226ede1c68ce7570d1dadb0326717fa9d7a2efc7fc32b1422fa43f5b15",
+      "kind": "retained-production-or-license"
+    },
+    "v3/utils/interfaces.go": {
+      "sha256": "003a8081bd03d2813790f1c026a26a622cc4cda825f1d3ff2c6bddee2b6422e8",
+      "upstream_sha256": "003a8081bd03d2813790f1c026a26a622cc4cda825f1d3ff2c6bddee2b6422e8",
+      "kind": "retained-production-or-license"
+    },
+    "v3/utils/utils.go": {
+      "sha256": "18ed7088d122c2c64f4d31be5d2f4dd88cb03d9e6614cde17ad7c323c64426ee",
+      "upstream_sha256": "18ed7088d122c2c64f4d31be5d2f4dd88cb03d9e6614cde17ad7c323c64426ee",
+      "kind": "retained-production-or-license"
+    },
+    "v3/value_getter.go": {
+      "sha256": "6a46b274d946eab229dc1d8990a793afb527583f3beb012da63b4918103f0938",
+      "upstream_sha256": "8721ec2da2450fbcc5f353e9e28bf2a5db159e136e2966d72331419c2599db82",
+      "kind": "retained-production-or-license"
+    },
+    "v3/value_setter.go": {
+      "sha256": "f549f98292f47ab66f5e65d71b903442952ce7c5b2d1e2110c1a20594c0064a3",
+      "upstream_sha256": "20d4fe637403c4c722b1c7589c9cef8c98657dd5d3ac38e2b7f9a697550bb999",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/advanced_nego.go": {
+      "sha256": "4c3404aba4d97bd55db64ee7ca77f1400118224c0a13786169bce6e23945c277",
+      "upstream_sha256": "94349a24e64e1f86976122b7144a08f509cecbfcf71b0472967f005652cd7732",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/auth_service.go": {
+      "sha256": "7c7c7d41cb7aa4b443310d3414c796cc2705d769af568e0fcfd0b46ebde7b45e",
+      "upstream_sha256": "3b04a44dc5bfb826a5c5483b451d17958f832862c4743978f83ee44a08a4eda3",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/comm.go": {
+      "sha256": "22d38431472f8f16705239a6e4e353d54dd7df04e3b995cb48a83660df6caa6d",
+      "upstream_sha256": "0401ef3a452ab9aa3973ddd56fa87f4b16bde1ef1b34a512726acf2d3ac3b8dc",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/data_integrity_service.go": {
+      "sha256": "c953000a2a79c12ef656bc6f5ff0fb9c41ffdde5284444737b755c26e92e2fe3",
+      "upstream_sha256": "8a772234ba66c2cf4ef40493d752b40f471434a315eb3504dd5e7d1fa70e1368",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/default_service.go": {
+      "sha256": "f46d435c324e3fe2cde97b66c173b6ccb67f4dca4f5558578e17fcfd5ec2515e",
+      "upstream_sha256": "f46d435c324e3fe2cde97b66c173b6ccb67f4dca4f5558578e17fcfd5ec2515e",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/encrypt_service.go": {
+      "sha256": "278758a4cba1d17fa49012ba46fd7500f5d1cffdba0abe7c6c53dab998878f39",
+      "upstream_sha256": "81f4b8f4720d62e20d17a955ab1b4a21ee9b9638166da7f3feed02451d2a1a84",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/ntlmssp/authenticate_message.go": {
+      "sha256": "3d10adf34054497b5b41a40c3411e0114812363d7695ce49d3cd6c8ed2d14a20",
+      "upstream_sha256": "3d10adf34054497b5b41a40c3411e0114812363d7695ce49d3cd6c8ed2d14a20",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/ntlmssp/authheader.go": {
+      "sha256": "d3891c33eac62954b1e2ab53634a413d7389af40c76d68d4659c76653c2c06bd",
+      "upstream_sha256": "d3891c33eac62954b1e2ab53634a413d7389af40c76d68d4659c76653c2c06bd",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/ntlmssp/avids.go": {
+      "sha256": "32a1f52fad6e169e475968088d4fd650ce0556591d7f8a9b5b4615b55fa99cd9",
+      "upstream_sha256": "32a1f52fad6e169e475968088d4fd650ce0556591d7f8a9b5b4615b55fa99cd9",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/ntlmssp/challenge_message.go": {
+      "sha256": "db99a85307992e49bb732664e432f2d8d2e34b33b5f0a91daced70cf8294dcd6",
+      "upstream_sha256": "db99a85307992e49bb732664e432f2d8d2e34b33b5f0a91daced70cf8294dcd6",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/ntlmssp/messageheader.go": {
+      "sha256": "c3362f68457ee6c0e7029d787b481321c1bcfd96caef4afc2e69941419f026a4",
+      "upstream_sha256": "c3362f68457ee6c0e7029d787b481321c1bcfd96caef4afc2e69941419f026a4",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/ntlmssp/negotiate_flags.go": {
+      "sha256": "4c94a994e19dcbf5d6185b753c54443d010f8cb110e8e074b9daf5a24a1bcdb1",
+      "upstream_sha256": "4c94a994e19dcbf5d6185b753c54443d010f8cb110e8e074b9daf5a24a1bcdb1",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/ntlmssp/negotiate_message.go": {
+      "sha256": "14cab5b046e434e8e24d84571665def12c50cf670b0eb175a326aae15d9dfc8b",
+      "upstream_sha256": "14cab5b046e434e8e24d84571665def12c50cf670b0eb175a326aae15d9dfc8b",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/ntlmssp/nlmp.go": {
+      "sha256": "eca3bce257d013471d375e02e631e2c465762e35e91bf2a4710cf743d6c917aa",
+      "upstream_sha256": "d447c9436f596e87241102317ab61aea867cb3a4c878930ecb93bde27f973c6e",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/ntlmssp/unicode.go": {
+      "sha256": "378bd868075a4133f17981f6b62021fba9760cc23fa8321839b5b88921dc94e0",
+      "upstream_sha256": "378bd868075a4133f17981f6b62021fba9760cc23fa8321839b5b88921dc94e0",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/ntlmssp/varfield.go": {
+      "sha256": "fcd43600294bf3047251d9d2723f2cd1bee05eda416929436df7273c46c963a7",
+      "upstream_sha256": "fcd43600294bf3047251d9d2723f2cd1bee05eda416929436df7273c46c963a7",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/ntlmssp/version.go": {
+      "sha256": "5c2131142f015b0d70f7991d6a824a4d38317d580f2014d0befe2e7fa44629d4",
+      "upstream_sha256": "5c2131142f015b0d70f7991d6a824a4d38317d580f2014d0befe2e7fa44629d4",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/nts.go": {
+      "sha256": "f772f7851cccbd3f1d48c93aa8c072d7f6dd71b22350d360563e04e0509e63a4",
+      "upstream_sha256": "20e6202db98d651d58728e831d0a527cc956d4ffe5796111950d25d5ead8e39f",
+      "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/supervisor_service.go": {
+      "sha256": "9adce896ba1645eeb9dd50210da76d3dd1572b094f8111b1b8b7d178db882b0f",
+      "upstream_sha256": "9adce896ba1645eeb9dd50210da76d3dd1572b094f8111b1b8b7d178db882b0f",
+      "kind": "retained-production-or-license"
+    },
+    "v2/auth_object.go": {
+      "sha256": "17c76222c071957c2cbb5cff2824996719caf60ffd94a825ef26d523c9d7ef20",
+      "upstream_sha256": "32e41b0b0fd9ab34454b5699366b567fa47230cd70545e58c21fb7387c6b0760",
+      "kind": "retained-production-or-license"
+    },
+    "v2/bfile.go": {
+      "sha256": "9c2e50f49c6a71e3773fe380ab3e5facca578d720502224be0cd531ec830dced",
+      "upstream_sha256": "9c2e50f49c6a71e3773fe380ab3e5facca578d720502224be0cd531ec830dced",
+      "kind": "retained-production-or-license"
+    },
+    "v2/bulk_copy.go": {
+      "sha256": "5206c80889ee07fa1f70ba8760b7042f57710a920354ed148babeac781a74024",
+      "upstream_sha256": "5206c80889ee07fa1f70ba8760b7042f57710a920354ed148babeac781a74024",
+      "kind": "retained-production-or-license"
+    },
+    "v2/command.go": {
+      "sha256": "4e0d6652499e1198f94e62f3cfb5c4b363cdc3b4553ba72c79c2fdf6c364cb09",
+      "upstream_sha256": "ace8366523a16b08a2a79725fa6f2565cb72f5e60fd6824cb159ffef83d18b69",
+      "kind": "retained-production-or-license"
+    },
+    "v2/configurations/client_info.go": {
+      "sha256": "9950ec8d647c7b8feead819018881130c150fef068ebde566d1591d63a781d16",
+      "upstream_sha256": "9950ec8d647c7b8feead819018881130c150fef068ebde566d1591d63a781d16",
+      "kind": "retained-production-or-license"
+    },
+    "v2/configurations/connect_config.go": {
+      "sha256": "7765d7ce74f14cb7a90c6a8bd39effe5883eb9699f1ccf4052afa16623d1f3e1",
+      "upstream_sha256": "7765d7ce74f14cb7a90c6a8bd39effe5883eb9699f1ccf4052afa16623d1f3e1",
+      "kind": "retained-production-or-license"
+    },
+    "v2/configurations/database_info.go": {
+      "sha256": "cc38a79537b55c0af62a0bd2920b101197480a78ffd2cd7b14528037257384f8",
+      "upstream_sha256": "cc38a79537b55c0af62a0bd2920b101197480a78ffd2cd7b14528037257384f8",
+      "kind": "retained-production-or-license"
+    },
+    "v2/configurations/session_info.go": {
+      "sha256": "56252eb2f13327e802164ddcf5f226b9d4f2abc14966fbadde0cc7fc2a0e3946",
+      "upstream_sha256": "56252eb2f13327e802164ddcf5f226b9d4f2abc14966fbadde0cc7fc2a0e3946",
+      "kind": "retained-production-or-license"
+    },
+    "v2/configurations/utils.go": {
+      "sha256": "ccd24a91212cdee70c8d930ce23d0beeff37db70bd385b90e8ac4c76d4d44809",
+      "upstream_sha256": "ccd24a91212cdee70c8d930ce23d0beeff37db70bd385b90e8ac4c76d4d44809",
+      "kind": "retained-production-or-license"
+    },
+    "v2/configurations/wallet_algo.go": {
+      "sha256": "8970d6df1243e7a35bffe29489aad066cc9f94a1b7af9dcad750bbf3bff015d5",
+      "upstream_sha256": "8970d6df1243e7a35bffe29489aad066cc9f94a1b7af9dcad750bbf3bff015d5",
+      "kind": "retained-production-or-license"
+    },
+    "v2/configurations/wallet_utils.go": {
+      "sha256": "068455d07e7eec9bf6c5b0b0630c3547b92830c9736ad98141cff8a769614e82",
+      "upstream_sha256": "068455d07e7eec9bf6c5b0b0630c3547b92830c9736ad98141cff8a769614e82",
+      "kind": "retained-production-or-license"
+    },
+    "v2/configurations/wallet.go": {
+      "sha256": "611efa2344f6b72a988b960ab62a32f970b55e1ffd4879d19d46d308149c5304",
+      "upstream_sha256": "611efa2344f6b72a988b960ab62a32f970b55e1ffd4879d19d46d308149c5304",
+      "kind": "retained-production-or-license"
+    },
+    "v2/connection_string.go": {
+      "sha256": "c95ec5cfaef84dd99813fb18d02181ad419c82f954623a874e7b136d827255ee",
+      "upstream_sha256": "28ede2c1a0fb34bccbf153fae6d7cdb4f24c8ac1c38cc906fb8056067df4678d",
+      "kind": "retained-production-or-license"
+    },
+    "v2/connection.go": {
+      "sha256": "864714f21c6750338a82b077a3faf5ac6655892f624f4af84b535e12b7483623",
+      "upstream_sha256": "ce9729f098c77e1fe159bc89981fee2bf2cd0a5df9b13fa713e3c823371c75f0",
+      "kind": "retained-production-or-license"
+    },
+    "v2/converters/generatefloat/main.go": {
+      "sha256": "b1f3e4f4cec0740c18317bff3f8dad806eb2741d7e5a110f2746aff542192b41",
+      "upstream_sha256": "e9a0246ad700ad2d11bd254d087a7e2153f4f29e2bf6960043169a171a03793f",
+      "kind": "retained-production-or-license"
+    },
+    "v2/converters/max_len.go": {
+      "sha256": "0830b35e0ee330b29e0eb5db9f00e34375cb5d4667c23a6f355d48a0aecc2894",
+      "upstream_sha256": "0830b35e0ee330b29e0eb5db9f00e34375cb5d4667c23a6f355d48a0aecc2894",
+      "kind": "retained-production-or-license"
+    },
+    "v2/converters/oracle_number.go": {
+      "sha256": "be903fb78526f2d41edef9c2a14f7fa8544a1c86aedab0dfe619f28333ecdb4d",
+      "upstream_sha256": "be903fb78526f2d41edef9c2a14f7fa8544a1c86aedab0dfe619f28333ecdb4d",
+      "kind": "retained-production-or-license"
+    },
+    "v2/converters/other_types.go": {
+      "sha256": "b4c119ca27976c52f20add88b06db45e5972bddf9d5179343454b29449607457",
+      "upstream_sha256": "b4c119ca27976c52f20add88b06db45e5972bddf9d5179343454b29449607457",
+      "kind": "retained-production-or-license"
+    },
+    "v2/converters/string_conversion_new.go": {
+      "sha256": "64de3ab57d74673cf113c2bbce013830798597a5fd8ee7c7e1dc04e850465ae9",
+      "upstream_sha256": "64de3ab57d74673cf113c2bbce013830798597a5fd8ee7c7e1dc04e850465ae9",
+      "kind": "retained-production-or-license"
+    },
+    "v2/converters/string_conversion.go": {
+      "sha256": "f39816d6adf4e14fadd5907c44bb3930d6c656244e182f5c9ef24f40af8eab6d",
+      "upstream_sha256": "f39816d6adf4e14fadd5907c44bb3930d6c656244e182f5c9ef24f40af8eab6d",
+      "kind": "retained-production-or-license"
+    },
+    "v2/converters/testfloatsvalues.go": {
+      "sha256": "b0ccdc699e503f75c4dc0581acaf18c91220d845fcedf6b4006109a955775963",
+      "upstream_sha256": "b0ccdc699e503f75c4dc0581acaf18c91220d845fcedf6b4006109a955775963",
+      "kind": "retained-production-or-license"
+    },
+    "v2/converters/type_conversion.go": {
+      "sha256": "f76223e2d7d555b53b1772f23b514ba9c49c65973d56c146cad1d7fc4937db35",
+      "upstream_sha256": "f76223e2d7d555b53b1772f23b514ba9c49c65973d56c146cad1d7fc4937db35",
+      "kind": "retained-production-or-license"
+    },
+    "v2/custom_types.go": {
+      "sha256": "d8fe90231a712c254c993a69733f6cd816d684c8ea91c17086e94280a65ec4b3",
+      "upstream_sha256": "517c2aaf213047621d6025a6e1bc5da397a61f334ca2b872ae7685096cf49640",
+      "kind": "retained-production-or-license"
+    },
+    "v2/data_set.go": {
+      "sha256": "37e04cdcb6f4907519c8d8f4478b59a565e3efb466ba36cb6b359b5a65d6d11e",
+      "upstream_sha256": "b559a9c988fcb0e05a1b35db18b11124f1f807c186b81ecbdf08d032ebceddc0",
+      "kind": "retained-production-or-license"
+    },
+    "v2/data_type_nego.go": {
+      "sha256": "4634712041393737fd13b1006e327d8b710b9017d6136a20d90bacf07f989dbf",
+      "upstream_sha256": "2ba52253984e13bac2709234d8e5a4320a10e476e8cf0bb48188929250433e1d",
+      "kind": "retained-production-or-license"
+    },
+    "v2/db_version.go": {
+      "sha256": "8ea57e42c572aa8e5765507e00186a166dcc16358734ba63b68f19829c50df20",
+      "upstream_sha256": "1559192c00a94435b727d4c4b0f663aabf88a822c468ff86779cc314c6c00473",
+      "kind": "retained-production-or-license"
+    },
+    "v2/driver.go": {
+      "sha256": "04a58135e0efc5278eabf662cf0a74b6bfd2401e50553ab70d881084760ecfe6",
+      "upstream_sha256": "65929300b858e83f8a45cbc1a0030b62afea38b74558ac71701c9bc2bf0ceecf",
+      "kind": "retained-production-or-license"
+    },
+    "v2/lazy_init/lazy_init.go": {
+      "sha256": "d00d3e03f1bab95380ad5d5f2fcebc28ca958a96666f8eebe3d5698ecb4b845a",
+      "upstream_sha256": "d00d3e03f1bab95380ad5d5f2fcebc28ca958a96666f8eebe3d5698ecb4b845a",
+      "kind": "retained-production-or-license"
+    },
+    "v2/legacy_compatibility_test.go": {
+      "sha256": "698f4dd0a328a2b4d6e522a46e693dfb49831130c0bf1105bf3625c050eb2410",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v2/legacy_compatibility.go": {
+      "sha256": "31b59daf88e76400ccb718fd08dd828207d8fe613f136ef0add55e64a5ac69f8",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v2/LICENSE": {
+      "sha256": "86b6a31a08af7288285c3f242fd257d8d985587182c6af3796cb421daa0b8339",
+      "upstream_sha256": "86b6a31a08af7288285c3f242fd257d8d985587182c6af3796cb421daa0b8339",
+      "kind": "retained-production-or-license"
+    },
+    "v2/lob.go": {
+      "sha256": "a5d4d2b70d3809d797de646aabde96e90cc57d66fe51023a0adebe174c447bb4",
+      "upstream_sha256": "a8916c601895b97f0ba6aeba16a938f8eb77a46feadd78154cde67eeca56f1be",
+      "kind": "retained-production-or-license"
+    },
+    "v2/login_warning_test.go": {
+      "sha256": "5c78ca884c4b344c54a987792929ce7a2af3840e40fd7f41c799a995d9c02f3c",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v2/network/accept_packet_safety_test.go": {
+      "sha256": "982705b3ea9ebc18ce6f0733e96d5b97822381f0e2bd2f493e71e901662e2339",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v2/network/accept_packet.go": {
+      "sha256": "24ea758b67dfcc0a18eef0b7428fa8a84b61e7f0cb45f745d1ad3a26f8f888dc",
+      "upstream_sha256": "e24cc7a61b25c6cd0cf0f175dfb30c978729249007fc2bce6dbc2bad644b4ded",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/connect_option.go": {
+      "sha256": "c4540bc34162f601dc404171a5e8156a677735b04ee9444fa8d158f1da24d555",
+      "upstream_sha256": "c4540bc34162f601dc404171a5e8156a677735b04ee9444fa8d158f1da24d555",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/connect_packet.go": {
+      "sha256": "b68c34de535022aeda59259bd31c0891b6637eca38b65e33759c04a67a37b762",
+      "upstream_sha256": "b68c34de535022aeda59259bd31c0891b6637eca38b65e33759c04a67a37b762",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/data_packet.go": {
+      "sha256": "7dfc9117e74c260dc79a2cf7a2725153cebd20045e28ca7679ad6d89d6ac5149",
+      "upstream_sha256": "5722746d3885658dc9341688bcc9e0977331c7c24c890f355ee23c50b1b82430",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/marker_packet.go": {
+      "sha256": "94706732bfecf771030cfe13e2fcc7383b126cf5ba2977577c3635ac32614e84",
+      "upstream_sha256": "94706732bfecf771030cfe13e2fcc7383b126cf5ba2977577c3635ac32614e84",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/net_others.go": {
+      "sha256": "187cb76e4a8eeed6ce7332268cb9b7fd01a9ff426e2086a18606cac4b4f6107a",
+      "upstream_sha256": "187cb76e4a8eeed6ce7332268cb9b7fd01a9ff426e2086a18606cac4b4f6107a",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/net_windows.go": {
+      "sha256": "6d00f95e6693571f859b1a41f0accbf51e8c9c23c908488efdb1e9a9aacf5446",
+      "upstream_sha256": "6d00f95e6693571f859b1a41f0accbf51e8c9c23c908488efdb1e9a9aacf5446",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/oracle_error.go": {
+      "sha256": "e35901706c891fd44bf43ffa159d9e4ce809346af709218cfaedce51276554cf",
+      "upstream_sha256": "e35901706c891fd44bf43ffa159d9e4ce809346af709218cfaedce51276554cf",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/packets.go": {
+      "sha256": "5f45ab6a8d30d8635e17031da3effba3e1089a8be6bd4f69ec4931149ce61998",
+      "upstream_sha256": "5f45ab6a8d30d8635e17031da3effba3e1089a8be6bd4f69ec4931149ce61998",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/redirect_packet.go": {
+      "sha256": "2972d6f3662b7af10df60875cc1a548e3ff5599f8aa702694a29d24a6e60b43f",
+      "upstream_sha256": "2972d6f3662b7af10df60875cc1a548e3ff5599f8aa702694a29d24a6e60b43f",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/refuse_packet.go": {
+      "sha256": "535109e9a07fce303c6328bc788db2a8a1d9c4fecf181fefaa7c4fd0867e72fb",
+      "upstream_sha256": "8e3191dd15f9595f37025924ab6a3dae9c377299597f1c2e1e220601d19b3be5",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/security/des_cryptor.go": {
+      "sha256": "e5c6b74683fc72a0e58e71d967b551ed1d31eca2c6326a5bb650ffb8bd82af8a",
+      "upstream_sha256": "e5c6b74683fc72a0e58e71d967b551ed1d31eca2c6326a5bb650ffb8bd82af8a",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/security/general.go": {
+      "sha256": "f2ce558941e953a4ec27fed555e199018ccd7a5bfec51f1ba9b3370e47e4ec10",
+      "upstream_sha256": "f2ce558941e953a4ec27fed555e199018ccd7a5bfec51f1ba9b3370e47e4ec10",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/security/md4/md4.go": {
+      "sha256": "578cc0bdb418e122e4116696558ba588ec1b6346151a9928bd36aacdef8b5f82",
+      "upstream_sha256": "578cc0bdb418e122e4116696558ba588ec1b6346151a9928bd36aacdef8b5f82",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/security/md4/md4block.go": {
+      "sha256": "f668d5262906ad4ede782ba9e2663772d5a780347ff77c5db3700a6768b9bafa",
+      "upstream_sha256": "f668d5262906ad4ede782ba9e2663772d5a780347ff77c5db3700a6768b9bafa",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/security/rc4_cryptor.go": {
+      "sha256": "bb4db1985e9459539a21d65d8e7972297815bc2c17da39c5a9f3ab34fa8da7f5",
+      "upstream_sha256": "bb4db1985e9459539a21d65d8e7972297815bc2c17da39c5a9f3ab34fa8da7f5",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/session_ctx.go": {
+      "sha256": "2e50a7e82453699eaceb6cb64fb6a981ac6f1ffe84c38e37258ec059dc18293a",
+      "upstream_sha256": "b0c74a1d9358a71e82f9d642b37785f5006e7b46b43caa45727a55235e718a8d",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/session.go": {
+      "sha256": "4d9d30615aa66da2bd308684c27be91391e9c33a620cb0f85e815c8ca22f2d2b",
+      "upstream_sha256": "906517f585ab26e875d2e599427573099d628c877cd94b0ee5ffb0a653867c71",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/summary_object.go": {
+      "sha256": "8d9fb1a77803bf7bd1d53799f3163d6fa3bb2690188703255addc273b7f2b88c",
+      "upstream_sha256": "8d9fb1a77803bf7bd1d53799f3163d6fa3bb2690188703255addc273b7f2b88c",
+      "kind": "retained-production-or-license"
+    },
+    "v2/number.go": {
+      "sha256": "6cbaa71418c6824c2472c509ff055e079bd9bdfaaf0db315e2e6fc65e0d305ad",
+      "upstream_sha256": "5ee3160451cd6fdc7578fe881d43fd3801b7709c76dd3b4ac1c1c350a3d0e0ff",
+      "kind": "retained-production-or-license"
+    },
+    "v2/oracle_type.go": {
+      "sha256": "06ddf91a5f32ce49fa56709c89ecc33d000feefedc36e711ef52ec448068608c",
+      "upstream_sha256": "06ddf91a5f32ce49fa56709c89ecc33d000feefedc36e711ef52ec448068608c",
+      "kind": "retained-production-or-license"
+    },
+    "v2/oracletype_string.go": {
+      "sha256": "ea097a4fb9dd4b52b8e45ff799c6531715b8b799030a2514b2e49b3a7d6dbe84",
+      "upstream_sha256": "ea097a4fb9dd4b52b8e45ff799c6531715b8b799030a2514b2e49b3a7d6dbe84",
+      "kind": "retained-production-or-license"
+    },
+    "v2/parameter_encode.go": {
+      "sha256": "0afac1f1c1bf8e40d4c47f1026f1dcf9f0be406bbf63af5b988084bb4276095f",
+      "upstream_sha256": "401f2bbc4b985dfe2187bc52c046c4e9dec4aad8b819d7948f21216b344b228b",
+      "kind": "retained-production-or-license"
+    },
+    "v2/parameter.go": {
+      "sha256": "fdb298dec31d09e6ef7dafb073aa3146000aca6a316e963f97bcfb43041d35c4",
+      "upstream_sha256": "276ac077bd067890004656f0366482a1625d8b9b0fa371741a673ae3be4f2700",
+      "kind": "retained-production-or-license"
+    },
+    "v2/ref_cursor.go": {
+      "sha256": "2cfc5bba1fef8baaac921df797801f132fcc0bd47ad95cc4320e1dd95e985898",
+      "upstream_sha256": "e16861979b34c947e44fb61a7596b3c875a4412cf62be8e6dc519c43c8f37c05",
+      "kind": "retained-production-or-license"
+    },
+    "v2/result_set.go": {
+      "sha256": "958d98539c59a587b1cd42f329579cc99c1ba5a2b6267bb7de8d9fc9851190a6",
+      "upstream_sha256": "275304b1390c885a157ab58f931171c657fac07e9b4830372ac2ba8547328654",
+      "kind": "retained-production-or-license"
+    },
+    "v2/rowid.go": {
+      "sha256": "fde51e03bed4482d79e14207fcda0a9f8103bc9fc6542328365a29ff87450bd5",
+      "upstream_sha256": "22e7461d845697b892fcb307b4c04d45ae8d9a31bd79a313f2b2acdf26b4561b",
+      "kind": "retained-production-or-license"
+    },
+    "v2/simple_object.go": {
+      "sha256": "b3958d80d6ade2d2cbc170a899540fc0df8c1e5ed22df33e2ff9292f2d5e798b",
+      "upstream_sha256": "bba8c5b17d26f7976fae5a085ab57b4abf603fd30264a363aa6985dd2b39bf1e",
+      "kind": "retained-production-or-license"
+    },
+    "v2/tcp_protocol_nego_safety_test.go": {
+      "sha256": "1a2707862cff32fe4dad8ae5a00606d0f1b67912c83bcc909d080a1ab954594f",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v2/tcp_protocol_nego.go": {
+      "sha256": "519a573423227fe13d516a2585ed7834b6e20dbe8486f60861c54d0b9972a977",
+      "upstream_sha256": "463e139f34c31c8de06d4c54f6e002f579a5e31ea666193260f9db99cfbcd721",
+      "kind": "retained-production-or-license"
+    },
+    "v2/timestamp.go": {
+      "sha256": "7fd504802c17c0a0c44d820a01c03e4a1040f0c8efe30e7d39cf45541c7ce1d8",
+      "upstream_sha256": "c447e7b53566c17fdf0bcc4092b16a3563e7689ff1aa1da2db55f0d5d6234de7",
+      "kind": "retained-production-or-license"
+    },
+    "v2/timestampTZ.go": {
+      "sha256": "08d216ccbcd50825b082b36f9b40f7931de1566185eee0d037e80b6756714188",
+      "upstream_sha256": "08d216ccbcd50825b082b36f9b40f7931de1566185eee0d037e80b6756714188",
+      "kind": "retained-production-or-license"
+    },
+    "v2/trace/trace.go": {
+      "sha256": "037392f72c9bb3dc04712752da310397e97378b21abb98faf1524f3fdb6ae420",
+      "upstream_sha256": "037392f72c9bb3dc04712752da310397e97378b21abb98faf1524f3fdb6ae420",
+      "kind": "retained-production-or-license"
+    },
+    "v2/transaction.go": {
+      "sha256": "3d55ef3da7db1accee0dbfe2036ec8ae4aff2a99226bd9b31928f97018dd6e7b",
+      "upstream_sha256": "3a469ebf7083fcb77f1dab0cf8bbd319024a3ed9d5d40d3dfe70b52daf780f35",
+      "kind": "retained-production-or-license"
+    },
+    "v2/udt.go": {
+      "sha256": "31b51da7cbc549ae010033af0e29bc95b3d1402fd7aec6fe13819697d95b5b50",
+      "upstream_sha256": "31b51da7cbc549ae010033af0e29bc95b3d1402fd7aec6fe13819697d95b5b50",
+      "kind": "retained-production-or-license"
+    },
+    "v2/urowid.go": {
+      "sha256": "0cd1d7141e6f75d310507cf5bb65d06fffae36befacd9673aa66518c5f940f17",
+      "upstream_sha256": "2b6d4cbc94d6c8a3ad85789679645c377957d208fd0a691a159ce3ec4133e73a",
+      "kind": "retained-production-or-license"
+    },
+    "v2/utils.go": {
+      "sha256": "402dea03cb1a38bf464f2e3e6f22e1788cf3827efae442b7e46e7e144f16ab9d",
+      "upstream_sha256": "f10930160d462af5cca0933cc38f6d4e166e2f8975792bfef14bb955adde344d",
+      "kind": "retained-production-or-license"
+    },
+    "v2/value_getter.go": {
+      "sha256": "87787e175f969b73b2552e53aff54f3cb9f946978ebae9ca3e071fe26e318c6b",
+      "upstream_sha256": "87787e175f969b73b2552e53aff54f3cb9f946978ebae9ca3e071fe26e318c6b",
+      "kind": "retained-production-or-license"
+    },
+    "v2/value_setter.go": {
+      "sha256": "0b4547ab4193423c636f9ba0cf0665281c97d04485f5a61fb7da69eba19d203d",
+      "upstream_sha256": "a4fd62da68762b8535160a114647ae98f2dcbaf96ee5271c63d502574dcd6e90",
+      "kind": "retained-production-or-license"
+    },
+    "v2/vector.go": {
+      "sha256": "0c2eb982ea3302cb227a71274c6d6e2ddd7fb9a3b847066dedce8c45ebb81eb5",
+      "upstream_sha256": "176495183fb52b83aa05117df4644de4b852cfb795615f0c4fbdae305f5fc9bf",
+      "kind": "retained-production-or-license"
+    },
+    "v2/network/accept_boundaries_test.go": {
+      "sha256": "29e2cb611ce93dafaf3dc4a36a62cca14df8dd3b50001b30f7d456eb2f13c291",
+      "upstream_sha256": null,
+      "kind": "SDK synthetic optional-field and malformed-length regression"
+    },
+    "v3/network/accept_boundaries_test.go": {
+      "sha256": "cd1fda8b842aaab7364febd004c70b68a2b8ce633b8093cb31e63b10a3d67934",
+      "upstream_sha256": null,
+      "kind": "SDK synthetic optional-field and malformed-length regression"
+    }
+  }
+}

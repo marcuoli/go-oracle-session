@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add opt-in module-owned pure-Go v2/v3 compatibility packaging and reviewed decoder/value/lifetime adapters; preserve existing consumer behavior.
+
 - Package shared go-ora compatibility guidance as a portable repository-owned Codex skill and preserve existing documentation links.
 
 ## v0.12.0

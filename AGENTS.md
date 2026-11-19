@@ -38,3 +38,15 @@ The configured Gitea origin owns implementation history. GitHub is the public di
 ## Dataset ownership
 
 Generic query cursors, complete bounded JSON and result finalization belong in the functional rowset package. Reuse existing owned Stream lifetime/cancellation and never expose its private native cursor. Database resultsets use rows/JSON, not CSV/plaintext; genuine DBMS_OUTPUT is the text exception. Oracle facts, version-selected views, filters and application policy belong to their callers.
+
+## Scoped retained-driver compatibility exception
+
+Issue #46 implements the user's explicit shared single-executable pure-Go
+compatibility request. The reviewed source under `internal/compatdriver/v2` and
+`internal/compatdriver/v3` is an authorized retained-source exception, shipped as
+actual parent-module content with preserved MIT licenses, exact upstream
+baselines, patch contracts and complete hashes in
+`internal/compatdriver/sources.json`. Public adapters belong to `goora/compat`.
+No consumer-local replacement, patched cache, build-time rewrite or additional
+driver fork is authorized. Other dependencies retain the upstream-only rule.
+Preserve existing consumer copies and their separate retirement approvals.
