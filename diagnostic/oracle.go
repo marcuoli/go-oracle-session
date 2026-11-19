@@ -57,47 +57,18 @@ func Oracle(err error, secrets ...string) ([]Message, error) {
 	if failure != nil {
 		return nil, failure
 	}
-	pending := []error{err}
 	var output []Message
 	seen := map[string]bool{}
-	visited, total := 0, 0
-	for len(pending) > 0 {
-		e := pending[len(pending)-1]
-		pending = pending[:len(pending)-1]
-		if e == nil {
-			continue
-		}
-		visited++
-		if visited > maxNodes {
-			return nil, ErrCapacity
-		}
-		if joined, ok := e.(interface{ Unwrap() []error }); ok {
-			children := joined.Unwrap()
-			if len(children)+len(pending) > maxNodes {
-				return nil, ErrCapacity
-			}
-			if len(children) > 0 {
-				for i := len(children) - 1; i >= 0; i-- {
-					pending = append(pending, children[i])
-				}
-				continue
-			}
-		}
-		if wrapped, ok := e.(interface{ Unwrap() error }); ok {
-			if child := wrapped.Unwrap(); child != nil {
-				pending = append(pending, child)
-				continue
-			}
-		}
-		text := e.Error()
+	total := 0
+	failure = walkLeaves(err, false, func(leaf error, _ ConnectionKind) error {
+		text := leaf.Error()
 		if len(text) > MaxBytes {
-			return nil, ErrCapacity
+			return ErrCapacity
 		}
 		if !utf8.ValidString(text) {
-			continue
+			return nil
 		}
-		// Redact the complete leaf first: a credential may itself contain an ORA
-		// marker, which must not split it into unredacted fragments.
+		// Redact the complete leaf before splitting: secrets can contain code markers.
 		text = redact(text, secretPattern)
 		starts := oracleLine.FindAllStringIndex(text, -1)
 		for i, at := range starts {
@@ -106,19 +77,20 @@ func Oracle(err error, secrets ...string) ([]Message, error) {
 				end = starts[i+1][0]
 			}
 			message := strings.TrimSpace(text[at[0]:end])
-			if strings.TrimSpace(message[10:]) == "" {
+			if strings.TrimSpace(message[10:]) == "" || seen[message] {
 				continue
 			}
-			if seen[message] {
-				continue
-			}
-			seen[message] = true
 			total += len(message)
 			if total > MaxBytes || len(output) >= maxMessages {
-				return nil, ErrCapacity
+				return ErrCapacity
 			}
+			seen[message] = true
 			output = append(output, Message{Code: message[:9], Text: message})
 		}
+		return nil
+	})
+	if failure != nil {
+		return nil, failure
 	}
 	return output, nil
 }
@@ -156,13 +128,17 @@ func compileSecrets(secrets []string) (*regexp.Regexp, error) {
 }
 
 func redact(text string, secrets *regexp.Regexp) string {
+	return redactWithCodes(text, secrets, oracleLine)
+}
+
+func redactWithCodes(text string, secrets *regexp.Regexp, codeTokens *regexp.Regexp) string {
 	// Structural recognition precedes literal replacement so a known secret
 	// cannot hide a URL scheme or credential key from its redactor.
 	text = connectionURL.ReplaceAllString(text, "[REDACTED CONNECTION]")
 	text = credentials.ReplaceAllString(text, "$1=[REDACTED]")
 	text = authorization.ReplaceAllString(text, "$1=[REDACTED]")
 	if secrets != nil {
-		codes := oracleLine.FindAllStringIndex(text, -1)
+		codes := codeTokens.FindAllStringIndex(text, -1)
 		var out strings.Builder
 		last, code := 0, 0
 		for search := 0; search < len(text); {

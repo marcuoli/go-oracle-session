@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add bounded redacted connection diagnostics for native ORA/TNS and typed DNS/TCP/timeout/TLS causes, preserving existing Oracle-only extraction and error identity (#47).
+
 - Package shared go-ora compatibility guidance as a portable repository-owned Codex skill and preserve existing documentation links.
 
 ## v0.12.0
