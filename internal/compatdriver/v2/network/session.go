@@ -1970,101 +1970,121 @@ func (session *Session) WriteKeyVal(buffer *bytes.Buffer, key []byte, val []byte
 	session.WriteInt(buffer, num, 4, true, true)
 }
 
-// func (session *Session) ReadInt64(buffer *bytes.Buffer, size int, compress, bigEndian bool) (int64, error) {
-// 	var ret int64
-// 	negFlag := false
-// 	if compress {
-// 		rb, err := buffer.ReadByte()
-// 		if err != nil {
-// 			return 0, err
-// 		}
-// 		size = int(rb)
-// 		if size&0x80 > 0 {
-// 			negFlag = true
-// 			size = size & 0x7F
-// 		}
-// 		bigEndian = true
-// 	}
-// 	if size == 0 {
-// 		return 0, nil
-// 	}
-// 	tempBytes, err := session.ReadBytes(buffer, size)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	temp := make([]byte, 8)
-// 	if bigEndian {
-// 		copy(temp[8-size:], tempBytes)
-// 		ret = int64(binary.BigEndian.Uint64(temp))
-// 	} else {
-// 		copy(temp[:size], tempBytes)
-// 		ret = int64(binary.LittleEndian.Uint64(temp))
-// 	}
-// 	if negFlag {
-// 		ret = ret * -1
-// 	}
-// 	return ret, nil
-// }
+//	func (session *Session) ReadInt64(buffer *bytes.Buffer, size int, compress, bigEndian bool) (int64, error) {
+//		var ret int64
+//		negFlag := false
+//		if compress {
+//			rb, err := buffer.ReadByte()
+//			if err != nil {
+//				return 0, err
+//			}
+//			size = int(rb)
+//			if size&0x80 > 0 {
+//				negFlag = true
+//				size = size & 0x7F
+//			}
+//			bigEndian = true
+//		}
+//		if size == 0 {
+//			return 0, nil
+//		}
+//		tempBytes, err := session.ReadBytes(buffer, size)
+//		if err != nil {
+//			return 0, err
+//		}
+//		temp := make([]byte, 8)
+//		if bigEndian {
+//			copy(temp[8-size:], tempBytes)
+//			ret = int64(binary.BigEndian.Uint64(temp))
+//		} else {
+//			copy(temp[:size], tempBytes)
+//			ret = int64(binary.LittleEndian.Uint64(temp))
+//		}
+//		if negFlag {
+//			ret = ret * -1
+//		}
+//		return ret, nil
+//	}
 //
-// func (session *Session) ReadInt(buffer *bytes.Buffer, size int, compress, bigEndian bool) (int, error) {
-// 	temp, err := session.ReadInt64(buffer, size, compress, bigEndian)
-// 	return int(temp), err
-// }
+//	func (session *Session) ReadInt(buffer *bytes.Buffer, size int, compress, bigEndian bool) (int, error) {
+//		temp, err := session.ReadInt64(buffer, size, compress, bigEndian)
+//		return int(temp), err
+//	}
 //
-// func (session *Session) ReadBytes(buffer *bytes.Buffer, size int) ([]byte, error) {
-// 	temp := make([]byte, size)
-// 	_, err := buffer.Read(temp)
-// 	return temp, err
-// }
+//	func (session *Session) ReadBytes(buffer *bytes.Buffer, size int) ([]byte, error) {
+//		temp := make([]byte, size)
+//		_, err := buffer.Read(temp)
+//		return temp, err
+//	}
 //
-// func (session *Session)ReadClr(buffer *bytes.Buffer) (output []byte, err error){
-// 	var size uint8
-// 	var rb []byte
-// 	size, err = buffer.ReadByte()
-// 	if err != nil {
-// 		return
-// 	}
-// 	if size == 0 || size == 0xFF {
-// 		output = nil
-//   		err = nil
-// 		return
-// 	}
-// 	if size != 0xFE {
-// 		output, err = session.ReadBytes(buffer, int(size))//  session.read(int(size))
-// 		return
-// 	}
-// 	var tempBuffer bytes.Buffer
-// 	for {
-// 		var size1 int
-// 		if session.UseBigClrChunks {
-// 			size1, err = session.ReadInt(buffer, 4, true, true)
-// 		} else {
-// 			size1, err = session.ReadInt(buffer, 1, false, false)
-// 		}
-// 		if err != nil || size1 == 0 {
-// 			break
-// 		}
-// 		rb, err = session.ReadBytes(buffer, size1)
-// 		if err != nil {
-// 			return
-// 		}
-// 		tempBuffer.Write(rb)
-// 	}
-// 	output = tempBuffer.Bytes()
-// 	return
-// }
+//	func (session *Session)ReadClr(buffer *bytes.Buffer) (output []byte, err error){
+//		var size uint8
+//		var rb []byte
+//		size, err = buffer.ReadByte()
+//		if err != nil {
+//			return
+//		}
+//		if size == 0 || size == 0xFF {
+//			output = nil
+//	  		err = nil
+//			return
+//		}
+//		if size != 0xFE {
+//			output, err = session.ReadBytes(buffer, int(size))//  session.read(int(size))
+//			return
+//		}
+//		var tempBuffer bytes.Buffer
+//		for {
+//			var size1 int
+//			if session.UseBigClrChunks {
+//				size1, err = session.ReadInt(buffer, 4, true, true)
+//			} else {
+//				size1, err = session.ReadInt(buffer, 1, false, false)
+//			}
+//			if err != nil || size1 == 0 {
+//				break
+//			}
+//			rb, err = session.ReadBytes(buffer, size1)
+//			if err != nil {
+//				return
+//			}
+//			tempBuffer.Write(rb)
+//		}
+//		output = tempBuffer.Bytes()
+//		return
+//	}
 //
-// func (session *Session)ReadDlc(buffer *bytes.Buffer) (output []byte, err error) {
-// 	var length int
-// 	length, err = session.ReadInt(buffer, 4, true, true)
-// 	if err != nil {
-// 		return
-// 	}
-// 	if length > 0 {
-// 		output, err = session.ReadClr(buffer)
-// 		if len(output) > length {
-// 			output = output[:length]
-// 		}
-// 	}
-// 	return
-// }
+//	func (session *Session)ReadDlc(buffer *bytes.Buffer) (output []byte, err error) {
+//		var length int
+//		length, err = session.ReadInt(buffer, 4, true, true)
+//		if err != nil {
+//			return
+//		}
+//		if length > 0 {
+//			output, err = session.ReadClr(buffer)
+//			if len(output) > length {
+//				output = output[:length]
+//			}
+//		}
+//		return
+//	}
+//
+// DisconnectWithError closes the owned transport and preserves its close
+// failure for pre-authentication selection. TLS Close already closes its
+// underlying connection, so it must not be closed a second time here.
+func (session *Session) DisconnectWithError() error {
+	session.mu.Lock()
+	defer session.mu.Unlock()
+	if session.sslConn != nil {
+		connection := session.sslConn
+		session.sslConn = nil
+		session.conn = nil
+		return connection.Close()
+	}
+	if session.conn != nil {
+		connection := session.conn
+		session.conn = nil
+		return connection.Close()
+	}
+	return nil
+}

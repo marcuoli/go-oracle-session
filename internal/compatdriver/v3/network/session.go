@@ -1037,3 +1037,23 @@ func (session *Session) readPacket() (PacketInterface, error) {
 		return nil, fmt.Errorf("unsupported packet type: %d", pckType)
 	}
 }
+
+// DisconnectWithError closes the owned transport and preserves its close
+// failure for pre-authentication selection. TLS Close already closes its
+// underlying connection, so it must not be closed a second time here.
+func (session *Session) DisconnectWithError() error {
+	session.mu.Lock()
+	defer session.mu.Unlock()
+	if session.sslConn != nil {
+		connection := session.sslConn
+		session.sslConn = nil
+		session.conn = nil
+		return connection.Close()
+	}
+	if session.conn != nil {
+		connection := session.conn
+		session.conn = nil
+		return connection.Close()
+	}
+	return nil
+}

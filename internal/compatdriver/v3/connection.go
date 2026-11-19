@@ -213,7 +213,9 @@ func (connector *OracleConnector) connect(ctx context.Context, diagnostics *conn
 	err = conn.OpenWithContext(ctx)
 	if err != nil {
 		if conn.session != nil {
-			conn.session.Disconnect()
+			if closeErr := conn.session.DisconnectWithError(); closeErr != nil {
+				err = errors.Join(err, closeErr)
+			}
 		}
 		if conn.tracer != nil {
 			_ = conn.tracer.Close()

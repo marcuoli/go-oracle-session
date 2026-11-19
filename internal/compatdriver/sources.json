@@ -32,7 +32,9 @@
     "Pre-authentication legacy capability indication and cleanup",
     "Legacy authentication and session lifecycle",
     "Joined legacy break and settlement capability",
-    "Optional scalar modern connection diagnostics"
+    "Optional scalar modern connection diagnostics",
+    "SDK strict pre-authentication cleanup preserves the original close failure; joined cleanup errors prohibit selecting another backend",
+    "SDK terminal transport-only discard invalidates physical state after lazy CLOB protocol failures; no post-execution retry sentinel"
   ],
   "inclusion": "All reviewed production files, MIT licenses and retained regressions; nested module metadata and unrelated upstream integration/examples omitted",
   "files": {
@@ -247,7 +249,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/connection.go": {
-      "sha256": "28046fb1fbc7de2acd19cd3b88c0b063f9cfbac45105536385586d55dc1939d6",
+      "sha256": "fcead9663dc7e619e7a0277618f2a5df0269a59e142a427ae651751c3c264f09",
       "upstream_sha256": "5af4cb323d90197ecd2d7bd890992b27a4c6529fd1825b285b388daf659d4c83",
       "kind": "retained-production-or-license"
     },
@@ -342,7 +344,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/lob.go": {
-      "sha256": "8f44d20dda9eff5fa0e3cf2e69d1e7e32ced1b1b1e86062281eb9eb6bce792f4",
+      "sha256": "422b97ebd62593719c380335580050b3ac541c5c693073bd8f3da913505383d7",
       "upstream_sha256": "6997e5f705cfeb6d06f324c0d890c2dffd4157dc8cbb8722195daae2e4e4e786",
       "kind": "retained-production-or-license"
     },
@@ -452,7 +454,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/network/session.go": {
-      "sha256": "8b92f0114a994defa30fe712b3b3bb2da8c33d9ab1dbc7eeeac32c6a0af5090d",
+      "sha256": "2ba227d2bbeff745d45bbccc77add81c909a1d90a39a387aa6f585c5e1a66682",
       "upstream_sha256": "a884fffb0858f72b1203eff05b3c5fe225f94937bbf2af727625efb849cca8a9",
       "kind": "retained-production-or-license"
     },
@@ -1182,7 +1184,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/network/session.go": {
-      "sha256": "4d9d30615aa66da2bd308684c27be91391e9c33a620cb0f85e815c8ca22f2d2b",
+      "sha256": "6c068260c52b899500f34fa3429a7f8e9ea330a693d09b462117c193c36435a0",
       "upstream_sha256": "906517f585ab26e875d2e599427573099d628c877cd94b0ee5ffb0a653867c71",
       "kind": "retained-production-or-license"
     },
@@ -1305,6 +1307,36 @@
       "sha256": "cd1fda8b842aaab7364febd004c70b68a2b8ce633b8093cb31e63b10a3d67934",
       "upstream_sha256": null,
       "kind": "SDK synthetic optional-field and malformed-length regression"
+    },
+    "v3/network/disconnect_compat_test.go": {
+      "sha256": "887cbda68bf273b7aadd8a19d06fcab82faf3c68a4798eb93e8e5daf16b674e5",
+      "kind": "SDK strict pre-authentication cleanup regression",
+      "upstream_sha256": null
+    },
+    "v2/discard_compat_test.go": {
+      "kind": "SDK terminal-disposal safety implementation or regression",
+      "sha256": "90db5df830bd0c8701e8a907049cbaf1877f02b08fbeb06faed56a4fb9144fc3",
+      "upstream_sha256": null
+    },
+    "v2/discard_compat.go": {
+      "kind": "SDK terminal-disposal safety implementation or regression",
+      "sha256": "0e037b2bc9f0348445e3a9ecedf98049cb706cb026c9aefda17a17e48c293c74",
+      "upstream_sha256": null
+    },
+    "v2/network/disconnect_compat_test.go": {
+      "kind": "SDK terminal-disposal safety implementation or regression",
+      "sha256": "53ded9a4119881877230172887eaabfc62ff2a0fa281410ea84ed4d5f18701e5",
+      "upstream_sha256": null
+    },
+    "v3/discard_compat_test.go": {
+      "kind": "SDK terminal-disposal safety implementation or regression",
+      "sha256": "90db5df830bd0c8701e8a907049cbaf1877f02b08fbeb06faed56a4fb9144fc3",
+      "upstream_sha256": null
+    },
+    "v3/discard_compat.go": {
+      "kind": "SDK terminal-disposal safety implementation or regression",
+      "sha256": "0e037b2bc9f0348445e3a9ecedf98049cb706cb026c9aefda17a17e48c293c74",
+      "upstream_sha256": null
     }
   }
 }

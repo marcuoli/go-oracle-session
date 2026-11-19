@@ -722,3 +722,12 @@ func (lob *LobStream) copy(srcLocator, dstLocator []byte, srcOffset, dstOffset, 
 //		return nil, nil
 //	}
 //}
+
+// DiscardConnection retires the physical owner after failed lazy LOB protocol
+// work. The synchronous read/free operation must have returned before this call.
+func (lob *LobStream) DiscardConnection() error {
+	if lob == nil || lob.conn == nil {
+		return nil
+	}
+	return lob.conn.Discard()
+}
