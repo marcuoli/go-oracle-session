@@ -38,7 +38,9 @@
     "SDK terminal transport-only discard invalidates physical state after lazy CLOB protocol failures; no post-execution retry sentinel",
     "SDK exact decimal validation and low-exponent zero distinction",
     "SDK joined terminal lazy-read cancellation closes captured transport outside protocol locks and closes once",
-    "SDK post-dispatch/cursor-cleanup errors preserve causes without replay markers"
+    "SDK post-dispatch/cursor-cleanup errors preserve causes without replay markers",
+    "SDK shared lazy-read transport close-once supports external disposal during noncancelable active I/O",
+    "SDK terminal DATA FINAL has a distinct non-retry cause and invalidates native health"
   ],
   "inclusion": "All reviewed production files, MIT licenses and retained regressions; nested module metadata and unrelated upstream integration/examples omitted",
   "files": {
@@ -408,7 +410,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/network/oracle_error.go": {
-      "sha256": "e35901706c891fd44bf43ffa159d9e4ce809346af709218cfaedce51276554cf",
+      "sha256": "638706fa1480a98734fbd8ed8cfb4d391dd430d0848b384403bdbc50d38f5985",
       "upstream_sha256": "e35901706c891fd44bf43ffa159d9e4ce809346af709218cfaedce51276554cf",
       "kind": "retained-production-or-license"
     },
@@ -458,7 +460,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/network/session.go": {
-      "sha256": "f8c238db0990c9d89c4429faea0489be6167905d01b834ce98fb4308ac7f4073",
+      "sha256": "80c3b7b37f08813d6e8170b7e45862b6769698395791b91e25b2137c53427390",
       "upstream_sha256": "a884fffb0858f72b1203eff05b3c5fe225f94937bbf2af727625efb849cca8a9",
       "kind": "retained-production-or-license"
     },
@@ -808,7 +810,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/utils.go": {
-      "sha256": "979183558bf2dc74c5cfbd068ea05bc75da198aa95c858eef8396f4afc618634",
+      "sha256": "40b98d1c325afd599d434780398abae09579d622461bf94c55f609bfef60fff7",
       "upstream_sha256": "9f5a2c707a7bc9ca59d1c93fafa59043c9f51627485ee455499fc88a2ab83b2f",
       "kind": "retained-production-or-license"
     },
@@ -1138,7 +1140,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/network/oracle_error.go": {
-      "sha256": "e35901706c891fd44bf43ffa159d9e4ce809346af709218cfaedce51276554cf",
+      "sha256": "638706fa1480a98734fbd8ed8cfb4d391dd430d0848b384403bdbc50d38f5985",
       "upstream_sha256": "e35901706c891fd44bf43ffa159d9e4ce809346af709218cfaedce51276554cf",
       "kind": "retained-production-or-license"
     },
@@ -1188,7 +1190,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/network/session.go": {
-      "sha256": "6c068260c52b899500f34fa3429a7f8e9ea330a693d09b462117c193c36435a0",
+      "sha256": "cca24ef2eb03da7c33b91c25d48edf5ae6aa5d7563cc29fc31a77fb2ee6531a6",
       "upstream_sha256": "906517f585ab26e875d2e599427573099d628c877cd94b0ee5ffb0a653867c71",
       "kind": "retained-production-or-license"
     },
@@ -1283,7 +1285,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/utils.go": {
-      "sha256": "402dea03cb1a38bf464f2e3e6f22e1788cf3827efae442b7e46e7e144f16ab9d",
+      "sha256": "cc21bbbc34c46cf116311225422e5151737adb8359736786988e3cedfd72ffea",
       "upstream_sha256": "f10930160d462af5cca0933cc38f6d4e166e2f8975792bfef14bb955adde344d",
       "kind": "retained-production-or-license"
     },
@@ -1345,22 +1347,22 @@
     "v2/cleanup_replay_test.go": {
       "upstream_sha256": null,
       "kind": "SDK-regression-or-compatibility-addition",
-      "sha256": "9d02eb0664db80f04d8ec8fd3ad240752d164d67be05478c03bc4d8c43ccdda2"
+      "sha256": "f253188bde6ef22c964b61bcf04a634430b8c440da5ab87cfcfffa5b183b7536"
     },
     "v3/cleanup_replay_test.go": {
       "upstream_sha256": null,
       "kind": "SDK-regression-or-compatibility-addition",
-      "sha256": "4d56adb3366a2176ea96746ae1a2ef5645a04f4bb2daa7fc70d82f856666cdc7"
+      "sha256": "36e23969d790e410a5fb617b77188a48c895731e684fc39033222a3550ceb9b8"
     },
     "v3/network/read_context_test.go": {
       "upstream_sha256": null,
       "kind": "SDK-regression-or-compatibility-addition",
-      "sha256": "d33693b7cae8e6da62836f67aefc49f5082857874691dcdeff420fa173a88550"
+      "sha256": "4afaab7c85669010bde8b1f47137a9ab23c67f7a32012a4c786d110aa3ada643"
     },
     "v3/network/read_context.go": {
       "upstream_sha256": null,
       "kind": "SDK-regression-or-compatibility-addition",
-      "sha256": "e3c9bb911db382fa65ea24f3baeb7071a99ffd93df9f4c081ee19ab59e76e23b"
+      "sha256": "6c5ccfc6fa4eee43823fdf4e8790a67a7b464fe72d68b4c3c3e0750a0d73889d"
     }
   }
 }

@@ -7,7 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
-	"database/sql/driver"
+
 	"encoding/binary"
 	"encoding/pem"
 	"errors"
@@ -41,6 +41,7 @@ type SessionState struct {
 }
 
 type Session struct {
+	readMu            sync.Mutex
 	readInterrupt     *readInterrupt
 	mu                sync.Mutex
 	conn              net.Conn
@@ -1026,7 +1027,7 @@ func (session *Session) readPacket() (PacketInterface, error) {
 			if dataPck.dataFlag == 0x40 {
 				// close connection
 				session.Disconnect()
-				return nil, driver.ErrBadConn
+				return nil, ErrConnectionFinal
 			}
 			_, err = session.inBuffer.Write(dataPck.buffer)
 		}
@@ -1043,18 +1044,22 @@ func (session *Session) readPacket() (PacketInterface, error) {
 // failure for pre-authentication selection. TLS Close already closes its
 // underlying connection, so it must not be closed a second time here.
 func (session *Session) DisconnectWithError() error {
+	// Read ownership has a separate lock: close I/O before acquiring the
+	// protocol mutex or waiting for an active read's owner to join its callback.
+	session.readMu.Lock()
+	defer session.readMu.Unlock()
+	scope := session.readInterrupt
+	var closeErr error
+	if scope != nil {
+		closeErr = scope.close()
+	}
 	session.mu.Lock()
 	defer session.mu.Unlock()
-	// A canceled lazy read has already closed and joined its captured raw
-	// transport. Clear ownership without a second close or TLS logoff exchange.
-	if scope := session.readInterrupt; scope != nil {
-		<-scope.done
-		session.readInterrupt = nil
-		if scope.fired {
-			session.sslConn = nil
-			session.conn = nil
-			return scope.err
-		}
+	session.readInterrupt = nil
+	if scope != nil {
+		session.sslConn = nil
+		session.conn = nil
+		return closeErr
 	}
 	if session.sslConn != nil {
 		connection := session.sslConn

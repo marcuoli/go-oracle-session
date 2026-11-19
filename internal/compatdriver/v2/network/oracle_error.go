@@ -86,3 +86,7 @@ func (err *OracleError) Bad() bool {
 }
 
 var ErrConnReset = errors.New("connection break due to context timeout")
+
+// ErrConnectionFinal records a terminal DATA FINAL packet. It is not a retry
+// sentinel: a preceding SQL operation may already have executed.
+var ErrConnectionFinal = errors.New("Oracle Net connection finalized by peer")

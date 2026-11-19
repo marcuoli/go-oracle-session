@@ -7,7 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
-	"database/sql/driver"
+
 	"encoding/binary"
 	"encoding/pem"
 	"errors"
@@ -1125,7 +1125,7 @@ func (session *Session) readPacket() (PacketInterface, error) {
 			if dataPck.dataFlag == 0x40 {
 				// close connection
 				session.Disconnect()
-				err = driver.ErrBadConn
+				err = ErrConnectionFinal
 			}
 			session.inBuffer = append(session.inBuffer, dataPck.buffer...)
 		}

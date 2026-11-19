@@ -118,3 +118,11 @@ func TestTerminalCloseDisposesOnce(t *testing.T) {
 		t.Fatalf("discard count=%d", discards)
 	}
 }
+
+func TestModernPrepareCannotReauthenticateRetiredConnection(t *testing.T) {
+	c := &modernDriverConnection{Connection: &modern.Connection{State: modern.Closed}, health: &connectionHealth{}}
+	statement, err := c.PrepareContext(t.Context(), "SELECT 1 FROM DUAL")
+	if statement != nil || !errors.Is(err, driver.ErrBadConn) {
+		t.Fatalf("retired prepare=%v, %v", statement, err)
+	}
+}

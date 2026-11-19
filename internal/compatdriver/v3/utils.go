@@ -274,7 +274,7 @@ func isBadConn(err error) bool {
 	var opError *net.OpError
 	var oraError *network.OracleError
 	switch {
-	case errors.Is(err, io.EOF):
+	case errors.Is(err, io.EOF), errors.Is(err, network.ErrConnectionFinal):
 		return true
 	case errors.Is(err, syscall.EPIPE):
 		return true

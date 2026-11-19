@@ -32,7 +32,7 @@ func (d cleanupDialer) DialContext(context.Context, string, string) (net.Conn, e
 	return d.transport, nil
 }
 
-func cleanupStatement(t *testing.T) (*defaultStmt, *Connection) {
+func cleanupStatement(t *testing.T, final bool) (*defaultStmt, *Connection) {
 	t.Helper()
 	packet := make([]byte, 32)
 	binary.BigEndian.PutUint16(packet, uint16(len(packet)))
@@ -41,6 +41,13 @@ func cleanupStatement(t *testing.T) (*defaultStmt, *Connection) {
 	binary.BigEndian.PutUint16(packet[12:], 8192)
 	binary.BigEndian.PutUint16(packet[14:], 8192)
 	binary.BigEndian.PutUint16(packet[20:], 32)
+	if final {
+		end := make([]byte, 10)
+		binary.BigEndian.PutUint16(end, 10)
+		end[4] = 6
+		binary.BigEndian.PutUint16(end[8:], 0x40)
+		packet = append(packet, end...)
+	}
 	config, err := ParseConfig("oracle://fixture:fixture@fixture:1521/service")
 	if err != nil {
 		t.Fatal(err)
@@ -57,13 +64,14 @@ func cleanupStatement(t *testing.T) (*defaultStmt, *Connection) {
 type cleanupPool struct {
 	t               *testing.T
 	connects, execs int
+	final           bool
 	last            *Connection
 }
 
 func (p *cleanupPool) Driver() driver.Driver { return cleanupDriver{} }
 func (p *cleanupPool) Connect(context.Context) (driver.Conn, error) {
 	p.connects++
-	stmt, native := cleanupStatement(p.t)
+	stmt, native := cleanupStatement(p.t, p.final)
 	p.last = native
 	return &cleanupPoolConn{pool: p, stmt: stmt, native: native}, nil
 }
@@ -87,14 +95,20 @@ func (c *cleanupPoolConn) ExecContext(context.Context, string, []driver.NamedVal
 	return nil, c.stmt.Close()
 }
 func TestSuccessfulExecutionCleanupCannotRequestReplay(t *testing.T) {
-	fixture := &cleanupPool{t: t}
-	pool := sql.OpenDB(fixture)
-	defer pool.Close()
-	_, err := pool.ExecContext(t.Context(), "synthetic completed command")
-	if !errors.Is(err, io.EOF) || errors.Is(err, driver.ErrBadConn) {
-		t.Fatalf("lost original cleanup cause or permitted retry: %v", err)
-	}
-	if fixture.execs != 1 || fixture.connects != 1 || !fixture.last.bad || pool.Stats().Idle != 0 {
-		t.Fatalf("execs=%d connects=%d bad=%v idle=%d", fixture.execs, fixture.connects, fixture.last.bad, pool.Stats().Idle)
+	for _, final := range []bool{false, true} {
+		fixture := &cleanupPool{t: t, final: final}
+		pool := sql.OpenDB(fixture)
+		defer pool.Close()
+		_, err := pool.ExecContext(t.Context(), "synthetic completed command")
+		want := error(io.EOF)
+		if final {
+			want = network.ErrConnectionFinal
+		}
+		if !errors.Is(err, want) || errors.Is(err, driver.ErrBadConn) {
+			t.Fatalf("lost original cleanup cause or permitted retry: %v", err)
+		}
+		if fixture.execs != 1 || fixture.connects != 1 || !fixture.last.bad || pool.Stats().Idle != 0 {
+			t.Fatalf("execs=%d connects=%d bad=%v idle=%d", fixture.execs, fixture.connects, fixture.last.bad, pool.Stats().Idle)
+		}
 	}
 }

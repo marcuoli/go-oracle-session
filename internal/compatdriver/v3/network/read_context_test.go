@@ -96,3 +96,41 @@ func TestCompletedLazyReadStopsItsCancellationCallback(t *testing.T) {
 		t.Fatal("completed read retained cancellation authority")
 	}
 }
+
+func TestExternalDisposalInterruptsActiveNoncancelableRead(t *testing.T) {
+	raw, peer := net.Pipe()
+	defer peer.Close()
+	session := NewSession(&configurations.ConnectionConfig{}, trace.NilTracer())
+	session.conn = raw
+	join := session.StartReadContext(context.Background())
+	writing := make(chan struct{})
+	result := make(chan error, 1)
+	go func() {
+		session.mu.Lock()
+		close(writing)
+		_, err := raw.Write([]byte("blocked"))
+		session.mu.Unlock()
+		result <- err
+	}()
+	<-writing
+	disposed := make(chan error, 1)
+	go func() { disposed <- session.DisconnectWithError() }()
+	select {
+	case err := <-disposed:
+		if err != nil {
+			t.Fatal(err)
+		}
+	case <-time.After(2 * time.Second):
+		raw.Close()
+		t.Fatal("disposal waited for active read or protocol lock")
+	}
+	if err := <-result; err == nil {
+		t.Fatal("active I/O survived disposal")
+	}
+	if err := join(); err != nil {
+		t.Fatal(err)
+	}
+	if session.conn != nil {
+		t.Fatal("disposed transport retained")
+	}
+}
