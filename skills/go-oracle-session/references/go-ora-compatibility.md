@@ -29,7 +29,7 @@ SDK imports remain driver-neutral; only explicit adoption selects this profile.
 No Oracle Client, automatic authentication/transport/panic fallback or SQL
 replay is introduced. Preserve existing caller cancellation adapters until their
 equivalent end-to-end path and retirement criteria are satisfied.
-## Two failures with different remedies
+## Official connector path: two failures with different remedies
 
 | Failure | Trigger and owning layer | What the SDK can provide |
 | --- | --- | --- |
@@ -41,9 +41,9 @@ predicates. An issue title mentioning an older server does not establish that
 every release below a marketing version fails, or that newer servers are immune.
 Do not reject a server solely by its version to hide either failure.
 
-### Connection ownership and call path
+### Official connector ownership and call path
 
-The caller supplies an official `driver.Connector`. A caller's admission
+For the official connector profile, the caller supplies an official `driver.Connector`. A caller's admission
 factory, or `session.Open` through `database/sql`, invokes that connector.
 The driver establishes the physical Oracle Net connection; its packet dispatch
 handles ACCEPT and calls the private `network.newAcceptPacketFromData`.
@@ -204,7 +204,7 @@ elsewhere, and passing its tests does not qualify the official driver.
 | Runtime/application | Existing consumer regressions for exact values/NULLs, prepared operations, buffers/streams, metadata, binds/LOBs, transactions, warnings and query/parent/stage cancellation with joined cleanup and qualified reuse/retirement. | Untested releases, roles, members, patches or application features. |
 
 Documentation itself performs no native qualification. The retained profile's
-bounded 12.2/23.26.1 results are recorded in the shared contract, separately from
+bounded 9.2/12.2/23.26.1 results are recorded in the shared contract, separately from
 official-driver and unexecuted combinations. A parser
 test, a successful generic SELECT, a returned Ping or a timeout that returns
 within budget cannot substitute for later stages. Keep the original adapter and

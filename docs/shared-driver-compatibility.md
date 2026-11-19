@@ -102,14 +102,17 @@ Windows/amd64, Go1.27.4, CGO_ENABLED=0, no Oracle Client:
 
 | Server observation | Selected backend/login | SDK-native scope |
 | --- | --- | --- |
-| 12.2.0.1.0 | V2, existing SYSDBA lab account in a PDB | Four simultaneous physical admissions, exact scalar NUMBER/NULL/Unicode, three repeated prepared OUT operations and 125000-byte temporary CLOB: passed. |
-| VERSION=23.0.0.0.0, VERSION_FULL=23.26.1.0.0 | V2 and V3, existing SYSTEM lab account without SYSDBA login in a PDB | Same bounded scope: passed for both; VERSION_FULL separately read with V2. |
+| 9.2.0.8.0 | V2, existing lab account without SYSDBA login; non-CDB | Four simultaneous physical admissions, exact 9007199254740993 native NUMBER literal/bind and decimal text/NULL/Unicode, three repeated mixed OUT operations at 32767-character capacity, 5000-byte scalar input and 125000-byte temporary CLOB: passed. |
+| 12.2.0.1.0 | V2, existing SYSDBA lab account in a PDB | Same bounded scalar/bind/OUT/input/CLOB scope: passed. |
+| VERSION=23.0.0.0.0, VERSION_FULL=23.26.1.0.0 | V2 and V3, existing SYSTEM lab account without SYSDBA login in a PDB | Same bounded scope: passed for both; VERSION_FULL separately read with both backends. |
 
-The tested operations use session-local/temporary state and no new schema
-objects, users or grants. Patch inventory was not queried;12.2 patch-set evidence
+The native NUMBER result qualifies the single 9007199254740993 integer literal/bind;
+constructor decimal/range boundaries remain synthetic. The tested operations use
+session-local/temporary state and no new schema
+objects, users or grants. Patch inventory was not queried; 9.2/12.2 patch-set evidence
 does not identify its installed PSU. SYSTEM is an administrative lab account,
 not qualification for an ordinary customer account. Native active cancellation,
-server termination, transactions/DML, MOUNT/non-CDB/root, RAC members, TCPS,
+server termination, transactions/DML, MOUNT/root, other non-CDB versions, RAC members, TCPS,
 wallets, all types and all application features remain outside these results.
 
 Synthetic regressions separately cover bounded ACCEPT/TTC, selection/cleanup,
@@ -119,7 +122,7 @@ Synthetic cancellation/failure evidence is not native cancellation qualification
 
 | Required family | Native status for this shared package |
 | --- | --- |
-| 9.2 | Not executed; unqualified. |
+| 9.2 | Bounded V2 scope above, observed 9.2.0.8.0 only. |
 | 10.1 | Not executed; unqualified. |
 | 10.2 | Not executed; unqualified. |
 | 11.1 | Not executed; unqualified. |
@@ -136,9 +139,9 @@ Synthetic cancellation/failure evidence is not native cancellation qualification
 ## Native harness query selection
 
 TestNativeCompatibility is skipped unless explicitly enabled with private stdin
-configuration. The generic baseline identity projection uses USER,
+configuration. The baseline identity projection uses USER,
 V$DATABASE.NAME, V$INSTANCE.VERSION and USERENV.ISDBA; scalar tests use DUAL,
-TO_CHAR and explicit NULL. Prepared OUT and temporary-CLOB blocks are fixture
+TO_CHAR, a native NUMBER literal/typed bind and explicit NULL. Prepared OUT and temporary-CLOB blocks are fixture
 operations, not application policy or a catalog exported by this library.
 
 Container metadata is selected only by the explicit Container harness option.
@@ -149,9 +152,9 @@ matching documented applicability.
 
 | Projection | Release applicability/static selection | Native SQL/driver qualification |
 | --- | --- | --- |
-| Baseline identity/scalar/OUT/temporary CLOB | No newer optional columns; legacy target selection still requires per-release documentation and account/state checks. | Exact12.2 V2 and23.26.1 V2/V3 observations above; all other rows unexecuted. |
+| Baseline identity/scalar/OUT/temporary CLOB | No newer optional columns; legacy target selection still requires per-release documentation and account/state checks. | Exact 9.2/12.2 V2 and 23.26.1 V2/V3 observations above; all other rows unexecuted. |
 | USERENV.CON_NAME | Explicit container option; legacy9.2/10/11 cases omit it. | PDB observations above only; root/non-CDB/MOUNT not qualified. |
-| V$INSTANCE.VERSION_FULL | Explicit extended option; available from 18c; not executed on 12.2 or older. | Read through V2 on23.26.1.0.0; no per-patch inference for18/19/21 or earlier23. |
+| V$INSTANCE.VERSION_FULL | Explicit extended option; available from 18c; not executed on 12.2 or older. | Read through V2 and V3 on 23.26.1.0.0; no per-patch inference for 18/19/21 or earlier 23. |
 
 Oracle Database Reference 18c and 26ai V$INSTANCE pages were read on 2026-11-19.
 The 18c footnote explicitly introduces VERSION_FULL at18c; both pages describe
@@ -160,6 +163,32 @@ patch certification was inferred.
 
 - https://docs.oracle.com/en/database/oracle/oracle-database/18/refrn/V-INSTANCE.html
 - https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/V-INSTANCE.html
+
+## Oracle9.2 scalar wire behavior
+
+Native 9.2.0.8 testing exposed and verified three additional retained changes.
+A large scalar character OUT buffer can split a PL/SQL bind row with another
+TTC7 message. The reader resumes at the next parameter and rejects incomplete
+continuations before assigning caller destinations. Requested character
+capacity is preserved. Arrays/UDTs retain their separate existing paths.
+
+For 9i PL/SQL scalar input through 32767 bytes, keep VARCHAR2 rather than selecting
+LONG merely because the SQL VARCHAR2 limit is 4000 bytes. This rule does not
+rewrite SQL or change SQL/array/newer-server type selection.
+
+Variable-width 9i CLOB reads use length-prefixed code units in the tested wire
+path. Expand them only after all data messages join, using the locator's existing
+byte order. Invalid/truncated encoding returns no prefix and retires physical
+state; binary LOBs and newer families keep their original bytes.
+
+The original 32767-character OUT capacity, 5000-byte input and 125000-byte Unicode
+CLOB passed after these changes. Smaller-capacity and smaller-input diagnostic
+runs were retained as failure-isolation evidence, not substitutes for acceptance.
+
+Oracle9i PL/SQL User's Guide and Reference, "PL/SQL Datatypes", read 2026-11-19,
+documents a 32767-byte PL/SQL VARCHAR2 maximum and a 4000-byte SQL column maximum.
+These language limits are separate from the observed retained-driver wire fix:
+https://docs.oracle.com/cd/A97630_01/appdev.920/a96624/03_types.htm
 
 ## Official-fix adoption and scans
 

@@ -60,7 +60,7 @@ already covers ordinary delivery.
 
 Record per-configuration evidence across 9.2,10.1/10.2,11.1/11.2,12.1/12.2,
 18,19,21,23c/23ai,26ai and later releases. No numeric ceiling. Native bounded
-12.2 V2 and23.26.1 V2/V3 results do not qualify other patches, roles, states,
+9.2/12.2 V2 and 23.26.1 V2/V3 results do not qualify other patches, roles, states,
 members, features or active cancellation. Keep NULL, empty, unsupported,
 unavailable and failed outcomes distinct.
 
