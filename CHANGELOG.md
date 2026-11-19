@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Package shared go-ora compatibility guidance as a portable repository-owned Codex skill and preserve existing documentation links.
+
 ## v0.12.0
 
 - Add opt-in authenticated inventory admission with exact wallet references, safe validation and unchanged legacy structs/contracts (#40).

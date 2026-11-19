@@ -14,7 +14,7 @@ caller and integration-test boundaries so the reusable module remains
 driver-neutral. Resolve and qualify go-ora compatibility gaps on that path;
 switching to an OCI-based connector does not satisfy this requirement.
 
-For repeated-login EOF versus short-ACCEPT parser failures, driver ownership, supported URL policy and official-fix adoption, see the [go-ora compatibility guide](go-ora-compatibility.md).
+For repeated-login EOF versus short-ACCEPT parser failures, driver ownership, supported URL policy and official-fix adoption, see the [shared go-oracle-session skill](../skills/go-oracle-session/SKILL.md) and its [portable compatibility reference](../skills/go-oracle-session/references/go-ora-compatibility.md).
 
 This is the library's compatibility requirement. A verified combination also
 needs evidence for the exact library commit, upstream driver, server patch level,

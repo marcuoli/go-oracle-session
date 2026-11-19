@@ -285,4 +285,15 @@ remain caller-owned. The supported full-login setting addresses cached-login
 admission failures described in [upstream #732](https://github.com/sijms/go-ora/issues/732);
 it does not establish native qualification for every driver/server combination.
 
-See the [go-ora compatibility guide](docs/go-ora-compatibility.md) for the distinct short-ACCEPT parser failure, upstream fix status, official-release adoption and per-combination qualification evidence.
+## Codex skill
+
+For shared connection-compatibility and driver-adoption guidance, use the
+repository-owned [go-oracle-session skill](skills/go-oracle-session/SKILL.md)
+and its [detailed reference](skills/go-oracle-session/references/go-ora-compatibility.md).
+
+Install or discover the complete skill folder separately through your Codex
+skill-installation or approved linked-folder workflow, preserving its references.
+After discovery, normal automatic skill selection applies; it can also be invoked
+as $go-oracle-session. Importing or updating the Go module does not register,
+install or load a Codex skill. This repository is the canonical skill source;
+applications can link to it instead of maintaining copies of the full guide.
