@@ -95,17 +95,26 @@ func Oracle(err error, secrets ...string) ([]Message, error) {
 	return output, nil
 }
 
-func compileSecrets(secrets []string) (*regexp.Regexp, error) {
+func validateSecrets(secrets []string) error {
 	if len(secrets) > maxSecrets {
-		return nil, ErrCapacity
+		return ErrCapacity
 	}
-	values := make([]string, 0, len(secrets)*3)
 	total := 0
 	for _, secret := range secrets {
 		total += len(secret)
 		if total > MaxBytes {
-			return nil, ErrCapacity
+			return ErrCapacity
 		}
+	}
+	return nil
+}
+
+func compileSecrets(secrets []string) (*regexp.Regexp, error) {
+	if err := validateSecrets(secrets); err != nil {
+		return nil, err
+	}
+	values := make([]string, 0, len(secrets)*3)
+	for _, secret := range secrets {
 		if secret != "" {
 			values = append(values, secret, url.QueryEscape(secret), url.PathEscape(secret))
 		}

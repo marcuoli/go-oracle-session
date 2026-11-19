@@ -108,3 +108,42 @@ func TestConnectionPreservesOrderDeduplicatesAndIsConcurrent(t *testing.T) {
 	}
 	group.Wait()
 }
+
+func TestConnectionRedactsEscapedHexCaseAndBareCredentialReferences(t *testing.T) {
+	secret := "my/private pass?&"
+	for _, encoded := range []string{"my%2fprivate%20pass%3f%26", "my%2Fprivate%20pass%3f%26", "my%2fprivate+pass%3F%26"} {
+		got, err := diagnostic.Connection(errors.New("negotiation value="+encoded), secret)
+		if err != nil || len(got) != 1 || got[0].Text != "negotiation value=[REDACTED]" {
+			t.Fatalf("encoded=%q got=%+v err=%v", encoded, got, err)
+		}
+	}
+	for _, text := range []string{"reader:my%2fprivate%20pass%3f%26@host/service", "reader/my%2fprivate%20pass%3f%26@SERVICE", "reader/" + secret + "@SERVICE"} {
+		got, err := diagnostic.Connection(errors.New("connection="+text), secret)
+		if err != nil || len(got) != 1 || got[0].Text != "connection=[REDACTED CONNECTION]" {
+			t.Fatalf("reference=%q got=%+v err=%v", text, got, err)
+		}
+	}
+	got, err := diagnostic.Connection(errors.New("case-sensitive=SecretA exact=secretA"), "secretA")
+	if err != nil || len(got) != 1 || got[0].Text != "case-sensitive=SecretA exact=[REDACTED]" {
+		t.Fatal("literal secret was casefolded", got, err)
+	}
+	// Longer raw secrets must beat a shorter encoded-secret prefix.
+	got, err = diagnostic.Connection(errors.New("value=%2fX plus=+x"), "%2fX", "/", "+x", " ")
+	if err != nil || len(got) != 1 || got[0].Text != "value=[REDACTED][REDACTED]plus=[REDACTED]" {
+		t.Fatal("overlapping encoded alternatives leaked a suffix", got, err)
+	}
+}
+
+type connectionIdentityError struct{ message string }
+
+func (e *connectionIdentityError) Error() string { return e.message }
+func TestConnectionPreservesErrorIdentityAndExactCauseText(t *testing.T) {
+	original := &connectionIdentityError{message: "unsupported negotiation"}
+	wrapped := fmt.Errorf("private wrapper: %w", original)
+	before := wrapped.Error()
+	got, err := diagnostic.Connection(wrapped)
+	var found *connectionIdentityError
+	if err != nil || len(got) != 1 || got[0].Text != "unsupported negotiation" || !errors.Is(wrapped, original) || !errors.As(wrapped, &found) || found != original || wrapped.Error() != before {
+		t.Fatal(got, err)
+	}
+}

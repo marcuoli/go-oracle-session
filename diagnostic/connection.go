@@ -44,13 +44,16 @@ var connectionToken = regexp.MustCompile(`\b(?:ORA|TNS)-[0-9]{5}\b`)
 // ORA/TNS tokens and concrete standard DNS/TCP/timeout/cancellation/TLS errors;
 // other leaf text is retained as unknown after redaction. Wrapper prose is omitted.
 // Include all known connection secrets; identifiers and other data can remain.
+// Common URL-encoded forms accept either percent-hex case and query/path spaces;
+// literal secret matching stays case-sensitive. Credential-bearing URLs, bare
+// authorities and ordinary native connect references are redacted structurally.
 //
 // Bounds match Oracle:64 nodes,32 messages,64 secrets and MaxBytes per leaf/secret
 // set. Returned text, including one newline between messages, also fits MaxBytes.
 // ErrCapacity returns no prefix. Invalid UTF8 leaves are omitted. Nil returns no
 // messages. The function is concurrent-safe when callers do not mutate inputs.
 func Connection(err error, secrets ...string) ([]ConnectionMessage, error) {
-	pattern, failure := compileSecrets(secrets)
+	pattern, failure := compileConnectionSecrets(secrets)
 	if failure != nil {
 		return nil, failure
 	}
@@ -86,7 +89,7 @@ func Connection(err error, secrets ...string) ([]ConnectionMessage, error) {
 		if !utf8.ValidString(text) {
 			return nil
 		}
-		text = redactWithCodes(text, pattern, connectionToken)
+		text = redactConnection(text, pattern)
 		starts := connectionToken.FindAllStringIndex(text, -1)
 		if len(starts) == 0 {
 			return appendMessage(kind, "", text)
