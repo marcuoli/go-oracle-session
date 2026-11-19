@@ -3,14 +3,32 @@
 This guide explains two different connection failures, the boundary owned by
 this SDK, and how a consuming application qualifies an official driver fix.
 The required connection path remains pure Go, without Oracle Client installation
-or shared libraries. Concrete drivers stay at caller and integration-test
-boundaries; the SDK does not select a different driver after a failure.
+or shared libraries. Existing official-driver connectors stay caller-owned. The optional shared
+retained profile is described below; authentication/transport/SQL failures never
+select another backend.
 
 The target remains Oracle Database 9.2 through 26ai and subsequent releases.
 That target is not evidence that every driver/server combination works. Apply
 the [Oracle compatibility contract](https://github.com/marcuoli/go-oracle-session/blob/main/docs/oracle-compatibility.md), retain exact
 numeric versions and patch levels, and keep unexecuted combinations unqualified.
 
+
+## Shared retained connector profile
+
+The opt-in import goora/compat packages both retained implementations in the SDK
+module with preserved MIT notices and complete per-file provenance hashes.
+Default V2, explicit V3 and clean pre-authentication-only Negotiated selection
+remain distinct. Driver/OUT/exact-number/CLOB and cancellation ownership details,
+current native observations and the complete remaining release-family matrix
+are in the [shared contract](https://github.com/marcuoli/go-oracle-session/blob/main/docs/shared-driver-compatibility.md).
+
+The user-authorized issue46 retention is a scoped exception to the general
+upstream-only policy. It is not an unmodified official driver and does not
+propagate/retire another consumer's retained-source exception. Ordinary existing
+SDK imports remain driver-neutral; only explicit adoption selects this profile.
+No Oracle Client, automatic authentication/transport/panic fallback or SQL
+replay is introduced. Preserve existing caller cancellation adapters until their
+equivalent end-to-end path and retirement criteria are satisfied.
 ## Two failures with different remedies
 
 | Failure | Trigger and owning layer | What the SDK can provide |
@@ -43,7 +61,9 @@ The upstream parser is private to the driver and owns the wire layout. Moving
 its implementation into this SDK would not replace the function executed by
 the official connector. Forks, patched module caches, local replacements,
 vendored edits, overlays and build-time rewriting are not new SDK remedies.
-Do not copy a consumer's retained driver patch into the SDK or another app.
+The explicit issue46 SDK retained profile is the scoped source exception; it is
+complete immutable module content, not a patched official connector. Do not
+create further copies in consumers or retire their protected exceptions.
 
 A `recover` boundary can only report a failed operation; it cannot finish a
 half-decoded handshake or establish safe reuse. It must not turn the panic into
@@ -122,8 +142,8 @@ The bounds change addresses one optional field. It is not a claim that all
 malformed packets, offsets, server releases or connection paths are qualified.
 For future driver-owner decoder coverage, consider 32, 40, 41, 44, 45 and
 61-byte forms, malformed declared lengths/offsets and optional-field values.
-These are recommended boundary fixtures, not tests executed by this skill or
-SDK. The inspected upstream PR adds a 32-byte fixture; wider executed coverage
+These boundaries are executed by the SDK retained packages; they remain
+distinct from tests in an official upstream release. The inspected upstream PR adds a 32-byte fixture; wider executed coverage
 and an incident's actual packet shape require separate evidence. Keep decoder
 regressions with the driver owner instead of copying a parser here to self-test.
 Inspect the actual containing release and its regressions when it is published;
@@ -183,7 +203,9 @@ elsewhere, and passing its tests does not qualify the official driver.
 | Native handshake/admission | Exact official driver and server patch, platform, account/role, TCP/TCPS and Net settings; joined connect/disposal behavior and actual physical identity. Keep credentials private. | Correct rows/binds/LOBs, transactions, cancellation settlement or future connection reuse. |
 | Runtime/application | Existing consumer regressions for exact values/NULLs, prepared operations, buffers/streams, metadata, binds/LOBs, transactions, warnings and query/parent/stage cancellation with joined cleanup and qualified reuse/retirement. | Untested releases, roles, members, patches or application features. |
 
-This documentation change performs no native database qualification. A parser
+Documentation itself performs no native qualification. The retained profile's
+bounded 12.2/23.26.1 results are recorded in the shared contract, separately from
+official-driver and unexecuted combinations. A parser
 test, a successful generic SELECT, a returned Ping or a timeout that returns
 within budget cannot substitute for later stages. Keep the original adapter and
 its single cancellation authority until equivalent end-to-end behavior and its

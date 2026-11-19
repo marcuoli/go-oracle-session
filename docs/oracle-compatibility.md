@@ -9,9 +9,9 @@ baseline for existing operations. Do not reject an otherwise usable newer
 server solely because its version is absent from a known-release list.
 
 The required connectivity path uses go-ora's pure Go stack without an Oracle
-Client installation or shared libraries. Keep concrete driver dependencies at
-caller and integration-test boundaries so the reusable module remains
-driver-neutral. Resolve and qualify go-ora compatibility gaps on that path;
+Client installation or shared libraries. Existing APIs remain driver-neutral;
+the opt-in goora/compat package owns the specific retained-source exception
+described in the [shared driver contract](shared-driver-compatibility.md). Resolve and qualify go-ora compatibility gaps on that path;
 switching to an OCI-based connector does not satisfy this requirement.
 
 For repeated-login EOF versus short-ACCEPT parser failures, driver ownership, supported URL policy and official-fix adoption, see the [shared go-oracle-session skill](../skills/go-oracle-session/SKILL.md) and its [portable compatibility reference](../skills/go-oracle-session/references/go-ora-compatibility.md).
@@ -29,7 +29,8 @@ the completed shared cancellation delivery.
 
 The library owns connection/session/cursor/transaction resource contracts. The
 caller selects the configured go-ora connector and reviewed SQL. Shared upstream qualification uses unmodified official driver
-releases. Existing consumer adapters and separately approved retained dependency
+releases. The separately identified SDK retained profile records its own exact
+source/patch/runtime evidence and does not qualify an official release. Existing consumer adapters and separately approved retained dependency
 exceptions must remain in place until equivalent behavior is demonstrated; this
 library does not replace or retire them. A consumer-reference result using such
 an exception is distinct from qualification with official upstream dependencies.
@@ -81,8 +82,9 @@ which remains in the caller adapter, which depends on a retained exception and
 which needs further qualification. Keep the original implementation and its regression
 coverage until the complete consumer path passes; do not remove it merely
 because the shared library is released. Missing upstream functionality must be
-tracked explicitly under the dependency policy rather than recreated by a shared
-driver fork, cache modification or hidden protocol patch.
+tracked explicitly under the dependency policy. Only the approved issue46
+retained SDK profile is an exception; cache modification, hidden protocol patches
+and additional copied drivers remain prohibited.
 ## Qualification requirements
 
 Cover 9.2, 10.1/10.2, 11.1/11.2, 12.1/12.2, 18c, 19c, 21c, the 23ai/26ai

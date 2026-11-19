@@ -5,7 +5,7 @@
 
 Reusable single-session query ownership, cancellation evidence, direct socket tracking and strict credential-bearing connection inventory. Use the functional imports `session`, `cancel`, `transport` and `inventory`.
 
-Applications provide an official `driver.Connector`, reviewed catalog SQL, stable command references, exact value codecs and endpoint/acceptance policy. The default requires direct `driver.QueryerContext` support and rejects fallback. `Options.PreparedContext` explicitly selects contextual prepared statements instead. No concrete driver dependency is forced on consumers; operations use one leased connection and are never replayed.
+Applications provide a selected `driver.Connector`, reviewed catalog SQL, stable command references, exact value codecs and endpoint/acceptance policy. The default requires direct `driver.QueryerContext` support and rejects fallback. `Options.PreparedContext` explicitly selects contextual prepared statements instead. No concrete driver dependency is forced on consumers; operations use one leased connection and are never replayed.
 
 Set `Options.PreserveStatementText` only when caller-approved SQL must reach the
 driver unchanged, such as a prepared plan whose visible SQL hash must match the
@@ -37,8 +37,10 @@ The unchanged shipping module and current build require Go 1.27.4. Run `scripts/
 ## Oracle compatibility
 
 The required connection path uses go-ora's pure Go stack and must remain free of
-Oracle Client installation and shared-library requirements. Concrete driver
-dependencies stay at the caller and integration-test boundaries.
+Oracle Client installation and shared-library requirements. Existing functional APIs
+remain driver-neutral. The optional goora/compat package ships the explicitly
+authorized retained v2/v3 profile as complete SDK module content; see the
+[shared driver contract, ownership and native matrix](docs/shared-driver-compatibility.md).
 
 The compatibility target is **Oracle Database 9.2 through Oracle AI Database
 26ai**, with forward compatibility for subsequent releases. Preserve legacy

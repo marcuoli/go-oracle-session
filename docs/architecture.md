@@ -1,5 +1,7 @@
 # Package ownership
 
+- goora/compat owns the explicit retained pure-Go dual-driver connector/value profile; internal/compatdriver holds its complete module sources/licenses/hashes. Other packages remain independent of concrete driver imports. See [ownership and native qualification](shared-driver-compatibility.md).
+
 - `goora` owns opt-in full-login URL preparation with standard query validation/serialization and static errors. It imports no concrete driver and opens or wraps no connection.
 
 - `inventory` owns bounded RFC 4180 headers, credential-byte preservation, duplicate/effective labels and redacted validation categories. Optional URL validation delegates engine policy to the caller. File and byte admission share the same size limit. Opt-in authenticated admission adds exact external wallet references without loading them. Legacy structs and admission stay compatible; callers own secret resolution and app configuration.

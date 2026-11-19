@@ -36,7 +36,7 @@ func TestNativeCompatibility(t *testing.T) {
 	var cfg struct {
 		DSN, ProofPath, SourceRevision string
 		Mode                           compat.Mode
-		Container                      bool
+		Container, ExtendedVersion     bool
 		Expected                       struct{ User, Database, Container, Version, IsDBA string }
 	}
 	decoder := json.NewDecoder(io.LimitReader(os.Stdin, 64<<10))
@@ -59,12 +59,18 @@ func TestNativeCompatibility(t *testing.T) {
 	pool.SetMaxIdleConns(4)
 	ctx, cancel := context.WithTimeout(t.Context(), 45*time.Second)
 	defer cancel()
-	type identity struct{ User, Database, Container, Version, IsDBA, Selected string }
+	type identity struct{ User, Database, Container, Version, VersionFull, IsDBA, Selected string }
 	observe := func(lease *sql.Conn) (identity, error) {
 		var result identity
 		err := lease.QueryRowContext(ctx, "SELECT USER,(SELECT NAME FROM V$DATABASE),VERSION,SYS_CONTEXT('USERENV','ISDBA') FROM V$INSTANCE").Scan(&result.User, &result.Database, &result.Version, &result.IsDBA)
 		if err != nil {
 			return result, err
+		}
+		if cfg.ExtendedVersion {
+			// VERSION_FULL is an explicitly selected18c+ qualification projection.
+			if err := lease.QueryRowContext(ctx, "SELECT VERSION_FULL FROM V$INSTANCE").Scan(&result.VersionFull); err != nil {
+				return result, err
+			}
 		}
 		if cfg.Container {
 			if err := lease.QueryRowContext(ctx, "SELECT SYS_CONTEXT('USERENV','CON_NAME') FROM DUAL").Scan(&result.Container); err != nil {

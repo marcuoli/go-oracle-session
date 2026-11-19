@@ -26,4 +26,5 @@ releases under the [Oracle compatibility contract](docs/oracle-compatibility.md)
 Optional features must remain capability-gated. Include relevant legacy and newer
 regressions with behavior changes, and distinguish synthetic tests from exact
 native driver/client/server/platform qualification. Do not add a numeric version
-ceiling or copy application-specific dependency patches into this library.
+ceiling or introduce retained dependency changes outside the explicit issue46 exception
+recorded in AGENTS.md and internal/compatdriver/sources.json.

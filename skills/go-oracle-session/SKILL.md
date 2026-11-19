@@ -1,72 +1,70 @@
 ---
 name: go-oracle-session
-description: Review go-oracle-session consumer connection policy and go-ora driver compatibility in Go applications. Use for initial or repeated Oracle admission failures, short ACCEPT panics, supported full-login policy and driver migration qualification; not generic SQL tuning or inventory-only CSV edits.
+description: Review go-oracle-session consumer connection policy, opt-in shared pure-Go v2/v3 compatibility and go-ora migrations. Use for Oracle admission failures, full-login policy, short ACCEPT parsing and exact driver/cancellation qualification; not general SQL tuning.
 ---
 
 # Oracle connection compatibility
 
-Work on the caller's actual connector and installed application. The SDK owns
-session/resource contracts and supported URL policy; the caller selects the
-concrete driver, SQL and endpoint admission. Importing the Go module does not
-install or load this Codex skill.
+Inspect the caller's actual connector and installed executable. Existing SDK
+interfaces remain driver-neutral; the additive goora/compat package owns an
+explicitly authorized retained pure-Go v2/v3 profile in the SDK module.
+Importing a module does not install this Codex skill.
+
+Read the relevant [compatibility reference](references/go-ora-compatibility.md)
+and the [shared connector contract](https://github.com/marcuoli/go-oracle-session/blob/main/docs/shared-driver-compatibility.md).
 
 ## Identify the failing boundary
 
-Establish the selected SDK/driver versions and origins, replacements/workspace,
-actual executable/build metadata, failure phase and observed numeric server
-version/patch. Preserve the original credential-safe failure and distinguish
-source inspection, parser tests, native handshake and runtime evidence.
+Record exact SDK/driver/source versions, module origins/sums, replacements,
+GOWORK, executable build metadata, failure phase and observed numeric server
+version/patch. Keep credential-safe failures and distinguish source/synthetic,
+native handshake, runtime and installed-application evidence.
 
-For go-ora admission failures, read the relevant sections of the
-[compatibility reference](references/go-ora-compatibility.md):
+- Repeated physical-connection EOF: official connectors can opt into
+  goora.PrepareURL. Shared compat prepares each selected backend itself:
+  V2 removes FAST LOGIN; V3 enforces FALSE. Full login is not a parser fix.
+- Short ACCEPT: official v3.0.1 and its unreleased upstream fix remain distinct
+  from the SDK retained decoder and its executed boundary regressions.
+  Do not patch caches, rewrite sockets/packets or create another driver copy.
+- Shared compatibility: NewConnector defaults to V2; explicit V3 selects only
+  modern. Negotiated is opt-in and can switch only on the clean pre-authentication
+  capability signal after cleanup. Authentication/transport/panic failures never
+  select another backend; no SQL is replayed.
+- Migration or old executable: verify the official SDK module with GOWORK=off,
+  no local replacement, then rebuild/install and inspect exact artifact identity.
+  Existing caller-owned official connectors do not change merely from an SDK bump.
 
-- **Repeated physical-connection EOF:** inspect supported full-login policy.
-  Reuse `goora.PrepareURL` before connector creation, including pool factories.
-  It canonicalizes FAST LOGIN to FALSE; it does not repair packet parsing.
-- **Short ACCEPT panic:** follow private parser ownership and upstream fix
-  status. Do not move/copy the driver's decoder into the SDK, patch caches or
-  rewrite sockets/packets. Panic containment can report failure and retire
-  uncertain ownership; it is not a repaired handshake or permission to retry.
-- **Driver adoption or an old installed binary:** follow official-release,
-  standalone graph and rebuilt/installed artifact verification. An SDK update
-  does not select a caller-owned driver or replace an executable.
-- **Reuse/migration claims:** apply the separate qualification stages and
-  release-family matrix, including fresh sequential/concurrent physical
-  admissions and actual endpoint/container/member identity.
+Refresh official releases, tag/proxy and relevant bug/fix evidence before driver
+adoption/build review. Distinguish no fix, merged unreleased, published and
+consumer-qualified fixes; dated snapshots and closed issues are insufficient.
 
-Before recommending a driver change, refresh official release, tag/module-proxy
-and relevant issue/fix evidence. Distinguish a merged fix, a containing published
-release and a fix qualified in this consumer; do not treat the reference's dated
-snapshot or a closed issue as current adoption proof.
+## Preserve ownership and qualification
 
-## Preserve the established contracts
+Keep pure Go without Oracle Client/OCI or automatic authentication/SQL fallback.
+Caller policy owns credentials, administrative-role translation, SQL, endpoint/
+container/member admission, recovery, progress and warning redaction.
 
-Keep the required pure-Go go-ora path without adding Oracle Client or an
-automatic godror/alternate-driver, authentication or SQL fallback. Do not replay
-a failed SQL command. Fresh admission for a later independent command remains
-caller policy, with its original identity and cleanup requirements.
+Preserve one cancellation authority and joined disposal. A native break or
+settlement acknowledgement alone does not prove reusable protocol/transactions.
+Lazy modern CLOB Read replaces its native watcher with one joined terminal
+read scope; canceled/failed read or Free retires physical health. Keep the lease
+and statement/cursor until Read/Value/Free finish. V2 materializes output;
+whole-value bounded memory is not promised. Failed transaction completion and
+post-dispatch cursor cleanup cannot return uncertain state for replay/reuse.
 
-Preserve the original cancellation authority, exact values and joined
-cursor/driver/socket cleanup. A Ping, returned call, typed cancellation
-acknowledgement or synthetic parser pass alone does not prove reusable protocol
-and transaction state. Keep existing adapters until equivalent end-to-end
-qualification and their retirement criteria are met.
+The SDK retained source is the specific issue46 exception. It does not authorize
+new copies or retirement of a consumer's separately retained implementations.
+Preserve those sources/adapters/tests and any explicit retirement approval.
+Do not add another design/publication approval loop when current task authority
+already covers ordinary delivery.
 
-Use compatible official upstream releases for new dependency adoption.
-Separately approved retained source/replacement exceptions stay with their
-owners and tests; never propagate or retire them merely to adopt this SDK.
-Follow any required explicit retirement confirmation and existing task
-authorization rather than inventing a new approval loop.
+Record per-configuration evidence across 9.2,10.1/10.2,11.1/11.2,12.1/12.2,
+18,19,21,23c/23ai,26ai and later releases. No numeric ceiling. Native bounded
+12.2 V2 and23.26.1 V2/V3 results do not qualify other patches, roles, states,
+members, features or active cancellation. Keep NULL, empty, unsupported,
+unavailable and failed outcomes distinct.
 
-Record exact driver/SDK/source/build/server/patch/platform configuration,
-evidence and gaps across the required 9.2-through-26ai and later-release target.
-Use observed capabilities and numeric versions without an artificial upper
-cutoff. Preserve failed, unavailable, unsupported, empty and NULL outcomes;
-unexecuted combinations remain unqualified.
-
-For broader API or query-selection contracts, consult the public
-[SDK README](https://github.com/marcuoli/go-oracle-session/blob/main/README.md)
-and [Oracle compatibility policy](https://github.com/marcuoli/go-oracle-session/blob/main/docs/oracle-compatibility.md).
-Keep private incident paths, endpoints, identities, credentials and provenance
-out of shared instructions and public diagnostics. This skill does not expand
-the task's implementation, migration, publication or lab permissions.
+Use only Oracle-published/certified technical sources. Read applicable reference
+content and record title, URL, date and version/state/role preconditions.
+Keep private paths, endpoints, identities, credentials and provenance out of
+shared instructions. This skill does not expand task, lab or consumer permissions.
