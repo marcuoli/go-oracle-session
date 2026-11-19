@@ -2,7 +2,14 @@
 
 ## Unreleased
 
-- Add opt-in module-owned pure-Go v2/v3 compatibility packaging and reviewed decoder/value/lifetime adapters; preserve existing consumer behavior.
+## v0.14.0
+
+- Add opt-in module-owned pure-Go v2/v3 compatibility with bounded decoder, exact bind/NUMBER/CLOB adapters and complete retained-source/license provenance (#46).
+- Retire uncertain transaction/LOB state, join lazy-read cancellation/disposal and preserve terminal cleanup causes without SQL replay or reauthentication (#46).
+
+## v0.13.0
+
+- Add bounded redacted connection diagnostics for native ORA/TNS and typed DNS/TCP/timeout/TLS causes, preserving existing Oracle-only extraction and error identity (#47).
 
 - Package shared go-ora compatibility guidance as a portable repository-owned Codex skill and preserve existing documentation links.
 

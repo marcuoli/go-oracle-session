@@ -38,3 +38,10 @@ retirement decision. Expected native cancellation can leave the physical session
 reusable without making the interrupted result successful. Nil configuration,
 unknown proof and fatal connection errors retain conservative retirement. Fresh
 connection admission for later independent work remains caller policy.
+
+The diagnostic package owns bounded error graph traversal and credential/URL redaction.
+Connection adds native ORA/TNS and typed standard-library network/TLS classification;
+Oracle retains its existing Oracle-only projection. Both share traversal/redaction,
+never format wrapper prose, and do not invoke recursive wrapper Timeout or unbounded
+errors.As/Is searches. Caller policy owns UI/logging, known-secret selection and
+unavailable/capacity outcomes. No driver dependency, SQL or session policy changes.
