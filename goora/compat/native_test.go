@@ -2,11 +2,13 @@ package compat_test
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net"
+	"net/url"
 	"os"
 	"runtime"
 	"strings"
@@ -14,7 +16,9 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+	"unicode/utf8"
 
+	"github.com/marcuoli/go-oracle-session/diagnostic"
 	"github.com/marcuoli/go-oracle-session/goora/compat"
 )
 
@@ -35,6 +39,7 @@ func TestNativeCompatibility(t *testing.T) {
 	}
 	var cfg struct {
 		DSN, ProofPath, SourceRevision string
+		OutCharacters                  int
 		Mode                           compat.Mode
 		Container, ExtendedVersion     bool
 		Expected                       struct{ User, Database, Container, Version, IsDBA string }
@@ -90,7 +95,18 @@ func TestNativeCompatibility(t *testing.T) {
 	safeFailure := func(phase string, err error) {
 		t.Helper()
 		code, _ := compat.OracleCode(err)
-		t.Fatalf("%s failed: type=%T ORA=%d", phase, err, code)
+		secrets := []string{cfg.DSN}
+		if parsed, parseErr := url.Parse(cfg.DSN); parseErr == nil && parsed.User != nil {
+			secrets = append(secrets, parsed.User.Username())
+			if password, ok := parsed.User.Password(); ok {
+				secrets = append(secrets, password)
+			}
+		}
+		messages, diagnosticErr := diagnostic.Connection(fmt.Errorf("%s", err.Error()), secrets...)
+		if diagnosticErr != nil {
+			t.Fatalf("%s failed: type=%T ORA=%d; diagnostic capacity exceeded", phase, err, code)
+		}
+		t.Fatalf("%s failed: type=%T ORA=%d causes=%+v", phase, err, code, messages)
 	}
 	var observations []identity
 	checkIdentity := func(value identity) bool {
@@ -160,6 +176,27 @@ func TestNativeCompatibility(t *testing.T) {
 	if number != "9007199254740993" || null.Valid || text != "é漢" {
 		t.Fatal("exact scalar/NULL/Unicode mismatch")
 	}
+	exactNumber, err := compat.NewNumber("9007199254740993")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := lease.QueryRowContext(ctx, "SELECT 9007199254740993 FROM DUAL").Scan(&number); err != nil {
+		safeFailure("native NUMBER literal", err)
+	}
+	if number != "9007199254740993" {
+		t.Fatal("native NUMBER literal rounded")
+	}
+	if err := lease.QueryRowContext(ctx, "SELECT :1 FROM DUAL", exactNumber).Scan(&number); err != nil {
+		safeFailure("native NUMBER bind", err)
+	}
+	if number != "9007199254740993" {
+		t.Fatal("native NUMBER bind rounded")
+	}
+	outCharacters := cfg.OutCharacters
+	if outCharacters == 0 {
+		outCharacters = 32767
+	}
+	proof["declaredOutputCharacters"] = outCharacters
 	statement, err := lease.PrepareContext(ctx, "BEGIN :1 := :2; :3 := TO_CHAR(9007199254740993); :4 := NULL; END;")
 	if err != nil {
 		safeFailure("prepare OUT", err)
@@ -168,7 +205,7 @@ func TestNativeCompatibility(t *testing.T) {
 		text, number = "", ""
 		null = sql.NullString{String: "previous", Valid: true}
 		input := fmt.Sprintf("é漢-%d", i)
-		if _, err := statement.ExecContext(ctx, compat.Out{Dest: &text, Size: 32767}, input, compat.Out{Dest: &number, Size: 64}, compat.Out{Dest: &null, Size: 64}); err != nil {
+		if _, err := statement.ExecContext(ctx, compat.Out{Dest: &text, Size: outCharacters}, input, compat.Out{Dest: &number, Size: 64}, compat.Out{Dest: &null, Size: 64}); err != nil {
 			statement.Close()
 			safeFailure("repeated prepared OUT", err)
 		}
@@ -200,6 +237,14 @@ func TestNativeCompatibility(t *testing.T) {
 		statement.Close()
 		safeFailure("temporary CLOB value", err)
 	}
+	if text, ok := value.(string); ok && text != strings.Repeat(input, 25) {
+		proof["clobObservedBytes"] = len(text)
+		proof["clobObservedRunes"] = utf8.RuneCountInString(text)
+		proof["clobObservedSHA256"] = fmt.Sprintf("%x", sha256.Sum256([]byte(text)))
+		proof["clobExpectedBytes"] = len(strings.Repeat(input, 25))
+		proof["clobPrefixHex"] = fmt.Sprintf("%x", []byte(text)[:min(32, len(text))])
+		writeProof()
+	}
 	if value != strings.Repeat(input, 25) {
 		clob.Free()
 		statement.Close()
@@ -213,6 +258,7 @@ func TestNativeCompatibility(t *testing.T) {
 		safeFailure("temporary CLOB statement close", err)
 	}
 	proof["exactValues"] = true
+	proof["nativeIntegerNumber"] = "9007199254740993 literal and typed bind"
 	proof["preparedOUTExecutions"] = 3
 	proof["temporaryClobBytes"] = len(strings.Repeat(input, 25))
 	proof["completed"] = true

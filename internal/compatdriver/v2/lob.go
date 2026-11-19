@@ -116,7 +116,7 @@ func (lob *Lob) getDataWithOffsetSize(ctx context.Context, offset, count int64) 
 	if err != nil {
 		return
 	}
-	data = lob.data.Bytes()
+	data, err = lob.decodedReadData()
 	return
 }
 

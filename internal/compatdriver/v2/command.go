@@ -717,6 +717,7 @@ func (stmt *defaultStmt) queryLobPrefetch(exeOp int, resultSet *ResultSet) error
 func (stmt *defaultStmt) read(resultSet *ResultSet) (err error) {
 	loop := true
 	after7 := false
+	nextOutputParameter := 0
 	resultSet.parent = stmt
 	resultSet.cols = &stmt.columns
 	session := stmt.connection.session
@@ -772,7 +773,9 @@ func (stmt *defaultStmt) read(resultSet *ResultSet) (err error) {
 				}
 			} else {
 				if stmt.containOutputPars {
-					for x := 0; x < len(stmt.Pars); x++ {
+					start := nextOutputParameter
+					nextOutputParameter = 0
+					for x := start; x < len(stmt.Pars); x++ {
 						if stmt.Pars[x].DataType == REFCURSOR {
 							typ := reflect.TypeOf(stmt.Pars[x].Value)
 							if typ.Kind() == reflect.Ptr {
@@ -801,6 +804,19 @@ func (stmt *defaultStmt) read(resultSet *ResultSet) (err error) {
 								err = stmt.calculateParameterValue(&stmt.Pars[x])
 								if err != nil {
 									return err
+								}
+								// Oracle9.2 continues a PL/SQL bind row with another
+								// TTC7 after a character OUT buffer exceeds the SQL
+								// VARCHAR2 limit. Resume at the next bind, preserving
+								// capacity and treating TTC7 as framing, not CLR size.
+								// Other server families retain their existing row format.
+								par := &stmt.Pars[x]
+								if stmt.stmtType == PLSQL && stmt.connection.dBVersion != nil &&
+									stmt.connection.dBVersion.MajorVersion == 9 &&
+									(par.DataType == NCHAR || par.DataType == CHAR) &&
+									par.MaxLen > stmt.connection.maxLen.varchar {
+									nextOutputParameter = x + 1
+									break
 								}
 							} else {
 								//_, err = session.GetClr()
@@ -1893,6 +1909,14 @@ func (stmt *Stmt) NewParam(name string, val driver.Value, size int, direction Pa
 		}
 	}
 	err := param.encodeValue(size, stmt.connection)
+	// SQL VARCHAR2 has a4000-byte limit on9.2, but a PL/SQL scalar can hold
+	//32767 bytes. Keep a valid PL/SQL input as VARCHAR2: the legacy LONG bind
+	// protocol otherwise produces ORA-03120. Preserve bytes and other profiles.
+	if err == nil && stmt.stmtType == PLSQL && direction == Input &&
+		stmt.connection.dBVersion != nil && stmt.connection.dBVersion.MajorVersion == 9 &&
+		param.DataType == LongVarChar && len(param.BValue) <= 32767 {
+		param.DataType = NCHAR
+	}
 	if err != nil {
 		return nil, err
 	}

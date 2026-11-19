@@ -92,7 +92,14 @@ func (s *modernDriverStatement) CheckNamedValue(v *driver.NamedValue) error {
 }
 
 func (c *modernDriverConnection) IsValid() bool { return c.health.valid() && c.Connection.IsValid() }
-func (c *modernDriverConnection) Close() error  { return c.health.close(c.Connection.Close) }
+func (c *modernDriverConnection) Close() error {
+	// Native terminal failures can invalidate state before a wrapper error hook runs.
+	// Never send ordinary logoff on that uncertain protocol.
+	if c.health != nil && !c.IsValid() {
+		c.health.invalid.Store(true)
+	}
+	return c.health.close(c.Connection.Close)
+}
 func (s *modernDriverStatement) Close() error {
 	if !s.health.valid() {
 		return nil

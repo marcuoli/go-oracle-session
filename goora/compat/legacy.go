@@ -109,7 +109,14 @@ func (s *legacyDriverStatement) Query(args []driver.Value) (driver.Rows, error) 
 func (c *legacyDriverConnection) IsValid() bool {
 	return c.health.valid() && c.Connection.CancellationSettled()
 }
-func (c *legacyDriverConnection) Close() error { return c.health.close(c.Connection.Close) }
+func (c *legacyDriverConnection) Close() error {
+	// Native terminal failures can invalidate state before a wrapper error hook runs.
+	// Never send ordinary logoff on that uncertain protocol.
+	if c.health != nil && !c.IsValid() {
+		c.health.invalid.Store(true)
+	}
+	return c.health.close(c.Connection.Close)
+}
 func (s *legacyDriverStatement) Close() error {
 	if !s.health.valid() {
 		return nil

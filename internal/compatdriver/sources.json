@@ -40,7 +40,10 @@
     "SDK joined terminal lazy-read cancellation closes captured transport outside protocol locks and closes once",
     "SDK post-dispatch/cursor-cleanup errors preserve causes without replay markers",
     "SDK shared lazy-read transport close-once supports external disposal during noncancelable active I/O",
-    "SDK terminal DATA FINAL has a distinct non-retry cause and invalidates native health"
+    "SDK terminal DATA FINAL has a distinct non-retry cause and invalidates native health",
+    "SDK Oracle9.2 large character OUT TTC7 row continuation without reducing caller capacity",
+    "SDK Oracle9i PL/SQL scalar VARCHAR2 input through32767 bytes stays VARCHAR2 instead of LONG",
+    "SDK Oracle9i packed variable-width CLOB code units normalize after complete read; malformed data has no prefix and retires"
   ],
   "inclusion": "All reviewed production files, MIT licenses and retained regressions; nested module metadata and unrelated upstream integration/examples omitted",
   "files": {
@@ -950,7 +953,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/command.go": {
-      "sha256": "f26dd2b3f1651701c8edda0c2eb31b30c72a51ca034697f434238e21f20c88b7",
+      "sha256": "e5b2645c182f80dfdfb9c22cd95b80d00692d1449fe5259677c15d32981441f9",
       "upstream_sha256": "ace8366523a16b08a2a79725fa6f2565cb72f5e60fd6824cb159ffef83d18b69",
       "kind": "retained-production-or-license"
     },
@@ -1090,7 +1093,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/lob.go": {
-      "sha256": "a5d4d2b70d3809d797de646aabde96e90cc57d66fe51023a0adebe174c447bb4",
+      "sha256": "516c1b2d426bc02b6d0eaa0e1e63522ee59ff583bcd00f2bd385ee9ee670cf11",
       "upstream_sha256": "a8916c601895b97f0ba6aeba16a938f8eb77a46feadd78154cde67eeca56f1be",
       "kind": "retained-production-or-license"
     },
@@ -1363,6 +1366,21 @@
       "upstream_sha256": null,
       "kind": "SDK-regression-or-compatibility-addition",
       "sha256": "6c5ccfc6fa4eee43823fdf4e8790a67a7b464fe72d68b4c3c3e0750a0d73889d"
+    },
+    "v2/legacy_lob_test.go": {
+      "sha256": "2e86b7d3e803385da1675c5f07b7526a804796a78d88c014760577c986fcef43",
+      "upstream_sha256": null,
+      "kind": "SDK-regression-or-compatibility-addition"
+    },
+    "v2/legacy_lob.go": {
+      "sha256": "1ed5ebc8fb1208ebdea21d91eabb48de9fe6ab4f305335c4d8816a5f31d6df5b",
+      "upstream_sha256": null,
+      "kind": "SDK-regression-or-compatibility-addition"
+    },
+    "v2/legacy_output_test.go": {
+      "sha256": "1bd675480c50acb86ae7aec0b150cadd94cb03eff5098e742e8a8099dd13fa10",
+      "upstream_sha256": null,
+      "kind": "SDK-regression-or-compatibility-addition"
     }
   }
 }

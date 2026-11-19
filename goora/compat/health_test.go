@@ -8,6 +8,7 @@ import (
 	"io"
 	"testing"
 
+	legacy "github.com/marcuoli/go-oracle-session/internal/compatdriver/v2"
 	modern "github.com/marcuoli/go-oracle-session/internal/compatdriver/v3"
 	modernTypes "github.com/marcuoli/go-oracle-session/internal/compatdriver/v3/types"
 )
@@ -124,5 +125,27 @@ func TestModernPrepareCannotReauthenticateRetiredConnection(t *testing.T) {
 	statement, err := c.PrepareContext(t.Context(), "SELECT 1 FROM DUAL")
 	if statement != nil || !errors.Is(err, driver.ErrBadConn) {
 		t.Fatalf("retired prepare=%v, %v", statement, err)
+	}
+}
+
+func TestNativeInvalidStateClosesByTerminalDisposal(t *testing.T) {
+	for _, mode := range []Mode{V2, V3} {
+		calls := 0
+		h := &connectionHealth{discard: func() error { calls++; return nil }}
+		var conn driver.Conn
+		if mode == V2 {
+			conn = &legacyDriverConnection{Connection: &legacy.Connection{State: legacy.Closed}, health: h}
+		} else {
+			conn = &modernDriverConnection{Connection: &modern.Connection{State: modern.Closed}, health: h}
+		}
+		if err := conn.Close(); err != nil {
+			t.Fatal(err)
+		}
+		if err := conn.Close(); err != nil {
+			t.Fatal(err)
+		}
+		if calls != 1 {
+			t.Fatalf("mode=%s terminal closes=%d", mode, calls)
+		}
 	}
 }
