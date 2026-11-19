@@ -284,3 +284,5 @@ remain with the configured path. Prefetch, LOB fetching and session SQL tuning
 remain caller-owned. The supported full-login setting addresses cached-login
 admission failures described in [upstream #732](https://github.com/sijms/go-ora/issues/732);
 it does not establish native qualification for every driver/server combination.
+
+See the [go-ora compatibility guide](docs/go-ora-compatibility.md) for the distinct short-ACCEPT parser failure, upstream fix status, official-release adoption and per-combination qualification evidence.
