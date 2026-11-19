@@ -43,7 +43,8 @@
     "SDK terminal DATA FINAL has a distinct non-retry cause and invalidates native health",
     "SDK Oracle9.2 large character OUT TTC7 row continuation without reducing caller capacity",
     "SDK Oracle9i PL/SQL scalar VARCHAR2 input through32767 bytes stays VARCHAR2 instead of LONG",
-    "SDK Oracle9i packed variable-width CLOB code units normalize after complete read; malformed data has no prefix and retires"
+    "SDK Oracle9i packed variable-width CLOB code units normalize after complete read; malformed data has no prefix and retires",
+    "SDK legacy scalar OUT continuation must complete before success; arrays/UDTs retain their prior framing"
   ],
   "inclusion": "All reviewed production files, MIT licenses and retained regressions; nested module metadata and unrelated upstream integration/examples omitted",
   "files": {
@@ -953,7 +954,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/command.go": {
-      "sha256": "e5b2645c182f80dfdfb9c22cd95b80d00692d1449fe5259677c15d32981441f9",
+      "sha256": "045a7737f8bf53d6c9a2f2466f1f30ba5e457bb463d8b087901a07313ba3dbcd",
       "upstream_sha256": "ace8366523a16b08a2a79725fa6f2565cb72f5e60fd6824cb159ffef83d18b69",
       "kind": "retained-production-or-license"
     },
@@ -1378,7 +1379,7 @@
       "kind": "SDK-regression-or-compatibility-addition"
     },
     "v2/legacy_output_test.go": {
-      "sha256": "1bd675480c50acb86ae7aec0b150cadd94cb03eff5098e742e8a8099dd13fa10",
+      "sha256": "b2af12f77eec26a2a72165f71442e4f42ef810ec0298808950ef610fd7a42835",
       "upstream_sha256": null,
       "kind": "SDK-regression-or-compatibility-addition"
     }

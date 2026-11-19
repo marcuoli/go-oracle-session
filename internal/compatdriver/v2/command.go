@@ -718,10 +718,14 @@ func (stmt *defaultStmt) read(resultSet *ResultSet) (err error) {
 	loop := true
 	after7 := false
 	nextOutputParameter := 0
+	legacyOutputPieces := false
 	resultSet.parent = stmt
 	resultSet.cols = &stmt.columns
 	session := stmt.connection.session
 	defer func() {
+		if err != nil && legacyOutputPieces {
+			stmt.connection.setBad()
+		}
 		if session.Summary != nil {
 			stmt.cursorID = session.Summary.CursorID
 			if session.Summary.RetCode == 1403 {
@@ -813,8 +817,10 @@ func (stmt *defaultStmt) read(resultSet *ResultSet) (err error) {
 								par := &stmt.Pars[x]
 								if stmt.stmtType == PLSQL && stmt.connection.dBVersion != nil &&
 									stmt.connection.dBVersion.MajorVersion == 9 &&
+									par.MaxNoOfArrayElements == 0 && par.parent == nil && par.cusType == nil &&
 									(par.DataType == NCHAR || par.DataType == CHAR) &&
 									par.MaxLen > stmt.connection.maxLen.varchar {
+									legacyOutputPieces = true
 									nextOutputParameter = x + 1
 									break
 								}
@@ -1063,6 +1069,15 @@ func (stmt *defaultStmt) read(resultSet *ResultSet) (err error) {
 	// 		return err
 	// 	}
 	// }
+	if nextOutputParameter > 0 {
+		for _, par := range stmt.Pars[nextOutputParameter:] {
+			if par.Direction != Input {
+				// A successful terminal message cannot complete a partial bind
+				// row. No caller destinations are assigned until read succeeds.
+				return errors.New("incomplete Oracle bind output continuation")
+			}
+		}
+	}
 	if stmt.connection.tracer.IsOn() {
 		resultSet.Trace(stmt.connection.tracer)
 	}
@@ -1909,11 +1924,12 @@ func (stmt *Stmt) NewParam(name string, val driver.Value, size int, direction Pa
 		}
 	}
 	err := param.encodeValue(size, stmt.connection)
-	// SQL VARCHAR2 has a4000-byte limit on9.2, but a PL/SQL scalar can hold
-	//32767 bytes. Keep a valid PL/SQL input as VARCHAR2: the legacy LONG bind
+	// SQL VARCHAR2 has a 4000-byte limit on 9.2, but a PL/SQL scalar can hold
+	// 32767 bytes. Keep a valid PL/SQL input as VARCHAR2: the legacy LONG bind
 	// protocol otherwise produces ORA-03120. Preserve bytes and other profiles.
 	if err == nil && stmt.stmtType == PLSQL && direction == Input &&
 		stmt.connection.dBVersion != nil && stmt.connection.dBVersion.MajorVersion == 9 &&
+		param.MaxNoOfArrayElements == 0 && param.parent == nil && param.cusType == nil &&
 		param.DataType == LongVarChar && len(param.BValue) <= 32767 {
 		param.DataType = NCHAR
 	}

@@ -94,3 +94,98 @@ func TestLegacyPLSQLVarcharInputDoesNotBecomeLong(t *testing.T) {
 		})
 	}
 }
+
+func legacyOutputConnection(t *testing.T) *Connection {
+	t.Helper()
+	conn, err := NewConnection("", &configurations.ConnectionConfig{CharsetID: 873})
+	if err != nil {
+		t.Fatal(err)
+	}
+	conn.State = Opened
+	conn.sStrConv = conn.cStrConv
+	conn.tracer = trace.NilTracer()
+	conn.maxLen.varchar = 4000
+	conn.dBVersion = &DBVersion{MajorVersion: 9, Number: 9208}
+	conn.session = network.NewSessionWithInputBufferForDebug(nil)
+	return conn
+}
+func TestLegacyContinuationRequiresAllRemainingOutputs(t *testing.T) {
+	for _, tc := range []struct {
+		name               string
+		tail               ParameterDirection
+		hasTail, wantError bool
+	}{
+		{"missing output", Output, true, true}, {"last output", Input, false, false}, {"trailing input", Input, true, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			conn := legacyOutputConnection(t)
+			first, second := "previous-first", "previous-second"
+			stmt := NewStmt("BEGIN NULL; END;", conn)
+			stmt.containOutputPars = true
+			stmt.Pars = []ParameterInfo{{DataType: NCHAR, Direction: Output, MaxLen: 131068, MaxCharLen: 32767, CharsetID: 873, Value: &first}}
+			if tc.hasTail {
+				stmt.Pars = append(stmt.Pars, ParameterInfo{DataType: NCHAR, Direction: tc.tail, MaxLen: 256, MaxCharLen: 64, CharsetID: 873, Value: &second})
+			}
+			var response bytes.Buffer
+			response.WriteByte(7)
+			writer := network.NewSessionWithInputBufferForDebug(nil)
+			writer.WriteClr(&response, []byte("value"))
+			response.Write([]byte{0, 9, 0x55})
+			conn.session = network.NewSessionWithInputBufferForDebug(response.Bytes())
+			err := stmt.read(&ResultSet{})
+			if tc.wantError {
+				if err == nil || !conn.bad || first != "previous-first" || second != "previous-second" {
+					t.Fatalf("incomplete output admitted err=%v bad=%v destinations=%q/%q", err, conn.bad, first, second)
+				}
+			} else {
+				if err != nil || conn.bad || stmt.Pars[0].oPrimValue != "value" {
+					t.Fatalf("complete output rejected: %v bad=%v", err, conn.bad)
+				}
+				next, err := conn.session.GetByte()
+				if err != nil || next != 0x55 {
+					t.Fatalf("next message consumed: %x %v", next, err)
+				}
+			}
+		})
+	}
+}
+func TestLegacyCharacterArrayKeepsSingleRowFraming(t *testing.T) {
+	conn := legacyOutputConnection(t)
+	stmt := NewStmt("BEGIN NULL; END;", conn)
+	stmt.containOutputPars = true
+	stmt.Pars = []ParameterInfo{
+		{DataType: NCHAR, Direction: Output, MaxLen: 131068, MaxCharLen: 32767, CharsetID: 873, MaxNoOfArrayElements: 1},
+		{DataType: NCHAR, Direction: Output, MaxLen: 256, MaxCharLen: 64, CharsetID: 873},
+	}
+	var response bytes.Buffer
+	response.WriteByte(7)
+	response.Write([]byte{1, 1})
+	writer := network.NewSessionWithInputBufferForDebug(nil)
+	writer.WriteClr(&response, []byte("array-value"))
+	response.WriteByte(0)
+	writer.WriteClr(&response, []byte("next-value"))
+	response.Write([]byte{0, 9, 0x55})
+	conn.session = network.NewSessionWithInputBufferForDebug(response.Bytes())
+	if err := stmt.read(&ResultSet{}); err != nil {
+		t.Fatal(err)
+	}
+	values, ok := stmt.Pars[0].oPrimValue.([]ParameterInfo)
+	if !ok || len(values) != 1 || values[0].oPrimValue != "array-value" || stmt.Pars[1].oPrimValue != "next-value" {
+		t.Fatal("array/next output changed")
+	}
+	next, err := conn.session.GetByte()
+	if err != nil || next != 0x55 {
+		t.Fatalf("array framing consumed next message: %x %v", next, err)
+	}
+}
+func TestLegacyPLSQLArrayInputRetainsItsExistingType(t *testing.T) {
+	conn := legacyOutputConnection(t)
+	stmt := NewStmt("DECLARE v VARCHAR2(32767):=:1; BEGIN NULL; END;", conn)
+	par, err := stmt.NewParam("values", []string{strings.Repeat("x", 5000)}, 0, Input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if par.MaxNoOfArrayElements != 1 || par.DataType != NCHAR {
+		t.Fatalf("array changed: elements=%d type=%v", par.MaxNoOfArrayElements, par.DataType)
+	}
+}
