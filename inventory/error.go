@@ -17,6 +17,8 @@ const (
 	RowFieldCount       ValidationCode = "row_field_count"
 	RowEmptyField       ValidationCode = "row_empty_field"
 	RowFieldTooLong     ValidationCode = "row_field_too_long"
+	RowFieldInvalid     ValidationCode = "row_field_invalid"
+	RowFieldConflict    ValidationCode = "row_field_conflict"
 	EmbeddedCredentials ValidationCode = "embedded_credentials"
 	DuplicateName       ValidationCode = "duplicate_name"
 	NoDatabaseRows      ValidationCode = "no_database_rows"
@@ -69,6 +71,10 @@ func (e *ValidationError) Error() string {
 		return fmt.Sprintf("inventory row %d (%s) has an empty %s", e.Row, e.Target, e.Field)
 	case RowFieldTooLong:
 		return fmt.Sprintf("inventory row %d (%s): %s exceeds %d bytes", e.Row, e.Target, e.Field, e.Limit)
+	case RowFieldInvalid:
+		return fmt.Sprintf("inventory row %d (%s) has an invalid %s", e.Row, e.Target, e.Field)
+	case RowFieldConflict:
+		return fmt.Sprintf("inventory row %d (%s) has conflicting %s", e.Row, e.Target, e.Field)
 	case EmbeddedCredentials:
 		return fmt.Sprintf("inventory row %d (%s) embeds credentials in connect", e.Row, e.Target)
 	case DuplicateName:

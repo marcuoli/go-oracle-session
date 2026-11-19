@@ -2,7 +2,7 @@
 
 - `goora` owns opt-in full-login URL preparation with standard query validation/serialization and static errors. It imports no concrete driver and opens or wraps no connection.
 
-- `inventory` owns bounded RFC 4180 headers, credential-byte preservation, duplicate/effective labels and redacted validation categories. Optional URL validation delegates engine policy to the caller. File and byte admission share the same size limit.
+- `inventory` owns bounded RFC 4180 headers, credential-byte preservation, duplicate/effective labels and redacted validation categories. Optional URL validation delegates engine policy to the caller. File and byte admission share the same size limit. Opt-in authenticated admission adds exact external wallet references without loading them. Legacy structs and admission stay compatible; callers own secret resolution and app configuration.
 - `transport` returns actual sockets and terminally tracks one physical connection plus redirects. Repeated/concurrent closure joins the same result. It contacts only the requested endpoint.
 - `cancel` owns joined cancellation watchers, deadline provenance and explicit health evidence. A returned operation alone does not establish reusable protocol state.
 - `session` owns one leased connection, cancellable admission, bounded non-replayed catalog queries, exact value admission and cursor ownership. A private forwarding connector retains driver cursor-close failures that database/sql would otherwise discard after a fetch failure. This adapter changes no driver source and adds no SQL execution engine.

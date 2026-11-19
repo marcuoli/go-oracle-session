@@ -21,6 +21,17 @@ Configure positive connect, query and cleanup budgets plus a required idempotent
 
 The inventory parser preserves password bytes; do not serialize entries or log underlying error chains. Default diagnostic formatting exposes safe operation codes and CSV source-line facts. This is not a general-purpose SQL safety engine, credential store, recovery manager or database certification.
 
+For explicit wallet references, opt in with inventory.ParseAuthenticated or
+inventory.ReadFileAuthenticated. They return AuthEntry values: Auth is
+password (the default) or wallet, with a WalletReference only for wallet rows.
+All four legacy CSV headers remain required. The additional headers are auth,
+wallet_directory and wallet_credential. Wallet rows leave username/password
+empty; password rows leave wallet fields empty. References preserve exact bytes,
+require a current-platform absolute directory and a nonblank case-sensitive key,
+and are each bounded to 4096 bytes of valid UTF-8 without control characters.
+Admission does not expand paths, open wallet files or resolve credentials;
+callers own that work. Existing Parse, ReadFile, Entry and Options remain unchanged.
+
 The unchanged shipping module and current build require Go 1.27.4. Run `scripts/validate.ps1 -Race -Scan` or `scripts/validate.sh --race --scan` with configured external development storage. `examples/inventory` demonstrates synthetic parsing without contacting a database. See [architecture](docs/architecture.md), [comments](CONTRIBUTING.md) and [delivery](docs/code-management.md).
 
 ## Oracle compatibility

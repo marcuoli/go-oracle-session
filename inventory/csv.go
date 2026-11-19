@@ -37,6 +37,14 @@ type Entry struct {
 
 // ReadFile admits a bounded regular CSV file without logging its payload.
 func ReadFile(path string, options ...Options) ([]Entry, error) {
+	data, err := readFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return Parse(data, options...)
+}
+
+func readFile(path string) ([]byte, error) {
 	info, err := os.Lstat(path)
 	if err != nil {
 		return nil, &ValidationError{Code: FileUnreadable}
@@ -61,11 +69,23 @@ func ReadFile(path string, options ...Options) ([]Entry, error) {
 	if len(data) > maxFileSize {
 		return nil, &ValidationError{Code: FileTooLarge, Limit: maxFileSize}
 	}
-	return Parse(data, options...)
+	return data, nil
 }
 
 // Parse admits named endpoints, retaining exact passwords and unique effective labels.
 func Parse(data []byte, options ...Options) ([]Entry, error) {
+	admitted, err := parse(data, false, options...)
+	if err != nil {
+		return nil, err
+	}
+	entries := make([]Entry, len(admitted))
+	for i := range admitted {
+		entries[i] = admitted[i].Entry
+	}
+	return entries, nil
+}
+
+func parse(data []byte, authenticated bool, options ...Options) ([]AuthEntry, error) {
 	if len(data) > maxFileSize {
 		return nil, &ValidationError{Code: FileTooLarge, Limit: maxFileSize}
 	}
@@ -102,12 +122,12 @@ func Parse(data []byte, options ...Options) ([]Entry, error) {
 	if len(headers) > 0 {
 		headers[0] = strings.TrimPrefix(headers[0], "\uFEFF")
 	}
-	indexes, err := validateHeaders(headers)
+	indexes, err := validateHeaders(headers, authenticated)
 	if err != nil {
 		return nil, err
 	}
 
-	entries := make([]Entry, 0, len(records)-1)
+	entries := make([]AuthEntry, 0, len(records)-1)
 	seen := make(map[string]int, len(records)-1)
 	seenLabels := make(map[string]int, len(records)-1)
 	fold := cases.Fold()
@@ -138,11 +158,11 @@ func Parse(data []byte, options ...Options) ([]Entry, error) {
 		if entry.Connect == "" {
 			return nil, &ValidationError{Code: RowEmptyField, Row: row, Target: textoutput.TargetLabel(label), Field: "connect"}
 		}
-		if entry.Username == "" {
-			return nil, &ValidationError{Code: RowEmptyField, Row: row, Target: textoutput.TargetLabel(label), Field: "username"}
-		}
-		if entry.Password == "" {
-			return nil, &ValidationError{Code: RowEmptyField, Row: row, Target: textoutput.TargetLabel(label), Field: "password"}
+		admitted, validationErr := admitAuthentication(entry, record, indexes, authenticated)
+		if validationErr != nil {
+			validationErr.Row = row
+			validationErr.Target = textoutput.TargetLabel(label)
+			return nil, validationErr
 		}
 		if validationErr := validateLengths(entry); validationErr != nil {
 			validationErr.Row = row
@@ -165,7 +185,7 @@ func Parse(data []byte, options ...Options) ([]Entry, error) {
 		}
 		seen[nameKey] = row
 		seenLabels[labelKey] = row
-		entries = append(entries, entry)
+		entries = append(entries, admitted)
 	}
 
 	if len(entries) == 0 {
@@ -174,12 +194,17 @@ func Parse(data []byte, options ...Options) ([]Entry, error) {
 	return entries, nil
 }
 
-func validateHeaders(headers []string) (map[string]int, error) {
-	// Validate names rather than a fixed count: environment is optional, while
-	// unknown, duplicate and missing required headers remain errors.
+func validateHeaders(headers []string, authenticated bool) (map[string]int, error) {
+	// Optional authentication headers are admitted only by the explicit new
+	// APIs. Legacy unknown/duplicate/missing-header validation stays unchanged.
 	wanted := make(map[string]struct{}, len(requiredHeaders))
 	wanted["environment"] = struct{}{}
 	wanted["target_oracle_version"] = struct{}{}
+	if authenticated {
+		for _, header := range []string{"auth", "wallet_directory", "wallet_credential"} {
+			wanted[header] = struct{}{}
+		}
+	}
 	for _, header := range requiredHeaders {
 		wanted[header] = struct{}{}
 	}
