@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Document distinct go-ora login/parser failures, upstream ownership, official-fix adoption and exact compatibility qualification.
+
 ## v0.11.0
 
 - Add opt-in goora.PrepareURL full-login policy with canonical query serialization, preserved option values and atomic safe errors (#38).
