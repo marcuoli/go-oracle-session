@@ -40,6 +40,7 @@ var missingObject = regexp.MustCompile(`^ORA-00942:[ \t]*table or view[ \t]+(` +
 	oracleIdentifier + `)[ \t]*\.[ \t]*(` + oracleIdentifier +
 	`)[ \t]+does not exist(?: error occur at position: [0-9]+)?$`)
 
+var missingObjectError = regexp.MustCompile(`^ORA-(?:00942|942)(?:[: \t]|$)`)
 var remoteObjectError = regexp.MustCompile(`^ORA-0?206[38](?:[: \t]|$)`)
 
 // StatementObjects copies the catalog references in order. Pass nil for err
@@ -110,12 +111,12 @@ func StatementObjects(err error, objects []ObjectRef) ([]ObjectStatus, error) {
 		}
 		for line := range strings.SplitSeq(rest, "\n") {
 			line = strings.TrimSpace(line)
-			if remoteObjectError.MatchString(line) || strings.HasPrefix(line, missingObjectCode+":") {
+			if remoteObjectError.MatchString(line) || missingObjectError.MatchString(line) {
 				ambiguous = true
 				return nil
 			}
 		}
-		if !strings.HasPrefix(first, missingObjectCode+":") {
+		if !missingObjectError.MatchString(first) {
 			return nil
 		}
 		match := missingObject.FindStringSubmatch(first)
