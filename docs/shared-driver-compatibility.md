@@ -69,6 +69,14 @@ The separate diagnostic.Connection API classifies and redacts error causes.
 Endpoint identity, credentials, deadlines and logging policy remain with the
 caller. Observations do not authorize switching backends or retrying SQL.
 
+Use ConnectObserved when recording an outcome must complete before another
+backend can start or a connection can escape. An optional Before callback can
+reject admission without dialing. An optional After callback receives the
+attempt and original backend error before fallback or return. A callback
+failure stops selection, closes any connection, and preserves cleanup errors.
+Do not persist the original error without caller-owned redaction. The observer
+does not change the V2 default, context, or permitted reasons for fallback.
+
 ## Values, statements and resource ownership
 
 Out{Dest, Size, In} preserves destination, character capacity and IN/OUT intent.
