@@ -2,6 +2,7 @@ package compat
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql/driver"
 
 	modern "github.com/marcuoli/go-oracle-session/internal/compatdriver/v3"
@@ -122,10 +123,11 @@ func (s *modernDriverStatement) Close() error {
 	return s.health.fail(s.Stmt.Close())
 }
 
-func newConfiguredModernConnector(dsn string, options Options) *modernDriverConnector {
+func newConfiguredModernConnector(dsn string, options Options, tlsConfig *tls.Config) *modernDriverConnector {
 	native := func() *modern.OracleConnector {
 		connector := modern.NewConnector(dsn).(*modern.OracleConnector)
 		connector.WithLoginWarningHandler(options.LoginWarningHandler)
+		connector.WithTLSConfig(tlsConfig.Clone())
 		if options.Mode == Negotiated {
 			connector.WithLegacyServerDetection()
 		}

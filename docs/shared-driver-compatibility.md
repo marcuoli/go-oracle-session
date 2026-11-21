@@ -55,6 +55,15 @@ IsDriver identifies the shared factory; ConnectionMode identifies a raw
 driver.Conn. A database/sql leased connection exposes CompatibilityMode through
 Raw without exposing a private native cursor.
 
+## Custom TLS configuration
+
+NewConnectorWithTLSConfig accepts a caller-maintained TLS configuration for a
+DSN that selects TCPS. It keeps the same backend selection and connection
+ownership as NewConnector. The driver sets the TLS server name to the
+addressed host. Each physical connection receives a separate config clone so
+that concurrent admissions do not share that driver mutation. The caller
+owns the trust roots, certificates and callback policy.
+
 ## Handshake observations
 
 ConnectWithDiagnostics runs the same connector selection as Connect and returns

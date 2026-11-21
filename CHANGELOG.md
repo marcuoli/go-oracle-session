@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Accept caller-provided TLS configuration in the shared connector while retaining the SDK's driver selection (#59).
+
 - Let callers observe each connection attempt and stop admission or fallback if recording fails (#57).
 
 - Expose per-attempt handshake diagnostics (#55) through the shared connector while preserving driver selection and connection errors.

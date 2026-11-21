@@ -2,6 +2,7 @@ package compat
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"database/sql/driver"
 	"errors"
@@ -29,23 +30,36 @@ type Connector struct {
 // It removes FAST LOGIN for V2 and enforces full login for V3, preserving all
 // other URL values and identity. Configure caller options before concurrent use.
 func NewConnector(dsn string, options Options) (*Connector, error) {
+	return newConnector(dsn, options, nil)
+}
+
+// NewConnectorWithTLSConfig applies config to the physical TLS connections
+// selected by the DSN. A nil config uses the same TLS policy as NewConnector.
+// The connector takes a shallow snapshot and clones it for each physical
+// connection. Keep referenced trust material and callbacks safe for concurrent
+// use. The Oracle Net driver uses the addressed host as the TLS server name.
+func NewConnectorWithTLSConfig(dsn string, options Options, config *tls.Config) (*Connector, error) {
+	return newConnector(dsn, options, config.Clone())
+}
+
+func newConnector(dsn string, options Options, tlsConfig *tls.Config) (*Connector, error) {
 	if options.Mode > Negotiated {
 		return nil, ErrInvalidOptions
 	}
-	c := &Connector{mode: options.Mode, owner: &compatibilityDriver{options: options}}
+	c := &Connector{mode: options.Mode, owner: &compatibilityDriver{options: options, tlsConfig: tlsConfig}}
 	if options.Mode != V3 {
 		prepared, err := prepareDSN(dsn, V2)
 		if err != nil {
 			return nil, err
 		}
-		c.legacy = newLegacyDriverConnector(prepared, options)
+		c.legacy = newLegacyDriverConnector(prepared, options, tlsConfig)
 	}
 	if options.Mode != V2 {
 		prepared, err := prepareDSN(dsn, V3)
 		if err != nil {
 			return nil, err
 		}
-		c.modern = newConfiguredModernConnector(prepared, options)
+		c.modern = newConfiguredModernConnector(prepared, options, tlsConfig)
 	}
 	return c, nil
 }
@@ -110,17 +124,20 @@ func onlyLegacySignal(err error) bool {
 	return false
 }
 
-type compatibilityDriver struct{ options Options }
+type compatibilityDriver struct {
+	options   Options
+	tlsConfig *tls.Config
+}
 
 func (d *compatibilityDriver) Open(dsn string) (driver.Conn, error) {
-	c, err := NewConnector(dsn, d.options)
+	c, err := newConnector(dsn, d.options, d.tlsConfig)
 	if err != nil {
 		return nil, err
 	}
 	return c.Connect(context.Background())
 }
 func (d *compatibilityDriver) OpenConnector(dsn string) (driver.Connector, error) {
-	return NewConnector(dsn, d.options)
+	return newConnector(dsn, d.options, d.tlsConfig)
 }
 
 // IsDriver identifies the compatibility pool factory without opening a connection.
