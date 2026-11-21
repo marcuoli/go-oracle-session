@@ -55,6 +55,20 @@ IsDriver identifies the shared factory; ConnectionMode identifies a raw
 driver.Conn. A database/sql leased connection exposes CompatibilityMode through
 Raw without exposing a private native cursor.
 
+## Handshake observations
+
+ConnectWithDiagnostics runs the same connector selection as Connect and returns
+ordered backend attempts for that call. Each attempt records its backend and
+elapsed time. V3 can additionally report the last observed handshake phase,
+negotiated protocol and security values and authentication state. V2 has no
+native handshake snapshot. The operation preserves the normal connection and
+error contract and does not enable protocol tracing.
+
+Callers can record the snapshot using their existing connector wrapper.
+The separate diagnostic.Connection API classifies and redacts error causes.
+Endpoint identity, credentials, deadlines and logging policy remain with the
+caller. Observations do not authorize switching backends or retrying SQL.
+
 ## Values, statements and resource ownership
 
 Out{Dest, Size, In} preserves destination, character capacity and IN/OUT intent.

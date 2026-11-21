@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expose per-attempt handshake diagnostics (#55) through the shared connector while preserving driver selection and connection errors.
+
 ## v0.16.0
 
 - Report reviewed SQL tables and views and mark a uniquely named Oracle object error (#52).

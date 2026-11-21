@@ -15,13 +15,28 @@ type modernDriverConnector struct {
 }
 
 func (c *modernDriverConnector) Connect(ctx context.Context) (driver.Conn, error) {
+	return c.connect(ctx, nil)
+}
+
+func (c *modernDriverConnector) connect(ctx context.Context, handshake *HandshakeDiagnostics) (driver.Conn, error) {
 	if c.setupErr != nil {
+		if handshake != nil {
+			handshake.Phase = "configure"
+		}
 		return nil, c.setupErr
 	}
 	if c.fresh != nil {
-		return c.fresh().Connect(ctx)
+		return c.fresh().connect(ctx, handshake)
 	}
-	conn, err := c.OracleConnector.Connect(ctx)
+	var conn driver.Conn
+	var err error
+	if handshake == nil {
+		conn, err = c.OracleConnector.Connect(ctx)
+	} else {
+		var native modern.ConnectionDiagnostics
+		conn, native, err = c.OracleConnector.ConnectWithDiagnostics(ctx)
+		*handshake = HandshakeDiagnostics(native)
+	}
 	if err != nil {
 		return nil, err
 	}
