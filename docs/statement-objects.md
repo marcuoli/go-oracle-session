@@ -37,6 +37,23 @@ qualified across driver, server, and text-encoding combinations. The feature
 adds no SQL or release requirement. The named format is capability-dependent,
 so a numeric release alone does not predict attribution.
 
+## Native qualification
+
+The go-ora compatibility connector was built with Go 1.27.4 and
+CGO disabled for Windows/amd64. An existing non-SYSDBA account on each
+READ WRITE fixture ran the same read-only two-object statements through
+both session and rowset. Successful queries returned the complete ordered
+catalog list. The session could execute a successful query after the errors.
+
+| Oracle Database | Connection profile and scope | Observed ORA-00942 |
+| --- | --- | --- |
+| 9.2.0.8.0 | Retained go-ora V2, non-CDB | Bare message. Both reviewed objects were returned without a highlight. |
+| 26ai, numeric 23.26.1.0.0 | Retained go-ora V2 and V3, direct PDB | Schema and object were named. Only the named object was highlighted, including a quoted mixed-case name. |
+
+The cases exercised missing objects in both positions of a two-object list.
+The results cover these fixtures, accounts and error cases. Other releases,
+patches, locales, privileges and states were not exercised in this run.
+
 Oracle references checked on 2026-11-21
 
 - [ORA-00942](https://docs.oracle.com/en/error-help/db/ora-00942/) documents

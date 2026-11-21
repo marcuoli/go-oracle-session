@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.16.0
+
 - Report reviewed SQL tables and views and mark a uniquely named Oracle object error (#52).
 
 ## v0.15.0
