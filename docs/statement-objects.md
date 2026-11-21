@@ -22,9 +22,11 @@ Say that Oracle reported a problem with the object. Its existence and the
 privileges needed to access it require separate evidence.
 
 The initial match requires an English named `ORA-00942` line with an exact,
-unique local schema and object name. It understands independently quoted
-components. Unsupported message formats, `ORA-01031` and a target outside the
-catalog yield no highlight. A matching name from a synonym's underlying object
+unique local schema and object name on the primary line of an error leaf.
+It understands independently quoted components. Unsupported message formats, `ORA-01031` and a target outside the
+catalog yield no highlight. A declared database link or a remote Oracle stack
+marker also leaves the list unmarked because the qualified name can name a
+different database. A matching name from a synonym's underlying object
 does not imply that an explicitly listed synonym was reported by Oracle.
 
 The helper uses the original wrapped error and returns only reviewed names
@@ -43,3 +45,4 @@ Oracle references checked on 2026-11-21
   documents the older bare message.
 - [ORA-01031](https://docs.oracle.com/en/error-help/db/ora-01031/) documents the
   privilege failure without a table or view name.
+- [ORA-02063](https://docs.oracle.com/en/error-help/db/ora-02063/) and [ORA-02068](https://docs.oracle.com/en/error-help/db/ora-02068/) identify remote error evidence.

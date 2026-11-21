@@ -40,10 +40,13 @@ var missingObject = regexp.MustCompile(`^ORA-00942:[ \t]*table or view[ \t]+(` +
 	oracleIdentifier + `)[ \t]*\.[ \t]*(` + oracleIdentifier +
 	`)[ \t]+does not exist(?: error occur at position: [0-9]+)?$`)
 
+var remoteObjectError = regexp.MustCompile(`^ORA-0?206[38](?:[: \t]|$)`)
+
 // StatementObjects copies the catalog references in order. Pass nil for err
 // after successful execution. A supported ORA-00942 message naming a unique
-// schema-qualified object marks its exact local match. Bare, conflicting,
-// unsupported, or unmatched evidence leaves the entries unmarked.
+// schema-qualified object in the primary line of an error leaf marks its exact
+// local match. Bare, conflicting, remote, or unsupported evidence leaves the
+// entries unmarked. Lists containing database links are also unattributed.
 // ORA-00942 does not distinguish absence from inaccessible objects.
 //
 // The catalog slice must cover the selected statement variant. This function
@@ -62,6 +65,7 @@ func StatementObjects(err error, objects []ObjectRef) ([]ObjectStatus, error) {
 		return nil, nil
 	}
 	remaining := MaxBytes
+	allLocal := true
 	report := make([]ObjectStatus, len(objects))
 	for i, object := range objects {
 		if object.Name == "" {
@@ -77,8 +81,9 @@ func StatementObjects(err error, objects []ObjectRef) ([]ObjectStatus, error) {
 			}
 		}
 		report[i].ObjectRef = object
+		allLocal = allLocal && object.DatabaseLink == ""
 	}
-	if err == nil {
+	if err == nil || !allLocal {
 		return report, nil
 	}
 
@@ -92,24 +97,37 @@ func StatementObjects(err error, objects []ObjectRef) ([]ObjectStatus, error) {
 			return ErrCapacity
 		}
 		if !utf8.ValidString(message) {
+			ambiguous = true
 			return nil
 		}
-		for line := range strings.SplitSeq(message, "\n") {
-			line = strings.TrimSpace(line)
-			if !strings.HasPrefix(line, missingObjectCode+":") {
-				continue
-			}
-			match := missingObject.FindStringSubmatch(line)
-			if match == nil {
-				ambiguous = true
-				continue
-			}
-			owner, object := strings.Trim(match[1], `"`), strings.Trim(match[2], `"`)
-			if name != "" && (schema != owner || name != object) {
-				ambiguous = true
-			}
-			schema, name = owner, object
+		// Only the primary line can nominate an object. Application-defined
+		// messages and nested stacks may contain arbitrary continuation text.
+		first, rest, _ := strings.Cut(strings.TrimSpace(message), "\n")
+		first = strings.TrimSpace(first)
+		if remoteObjectError.MatchString(first) {
+			ambiguous = true
+			return nil
 		}
+		for line := range strings.SplitSeq(rest, "\n") {
+			line = strings.TrimSpace(line)
+			if remoteObjectError.MatchString(line) || strings.HasPrefix(line, missingObjectCode+":") {
+				ambiguous = true
+				return nil
+			}
+		}
+		if !strings.HasPrefix(first, missingObjectCode+":") {
+			return nil
+		}
+		match := missingObject.FindStringSubmatch(first)
+		if match == nil {
+			ambiguous = true
+			return nil
+		}
+		owner, object := strings.Trim(match[1], `"`), strings.Trim(match[2], `"`)
+		if name != "" && (schema != owner || name != object) {
+			ambiguous = true
+		}
+		schema, name = owner, object
 		return nil
 	})
 	if failure != nil || ambiguous || name == "" {
@@ -117,7 +135,7 @@ func StatementObjects(err error, objects []ObjectRef) ([]ObjectStatus, error) {
 	}
 	matched := -1
 	for i, object := range report {
-		if object.DatabaseLink == "" && object.Schema == schema && object.Name == name {
+		if object.Schema == schema && object.Name == name {
 			if matched != -1 {
 				return report, nil
 			}

@@ -45,3 +45,6 @@ Oracle retains its existing Oracle-only projection. Both share traversal/redacti
 never format wrapper prose, and do not invoke recursive wrapper Timeout or unbounded
 errors.As/Is searches. Caller policy owns UI/logging, known-secret selection and
 unavailable/capacity outcomes. No driver dependency, SQL or session policy changes.
+
+StatementObjects adds an optional report of reviewed statement references and
+exact named-object evidence. See [statement objects](statement-objects.md).
