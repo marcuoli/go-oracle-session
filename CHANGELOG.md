@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Report reviewed SQL tables and views and mark a uniquely named Oracle object error (#52).
+
 ## v0.15.0
 
 - Add lazy, complete rowset JSON envelopes with exact total budgets, ordered custom metadata, optional validation/row caps and typed failure stages; preserve existing APIs and cursor ownership (#50).
