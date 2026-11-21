@@ -37,7 +37,9 @@ func NewConnector(dsn string, options Options) (*Connector, error) {
 // selected by the DSN. A nil config uses the same TLS policy as NewConnector.
 // The connector takes a shallow snapshot and clones it for each physical
 // connection. Keep referenced trust material and callbacks safe for concurrent
-// use. The Oracle Net driver uses the addressed host as the TLS server name.
+// use. The supplied config takes precedence over DSN SSL VERIFY and the
+// driver's wallet-derived TLS settings. The Oracle Net driver uses the
+// addressed host as the TLS server name.
 func NewConnectorWithTLSConfig(dsn string, options Options, config *tls.Config) (*Connector, error) {
 	return newConnector(dsn, options, config.Clone())
 }

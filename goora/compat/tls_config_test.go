@@ -8,8 +8,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"database/sql/driver"
+	"errors"
 	"math/big"
 	"net"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -27,7 +29,17 @@ func TestConnectorUsesCustomTLSConfig(t *testing.T) {
 			defer listener.Close()
 
 			dsn := "oracle://fixture:synthetic@" + listener.Addr().String() + "/fixture?SSL=enable"
-			config := &tls.Config{RootCAs: roots, MinVersion: tls.VersionTLS12, ServerName: "caller.invalid"}
+			var verified atomic.Int32
+			config := &tls.Config{
+				RootCAs: roots, MinVersion: tls.VersionTLS12, ServerName: "caller.invalid",
+				VerifyConnection: func(state tls.ConnectionState) error {
+					if len(state.VerifiedChains) == 0 {
+						return errors.New("TLS certificate verification did not run")
+					}
+					verified.Add(1)
+					return nil
+				},
+			}
 			connector, err := NewConnectorWithTLSConfig(dsn, Options{Mode: mode}, config)
 			if err != nil {
 				t.Fatal(err)
@@ -88,6 +100,9 @@ func TestConnectorUsesCustomTLSConfig(t *testing.T) {
 				case <-ctx.Done():
 					t.Fatal("Oracle connector did not return after TLS peer closed")
 				}
+			}
+			if verified.Load() != int32(cap(peer)) {
+				t.Fatalf("verified %d TLS handshakes, want %d", verified.Load(), cap(peer))
 			}
 			if config.ServerName != "caller.invalid" {
 				t.Fatal("native driver mutated the caller's TLS configuration")
