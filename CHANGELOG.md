@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add lazy, complete rowset JSON envelopes with exact total budgets, ordered custom metadata, optional validation/row caps and typed failure stages; preserve existing APIs and cursor ownership (#50).
+
 ## v0.14.0
 
 - Add opt-in module-owned pure-Go v2/v3 compatibility with bounded decoder, exact bind/NUMBER/CLOB adapters and complete retained-source/license provenance (#46).

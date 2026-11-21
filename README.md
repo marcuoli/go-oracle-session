@@ -299,3 +299,25 @@ After discovery, normal automatic skill selection applies; it can also be invoke
 as $go-oracle-session. Importing or updating the Go module does not register,
 install or load a Codex skill. This repository is the canonical skill source;
 applications can link to it instead of maintaining copies of the full guide.
+
+## Complete rowset JSON envelopes
+
+The additive `rowset.QueryEnvelopeJSON(ctx, open, schema, limits, options)`
+reserves the exact enclosing JSON overhead before calling a lazy cursor opener.
+Use `rowset.OpenQuery(queryer, statement, args...)` for a borrowed native handle,
+or supply a `rowset.CursorOpener` returning an existing owned Stream.
+Only `rowset.Read` consumes/finalizes the cursor; no connection, SQL, retry or
+cancellation policy moves into the envelope operation.
+
+`EnvelopeOptions.Provenance` supplies default metadata. An optional ordered
+`Header` object can add fields while leaving the reserved final `data` member
+to rowset. Metadata is encoded once, before opening. `Validate` inspects the
+completed Table after finalization; `MaxRows` can impose a stricter cap.
+`Limits.MaxBytes` counts the entire final envelope. Exact integers, NULLs,
+native column casing, row order and duplicates retain the existing contract.
+
+Every error returns nil JSON. `EnvelopeError.Stage` distinguishes limits,
+header, budget, query, consume, validate and encode for caller-specific error
+wrapping; `Unwrap` retains causes. Early input/opener/validation errors retain
+their precedence over a competing cancellation. Existing `ReadJSON` and
+`QueryJSON` APIs and behavior remain available unchanged.

@@ -33,6 +33,10 @@ type Cursor interface {
 	Close() error
 }
 
+func nilCursor(rows Cursor) bool {
+	return rows == nil || (reflect.ValueOf(rows).Kind() == reflect.Pointer && reflect.ValueOf(rows).IsNil())
+}
+
 // Kind is the logical scalar contract, not a replacement for ColumnTypes.
 type Kind string
 
@@ -138,7 +142,7 @@ func Query(ctx context.Context, queryer Queryer, statement string, args ...any) 
 // Limits count exact standard-JSON encoded bytes as rows arrive. No driver,
 // hidden Close error recovery or concurrent cursor engine is introduced here.
 func Read(ctx context.Context, rows Cursor, schema []Column, limits Limits) (table Table, returnedErr error) {
-	if rows == nil || (reflect.ValueOf(rows).Kind() == reflect.Pointer && reflect.ValueOf(rows).IsNil()) {
+	if nilCursor(rows) {
 		return Table{}, ErrInvalidRequest
 	}
 	operation := "read"
