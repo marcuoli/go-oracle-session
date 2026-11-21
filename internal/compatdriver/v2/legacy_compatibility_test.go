@@ -152,3 +152,21 @@ func TestLegacyProtocolVersionBoundary(t *testing.T) {
 		}
 	}
 }
+
+func TestSupportsProtocolPing(t *testing.T) {
+	for _, test := range []struct {
+		connection *Connection
+		want       bool
+	}{
+		{nil, false},
+		{&Connection{}, false},
+		{&Connection{dBVersion: &DBVersion{Number: 9208}}, false},
+		{&Connection{dBVersion: &DBVersion{Number: 10101}}, false},
+		{&Connection{dBVersion: &DBVersion{Number: 10102}}, true},
+		{&Connection{dBVersion: &DBVersion{Number: 19000}}, true},
+	} {
+		if got := test.connection.SupportsProtocolPing(); got != test.want {
+			t.Fatalf("SupportsProtocolPing = %t, want %t", got, test.want)
+		}
+	}
+}

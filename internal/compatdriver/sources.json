@@ -44,7 +44,8 @@
     "SDK Oracle9.2 large character OUT TTC7 row continuation without reducing caller capacity",
     "SDK Oracle9i PL/SQL scalar VARCHAR2 input through32767 bytes stays VARCHAR2 instead of LONG",
     "SDK Oracle9i packed variable-width CLOB code units normalize after complete read; malformed data has no prefix and retires",
-    "SDK legacy scalar OUT continuation must complete before success; arrays/UDTs retain their prior framing"
+    "SDK legacy scalar OUT continuation must complete before success; arrays/UDTs retain their prior framing",
+    "Report whether retained V2 Ping can use its protocol command without the existing legacy SQL fallback"
   ],
   "inclusion": "All reviewed production files, MIT licenses and retained regressions; nested module metadata and unrelated upstream integration/examples omitted",
   "files": {
@@ -1079,12 +1080,12 @@
       "kind": "retained-production-or-license"
     },
     "v2/legacy_compatibility_test.go": {
-      "sha256": "698f4dd0a328a2b4d6e522a46e693dfb49831130c0bf1105bf3625c050eb2410",
+      "sha256": "accb4eeafa18fc5e6d918a48555833ac5629a9942541e50caa61bd68db1929d9",
       "upstream_sha256": null,
       "kind": "retained-regression-or-compatibility-addition"
     },
     "v2/legacy_compatibility.go": {
-      "sha256": "31b59daf88e76400ccb718fd08dd828207d8fe613f136ef0add55e64a5ac69f8",
+      "sha256": "b81cd4d93b67efc63541bdb9e158ffb184f890d7c49b303126d78837bca3108e",
       "upstream_sha256": null,
       "kind": "retained-regression-or-compatibility-addition"
     },

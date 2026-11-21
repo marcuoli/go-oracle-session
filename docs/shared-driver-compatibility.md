@@ -39,7 +39,7 @@ role options must be supplied explicitly; a migration string such as a username
 followed by an administrative role is not a literal URL username.
 
 ~~~go
-connector, err := compat.NewConnector(dsn, compat.Options{Mode: compat.V2})
+connector, err := compat.NewConnector(dsn, compat.Options{})
 if err != nil {
     return err
 }
@@ -87,6 +87,17 @@ attempt and original backend error before fallback or return. A callback
 failure stops selection, closes any connection, and preserves cleanup errors.
 Do not persist the original error without caller-owned redaction. The observer
 does not change the V2 default, context, or permitted reasons for fallback.
+
+## SQL-free native probe
+
+PingProtocol checks a driver connection exclusively owned by the caller. It
+returns ErrUnsupported when a SQL-free probe is unavailable, including retained
+V2 servers below 10.1.0.2. It does not execute SQL or replace the connection.
+Discard the connection if the dispatched probe fails or is canceled. The
+caller still owns transaction and cancellation-reuse qualification.
+
+See the [consumer connection wiring](../skills/go-oracle-session/references/consumer-connection.md)
+for the common connector, diagnostics and session setup.
 
 ## Values, statements and resource ownership
 

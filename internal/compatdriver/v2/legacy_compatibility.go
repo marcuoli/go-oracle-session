@@ -32,6 +32,12 @@ func (conn *Connection) usesLegacyOperations() bool {
 	return conn.dBVersion != nil && conn.dBVersion.Number < 10102
 }
 
+// SupportsProtocolPing reports whether the existing Ping path can send the
+// native command without using its legacy SELECT fallback.
+func (conn *Connection) SupportsProtocolPing() bool {
+	return conn != nil && conn.dBVersion != nil && !conn.usesLegacyOperations()
+}
+
 func (conn *Connection) validateSupportedServer() error {
 	if conn.dBVersion != nil && conn.dBVersion.MajorVersion < 9 {
 		return fmt.Errorf("Oracle versions earlier than 9 are not supported")

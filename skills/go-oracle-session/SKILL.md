@@ -1,6 +1,6 @@
 ---
 name: go-oracle-session
-description: Review go-oracle-session consumer connection policy, opt-in shared pure-Go v2/v3 compatibility and go-ora migrations. Use for Oracle admission failures, full-login policy, short ACCEPT parsing and exact driver/cancellation qualification; not general SQL tuning.
+description: Implement and review pure-Go Oracle consumer connections with go-oracle-session. Use for shared driver selection, go-ora migrations, connector and TLS wiring, admission diagnostics, cancellation ownership, and exact driver/server qualification.
 ---
 
 # Oracle connection compatibility
@@ -12,6 +12,8 @@ Importing a module does not install this Codex skill.
 
 Read the relevant [compatibility reference](references/go-ora-compatibility.md)
 and the [shared connector contract](https://github.com/marcuoli/go-oracle-session/blob/main/docs/shared-driver-compatibility.md).
+
+For a new connector or consumer migration, use the [consumer connection wiring](references/consumer-connection.md). It names the files, constructors, options and ownership checks for all pure-Go entry points.
 
 ## Identify the failing boundary
 
