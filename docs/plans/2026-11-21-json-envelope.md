@@ -10,6 +10,10 @@
 
 **Spec:** json-envelope-spec.md
 
+Implementation is frozen after the independent review and its verified fixes.
+Live validation/publication/cleanup status belongs to source issue #50 and its
+external delivery receipt; preparation checkboxes are not release proof.
+
 ## Global Constraints
 
 - Preserve existing ReadJSON/QueryJSON APIs, exact values/NULL/order/duplicates, caller context and typed error chains.
@@ -40,7 +44,7 @@
 **Files:** CHANGELOG.md, README.md, docs/code-management.md only if a delivery rule needs clarification; private validation/coordination/cleanup receipts on V:.
 
 - [ ] Document exported contracts and usage; run configured full validation/builds/scans with Go1.27.4.
-- [ ] Obtain one independent whole-branch review; resolve important findings with regression coverage.
+- [x] Obtain one independent whole-branch review; resolve important findings with regression coverage.
 - [ ] Record the exact SDK production added/deleted lines and eligible/final commits; coordinate consumer evidence and the minimum compatible release.
 - [ ] Complete normal reviewed source PR/CI, public parity, canonical synchronization and immutable module publication; verify an official-module external consumer without local replace.
 - [ ] After consumer detachment, reconcile and remove exact task source/admin/scratch through Git, preserve required evidence, verify protected state and close/reread the issue.

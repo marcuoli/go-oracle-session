@@ -131,6 +131,7 @@ func TestQueryEnvelopeJSONInputPrecedence(t *testing.T) {
 	}{
 		{"limits", rowset.Limits{MaxRows: -1}, rowset.EnvelopeOptions{Header: make(chan int)}, "limits", rowset.ErrInvalidRequest, 0},
 		{"source-cap", rowset.Limits{}, rowset.EnvelopeOptions{MaxRows: -1}, "limits", rowset.ErrInvalidRequest, 0},
+		{"header", rowset.Limits{}, rowset.EnvelopeOptions{Header: map[string]any{"data": nil}}, "header", rowset.ErrInvalidRequest, 0},
 		{"budget", rowset.Limits{MaxBytes: 1}, rowset.EnvelopeOptions{}, "budget", rowset.ErrCapacity, 0},
 		{"lazy-admission", rowset.Limits{}, rowset.EnvelopeOptions{}, "query", admission, 1},
 	} {
@@ -433,5 +434,32 @@ func TestQueryEnvelopeJSONPreservesReadJSONPostReadEncodeError(t *testing.T) {
 	native, ok := errors.AsType[*rowset.Error](err)
 	if !ok || native.Operation != "encode" {
 		t.Fatalf("existing ReadJSON typed encode error lost: %v", err)
+	}
+}
+
+func TestOpenQueryFailureReturnsNilCursor(t *testing.T) {
+	queryErr := errors.New("private-query")
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	db, state := testsql.New(t, testsql.Step{QueryErr: queryErr})
+	for _, tc := range []struct {
+		name string
+		open rowset.CursorOpener
+		ctx  context.Context
+		want error
+	}{
+		{"nil-handle", rowset.OpenQuery(nil, "fixture"), t.Context(), rowset.ErrInvalidRequest},
+		{"query", rowset.OpenQuery(db, "fixture"), t.Context(), queryErr},
+		{"canceled", rowset.OpenQuery(db, "fixture"), ctx, context.Canceled},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cursor, err := tc.open(tc.ctx)
+			if cursor != nil || !errors.Is(err, tc.want) {
+				t.Fatalf("failed opener returned non-nil interface: cursor=%#v err=%v", cursor, err)
+			}
+		})
+	}
+	if len(state.Calls()) != 1 {
+		t.Fatalf("canceled opener queried: %+v", state.Calls())
 	}
 }

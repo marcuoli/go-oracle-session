@@ -18,7 +18,11 @@ type CursorOpener func(context.Context) (Cursor, error)
 func OpenQuery(queryer Queryer, statement string, args ...any) CursorOpener {
 	args = append([]any(nil), args...)
 	return func(ctx context.Context) (Cursor, error) {
-		return Query(ctx, queryer, statement, args...)
+		rows, err := Query(ctx, queryer, statement, args...)
+		if err != nil {
+			return nil, err
+		}
+		return rows, nil
 	}
 }
 
