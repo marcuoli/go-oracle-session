@@ -61,24 +61,24 @@ func (c *Connector) Driver() driver.Driver { return c.owner }
 // the modern backend's clean pre-authentication capability signal and joined
 // transport cleanup. No authentication, transport, panic or SQL error is retried.
 func (c *Connector) Connect(ctx context.Context) (driver.Conn, error) {
-	return c.connect(ctx, nil)
+	return c.connect(ctx, ConnectionObserver{}, nil)
 }
 
-func (c *Connector) connect(ctx context.Context, attempts *[]ConnectionAttempt) (driver.Conn, error) {
+func (c *Connector) connect(ctx context.Context, observer ConnectionObserver, attempts *[]ConnectionAttempt) (driver.Conn, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 	if c.mode == V2 {
-		return finishConnection(connectAttempt(ctx, c.legacy, V2, attempts))
+		return finishConnection(connectAttempt(ctx, c.legacy, V2, observer, attempts))
 	}
-	conn, err := connectAttempt(ctx, c.modern, V3, attempts)
+	conn, err := connectAttempt(ctx, c.modern, V3, observer, attempts)
 	if c.mode != Negotiated || conn != nil || !onlyLegacySignal(err) {
 		return finishConnection(conn, err)
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	return finishConnection(connectAttempt(ctx, c.legacy, V2, attempts))
+	return finishConnection(connectAttempt(ctx, c.legacy, V2, observer, attempts))
 }
 
 func finishConnection(conn driver.Conn, err error) (driver.Conn, error) {
