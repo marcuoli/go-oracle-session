@@ -48,10 +48,25 @@
     "SDK legacy scalar OUT continuation must complete before success; arrays/UDTs retain their prior framing",
     "Report whether retained V2 Ping can use its protocol command without the existing legacy SQL fallback"
   ],
+  "strict_crypto_backport": {
+    "upstream": "62f8a42fe821414cec8fcacb1b877dfef836f798",
+    "scope": "Upgraded native AES and SHA-2 negotiation, IV and key derivation, password key folding and packet marker only",
+    "activation": "Retained V3 alternate after the clean initial V2 crypto-adapter rejection; preserve original V3 and V2 modes"
+  },
   "inclusion": "All reviewed production files, MIT licenses and retained regressions; nested module metadata and unrelated upstream integration/examples omitted",
   "files": {
+    "v3/advanced_nego/strict_crypto.go": {
+      "sha256": "59a763a8bf61b5af05ba45866f0dfb4540a6a1cacf2d0100f918b426efe2c470",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
+    "v3/advanced_nego/strict_crypto_test.go": {
+      "sha256": "534313d625c55382f3e786b0895197bf8f9c757606df202b31cfcd3b2f3e85fe",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
+    },
     "v3/advanced_nego/advanced_nego.go": {
-      "sha256": "dd9025d43c024df36ea3dddd23f6e9370866d936d32fe651816b72c4929bebd5",
+      "sha256": "e2d1f1ce818f149c54307c3e64386f99e46412029d3eab4322efd957b6c71ad5",
       "upstream_sha256": "9f444910d62bf68a8e0dc06d758cc957041ca7d6c1719940a89754f3d067ee3a",
       "kind": "retained-production-or-license"
     },
@@ -76,7 +91,7 @@
       "kind": "retained-regression-or-compatibility-addition"
     },
     "v3/advanced_nego/data_integrity_service.go": {
-      "sha256": "299f55eae8e872cb5bf7c808f4c5d5dfe1c56cc7d038a953a94291de09a5093c",
+      "sha256": "8a6f205d255a47066602164c2f4ed3eeb2520b231cb9715a772dc39da0b8750e",
       "upstream_sha256": "dc5a9d1c4f040b3eedcf97fe5a13f3eb718dfd14770b7e6eadd931cbb4d8df40",
       "kind": "retained-production-or-license"
     },
@@ -86,7 +101,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/advanced_nego/encrypt_service.go": {
-      "sha256": "3032c8d4b9343c3370e188939f9922ec332de15ab5ab7f55e542c0e88d0fdc33",
+      "sha256": "93879351019dd1e02bd4b92df2d4fc89d3c1b6ab3ed9fab3f46dd8bafa74bdc4",
       "upstream_sha256": "6869878582577b971100bbcffd27047729a82d3b0873a1d1244731a5ce2ff717",
       "kind": "retained-production-or-license"
     },
@@ -186,7 +201,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/auth_object.go": {
-      "sha256": "25f23f759f5e91ac057aac95e9601bd4ec1c2275e265caf0165884f3da049cae",
+      "sha256": "56de630a62aea46b967d18212c04e2c02b1cfd10553d026e76aad56ef3a562c6",
       "upstream_sha256": "68caead6a1906dff549e102093617d4f98c0a38b245892af88d4ed07833aeb69",
       "kind": "retained-production-or-license"
     },
@@ -261,7 +276,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/connection.go": {
-      "sha256": "9ed494bdb4ee7660b9abdfde5cf43c6a25f4d9a0c977788abec002e061e520e8",
+      "sha256": "d53b1906e738f0ef971ddf0ad539a49a691139496b49c875c38f2daa4234b3ec",
       "upstream_sha256": "5af4cb323d90197ecd2d7bd890992b27a4c6529fd1825b285b388daf659d4c83",
       "kind": "retained-production-or-license"
     },
@@ -391,7 +406,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/network/data_packet.go": {
-      "sha256": "3eb4574fecf0d235033bf1ac23e7972b9e47aff2fdcc23f36843cc69574638f7",
+      "sha256": "161558f439f2df8e930e8d5fb5483feb7eb7261dc01c069e5cf5b0ef4e8b1bad",
       "upstream_sha256": "ad34cbfb88a9ef186f6b92fab8923b231d9e8ede3eb6760fb8637881876e4786",
       "kind": "retained-production-or-license"
     },
@@ -441,7 +456,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/network/security/general.go": {
-      "sha256": "f2ce558941e953a4ec27fed555e199018ccd7a5bfec51f1ba9b3370e47e4ec10",
+      "sha256": "e0ce636a00156a4447b64984ae72b1601b28b8a8c73f0ed5fe09202715add3ab",
       "upstream_sha256": "f2ce558941e953a4ec27fed555e199018ccd7a5bfec51f1ba9b3370e47e4ec10",
       "kind": "retained-production-or-license"
     },
@@ -461,7 +476,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/network/session_ctx.go": {
-      "sha256": "b995e0368d7e578cbf76220d8bb3a6b581b90f11cd4a83e7281eab9d168e12be",
+      "sha256": "1fee9e222536dd7f6cb02774d17c3aacfaf0aef529206da04f1757d55f44985e",
       "upstream_sha256": "027635d3a69112fd8867b775fc0abce40c36628b1fa0a777d06847144fbd8e2a",
       "kind": "retained-production-or-license"
     },

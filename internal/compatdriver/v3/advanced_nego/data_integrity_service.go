@@ -20,6 +20,7 @@ type dataIntegrityService struct {
 	algoID            int
 	publicKey         []byte
 	sharedKey         []byte
+	modernIV          []byte
 	iV                []byte
 	tracer            trace.Tracer
 }
@@ -138,7 +139,11 @@ func (serv *dataIntegrityService) getServiceDataLength() int {
 
 func (serv *dataIntegrityService) activateAlgorithm() error {
 	serv.comm.session.Context.AdvancedService.SessionKey = serv.sharedKey
-	serv.comm.session.Context.AdvancedService.IV = serv.iV
+	iv := serv.iV
+	if serv.modernIV != nil {
+		iv = serv.modernIV
+	}
+	serv.comm.session.Context.AdvancedService.IV = iv
 	// return errors.New(fmt.Sprintf("advanced negotiation error: data integrity service algorithm: %d still not supported", serv.algoID))
 	var algo security.OracleNetworkDataIntegrity = nil
 	var err error
@@ -150,11 +155,11 @@ func (serv *dataIntegrityService) activateAlgorithm() error {
 	case 3:
 		algo, err = security.NewOracleNetworkHash(crypto.SHA1.New(), serv.sharedKey, serv.iV)
 	case 4:
-		algo, err = security.NewOracleNetworkHash2(crypto.SHA512.New(), serv.sharedKey, serv.iV)
+		algo, err = security.NewOracleNetworkHash2(crypto.SHA512.New(), serv.sharedKey, iv, serv.modernIV != nil)
 	case 5:
-		algo, err = security.NewOracleNetworkHash2(crypto.SHA256.New(), serv.sharedKey, serv.iV)
+		algo, err = security.NewOracleNetworkHash2(crypto.SHA256.New(), serv.sharedKey, iv, serv.modernIV != nil)
 	case 6:
-		algo, err = security.NewOracleNetworkHash2(crypto.SHA384.New(), serv.sharedKey, serv.iV)
+		algo, err = security.NewOracleNetworkHash2(crypto.SHA384.New(), serv.sharedKey, iv, serv.modernIV != nil)
 	default:
 		err = errors.New(fmt.Sprintf("advanced negotiation error: data integrity service algorithm: %d still not supported", serv.algoID))
 	}

@@ -221,9 +221,10 @@ patch certification was inferred.
 ### Strict native network encryption
 
 Set `StrictNetworkEncryption: true` in the private stdin JSON to run the
-network regression instead of the scalar, OUT and CLOB checks. Select bundled
-V3 with `Mode: 1`. Leave both fields omitted for the usual V2 compatibility
-profile. Run each configured fixture with uncached results:
+network regression instead of the scalar, OUT and CLOB checks. Select
+`Automatic` (`Mode: 3`) to test V2's strict rejection followed by one
+retained V3 admission per lease. Explicit V3 (`Mode: 1`) uses the original
+retained exchange. Omit both fields for the usual V2 compatibility profile. Run each configured fixture with uncached results:
 
 ~~~sh
 ORACLE_COMPAT_NATIVE_STDIN=1 go test -count=1 -run '^TestNativeCompatibility$' -v ./goora/compat < "$private_fixture_json"

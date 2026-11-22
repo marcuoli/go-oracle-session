@@ -29,6 +29,7 @@ type OracleNetworkHash struct {
 }
 
 type OracleNetworkHash2 struct {
+	keySize   int
 	Hash      hash.Hash
 	buffer    []byte
 	output    []byte
@@ -58,16 +59,24 @@ func NewOracleNetworkHash(hash hash.Hash, key, iv []byte) (*OracleNetworkHash, e
 	return output, nil
 }
 
-func NewOracleNetworkHash2(hash hash.Hash, key, iv []byte) (*OracleNetworkHash2, error) {
+func NewOracleNetworkHash2(hash hash.Hash, key, iv []byte, modern bool) (*OracleNetworkHash2, error) {
+	keySize := 5
+	if modern {
+		keySize = 15
+	}
+	if len(key) < keySize || len(iv) < aes.BlockSize {
+		return nil, errors.New("invalid native integrity key or IV length")
+	}
 	output := &OracleNetworkHash2{
-		buffer: make([]byte, 32),
-		output: make([]byte, hash.Size()),
-		input:  make([]byte, hash.Size()),
-		Hash:   hash,
+		keySize: keySize,
+		buffer:  make([]byte, 32),
+		output:  make([]byte, hash.Size()),
+		input:   make([]byte, hash.Size()),
+		Hash:    hash,
 	}
 	aesKey := make([]byte, 16)
-	copy(aesKey[:5], key[:5])
-	aesKey[5] = 0xFF
+	copy(aesKey[:keySize], key[:keySize])
+	aesKey[keySize] = 0xFF
 	blk, err := aes.NewCipher(aesKey)
 	if err != nil {
 		return nil, err
@@ -90,13 +99,13 @@ func (onh *OracleNetworkHash2) Init() error {
 		return err
 	}
 	onh.keyGen = cipher.NewCBCEncrypter(blk, iv)
-	key[5] = 90
+	key[onh.keySize] = 90
 	blk, err = aes.NewCipher(key)
 	if err != nil {
 		return err
 	}
 	onh.encryptor = cipher.NewCBCEncrypter(blk, iv)
-	key[5] = 180
+	key[onh.keySize] = 180
 	blk, err = aes.NewCipher(key)
 	if err != nil {
 		return err

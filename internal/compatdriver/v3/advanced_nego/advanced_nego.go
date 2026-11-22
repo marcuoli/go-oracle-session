@@ -24,11 +24,13 @@ func SetKerberosAuth(input KerberosAuthInterface) {
 }
 
 type AdvNego struct {
-	comm        *AdvancedNegoComm
-	clientInfo  *configurations.ClientInfo
-	negoInfo    *configurations.AdvNegoServiceInfo
-	tracer      trace.Tracer
-	serviceList []AdvNegoService
+	strictCrypto bool
+	peerVersion  int
+	comm         *AdvancedNegoComm
+	clientInfo   *configurations.ClientInfo
+	negoInfo     *configurations.AdvNegoServiceInfo
+	tracer       trace.Tracer
+	serviceList  []AdvNegoService
 }
 
 func NewAdvNego(session *network.Session, tracer trace.Tracer, config *configurations.ConnectionConfig) (*AdvNego, error) {
@@ -87,7 +89,11 @@ func (nego *AdvNego) readHeader() ([]int, error) {
 func (nego *AdvNego) writeHeader(length, servCount int, errFlags uint8) {
 	nego.comm.session.PutInt(uint64(0xDEADBEEF), 4, true, false)
 	nego.comm.session.PutInt(length, 2, true, false)
-	nego.comm.session.PutInt(version, 4, true, false)
+	headerVersion := version
+	if nego.strictCrypto && nego.peerVersion != 0 {
+		headerVersion = nego.peerVersion
+	}
+	nego.comm.session.PutInt(headerVersion, 4, true, false)
 	nego.comm.session.PutInt(servCount, 2, true, false)
 	nego.comm.session.PutBytes(errFlags)
 }
@@ -121,6 +127,9 @@ func (nego *AdvNego) Read() error {
 	if err != nil {
 		return err
 	}
+	if nego.strictCrypto {
+		nego.peerVersion = header[1]
+	}
 	for i := 0; i < header[2]; i++ {
 		serviceHeader, err := nego.readServiceHeader()
 		if err != nil {
@@ -128,6 +137,9 @@ func (nego *AdvNego) Read() error {
 		}
 		if serviceHeader[2] != 0 {
 			return fmt.Errorf("advanced negotiation error: during receive service header: network excpetion: ora-%d", serviceHeader[2])
+		}
+		if nego.strictCrypto && (serviceHeader[0] <= 0 || serviceHeader[0] >= len(nego.serviceList)) {
+			return ErrStrictCryptoUnavailable
 		}
 		err = nego.serviceList[serviceHeader[0]].readServiceData(serviceHeader[1])
 		if err != nil {
@@ -139,6 +151,11 @@ func (nego *AdvNego) Read() error {
 		}
 	}
 	service := nego.AuthenticationService()
+	if nego.strictCrypto {
+		if err := nego.prepareModernCrypto(service); err != nil {
+			return err
+		}
+	}
 	authKerberos, authNTS := service == "KERBEROS5", service == "NTS"
 	size := 0
 	numService := 0

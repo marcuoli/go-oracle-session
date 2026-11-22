@@ -94,6 +94,7 @@ type NLSData struct {
 	Charset         string
 }
 type Connection struct {
+	strictCryptoFallback  bool
 	connectionDiagnostics *connectionDiagnosticState
 	detectLegacyServer    bool
 	loginWarningHandler   func(string) bool
@@ -153,14 +154,15 @@ type ConnectionProperties struct {
 	dbServerTimeZoneExplicit *time.Location
 }
 type OracleConnector struct {
-	detectLegacyServer  bool
-	loginWarningHandler func(string) bool
-	drv                 *OracleDriver
-	connectString       string
-	dialer              configurations.DialerContext
-	tlsConfig           *tls.Config
-	kerberos            configurations.KerberosAuthInterface
-	wallet              *configurations.Wallet
+	strictCryptoFallback bool
+	detectLegacyServer   bool
+	loginWarningHandler  func(string) bool
+	drv                  *OracleDriver
+	connectString        string
+	dialer               configurations.DialerContext
+	tlsConfig            *tls.Config
+	kerberos             configurations.KerberosAuthInterface
+	wallet               *configurations.Wallet
 }
 
 func NewConnector(connString string) driver.Connector {
@@ -186,6 +188,7 @@ func (connector *OracleConnector) connect(ctx context.Context, diagnostics *conn
 	defer func() { conn.connectionDiagnostics = nil }()
 	conn.loginWarningHandler = connector.loginWarningHandler
 	conn.detectLegacyServer = connector.detectLegacyServer
+	conn.strictCryptoFallback = connector.strictCryptoFallback
 	conn.buildParameterCoderMap(connector.drv)
 	//conn.cusTyp = connector.drv.cusTyp
 	//"TCP negotiation for character set updates fails when multiple database connections
@@ -231,6 +234,12 @@ func (connector *OracleConnector) connect(ctx context.Context, diagnostics *conn
 		return nil, err
 	}
 	return conn, nil
+}
+
+// WithStrictCryptoFallback selects the upgraded native crypto exchange for
+// the SDK alternate after a confirmed V2 crypto rejection.
+func (connector *OracleConnector) WithStrictCryptoFallback() {
+	connector.strictCryptoFallback = true
 }
 
 func (connector *OracleConnector) Driver() driver.Driver {
@@ -647,6 +656,7 @@ func (conn *Connection) OpenWithContext(ctx context.Context) error {
 		d.TNSVersion, d.TNSVersionKnown = session.Context.Version, true
 	}
 	var authService string
+	var ano *advanced_nego.AdvNego
 	// advanced negotiation
 	if session.Context.ACFL0&1 != 0 && session.Context.ACFL0&4 == 0 && session.Context.ACFL1&8 == 0 {
 		if d := conn.connectionDiagnostics; d != nil {
@@ -654,9 +664,12 @@ func (conn *Connection) OpenWithContext(ctx context.Context) error {
 		}
 		conn.connectionDiagnostics.phase("native_negotiation_create")
 		tracer.Print("Advance Negotiation")
-		ano, err := advanced_nego.NewAdvNego(session, conn.tracer, conn.connOption)
+		ano, err = advanced_nego.NewAdvNego(session, conn.tracer, conn.connOption)
 		if err != nil {
 			return err
+		}
+		if conn.strictCryptoFallback {
+			ano.RequireModernCrypto()
 		}
 		conn.connectionDiagnostics.phase("native_negotiation_write")
 		err = ano.Write()
@@ -678,6 +691,9 @@ func (conn *Connection) OpenWithContext(ctx context.Context) error {
 		if d := conn.connectionDiagnostics; d != nil {
 			d.NativeNegotiationCompleted = true
 		}
+	}
+	if conn.strictCryptoFallback && ano == nil {
+		return advanced_nego.ErrStrictCryptoUnavailable
 	}
 	// if fast login enabled this means new features are available
 	if conn.session.Context.FastAuthEnabled {
@@ -745,7 +761,13 @@ func (conn *Connection) OpenWithContext(ctx context.Context) error {
 
 	}
 
-	err = conn.doAuth()
+	var foldingKey []byte
+	var captureKey *[]byte
+	if conn.strictCryptoFallback {
+		captureKey = &foldingKey
+		defer func() { clear(foldingKey) }()
+	}
+	err = conn.doAuth(captureKey)
 	if errors.Is(err, network.ErrConnReset) {
 		if conn.isFastLoginEnabled() {
 			err = conn.tcpNego.readMessage()
@@ -775,6 +797,13 @@ func (conn *Connection) OpenWithContext(ctx context.Context) error {
 	if d := conn.connectionDiagnostics; d != nil {
 		d.AuthenticationCompleted = true
 		d.TTCVersion, d.TTCVersionKnown = session.TTCVersion, true
+	}
+	if conn.strictCryptoFallback {
+		conn.connectionDiagnostics.phase("native_crypto_fold")
+		if err := ano.FoldKey(foldingKey); err != nil {
+			return err
+		}
+		clear(foldingKey)
 	}
 	conn.State = Opened
 	conn.session.ServerFlags = conn.tcpNego.ServerFlags
@@ -1004,7 +1033,7 @@ func (conn *Connection) isFastLoginEnabled() bool {
 }
 
 // doAuth a login step that occur during open connection
-func (conn *Connection) doAuth() error {
+func (conn *Connection) doAuth(foldingKey *[]byte) error {
 	if d := conn.connectionDiagnostics; d != nil && conn.dataNego != nil && !conn.isFastLoginEnabled() {
 		d.TTCVersion, d.TTCVersionKnown = conn.session.TTCVersion, true
 	}
@@ -1054,7 +1083,7 @@ func (conn *Connection) doAuth() error {
 				return err
 			}
 		}
-		err = authObject.read()
+		err = authObject.read(foldingKey)
 		if err != nil {
 			return err
 		}

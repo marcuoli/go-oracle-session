@@ -53,7 +53,7 @@ type AuthObject struct {
 //
 //}
 
-func (obj *AuthObject) read() error {
+func (obj *AuthObject) read(foldingKey *[]byte) error {
 	loop := true
 	session := obj.conn.session
 	for loop {
@@ -215,6 +215,9 @@ func (obj *AuthObject) read() error {
 	newKey, err := obj.generatePasswordEncKey()
 	if err != nil {
 		return err
+	}
+	if foldingKey != nil {
+		*foldingKey = newKey
 	}
 	if obj.VerifierType == 18453 {
 		padding = false

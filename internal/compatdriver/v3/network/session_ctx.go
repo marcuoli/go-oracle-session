@@ -37,6 +37,7 @@ type SessionContext struct {
 	AdvancedService     struct {
 		CryptAlgo  security.OracleNetworkEncryption
 		HashAlgo   security.OracleNetworkDataIntegrity
+		KeyFolded  bool
 		SessionKey []byte
 		IV         []byte
 	}

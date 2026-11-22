@@ -136,10 +136,17 @@ func TestNativeCompatibility(t *testing.T) {
 		}
 		t.Fatalf("%s failed: type=%T ORA=%d causes=%+v", phase, err, code, messages)
 	}
+	wantMode, wantDials := cfg.Mode, int32(4)
+	if cfg.Mode == compat.Automatic {
+		wantMode = compat.V2
+		if cfg.StrictNetworkEncryption {
+			wantMode, wantDials = compat.V3, 8
+		}
+	}
 	var observations []identity
 	checkIdentity := func(value identity) bool {
 		expected := cfg.Expected
-		return (expected.User == "" || value.User == expected.User) && (expected.Database == "" || value.Database == expected.Database) && (expected.Container == "" || value.Container == expected.Container) && (expected.Version == "" || value.Version == expected.Version) && (expected.VersionFull == "" || value.VersionFull == expected.VersionFull) && (expected.IsDBA == "" || value.IsDBA == expected.IsDBA) && value.Selected == cfg.Mode.String()
+		return (expected.User == "" || value.User == expected.User) && (expected.Database == "" || value.Database == expected.Database) && (expected.Container == "" || value.Container == expected.Container) && (expected.Version == "" || value.Version == expected.Version) && (expected.VersionFull == "" || value.VersionFull == expected.VersionFull) && (expected.IsDBA == "" || value.IsDBA == expected.IsDBA) && value.Selected == wantMode.String()
 	}
 	proof := map[string]any{
 		"checkedUTC": time.Now().UTC(), "sourceRevision": cfg.SourceRevision,
@@ -225,8 +232,8 @@ func TestNativeCompatibility(t *testing.T) {
 			t.Fatal("Oracle did not report both AES256 encryption and SHA256 checksumming; observed proof retained")
 		}
 	}
-	if dialer.calls.Load() != 4 {
-		t.Fatal("unexpected physical admission count")
+	if got := dialer.calls.Load(); got != wantDials {
+		t.Fatalf("physical dials = %d, want %d", got, wantDials)
 	}
 	if cfg.StrictNetworkEncryption {
 		proof["oracleConfirmedAES256AndSHA256Sessions"] = len(observations)

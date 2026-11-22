@@ -131,6 +131,10 @@ func newConfiguredModernConnector(dsn string, options Options, tlsConfig *tls.Co
 		if options.Mode == Negotiated || options.Mode == Automatic {
 			connector.WithLegacyServerDetection()
 		}
+		if options.Mode == Automatic {
+			// Automatic can reach V3 only after V2's clean initial crypto rejection.
+			connector.WithStrictCryptoFallback()
+		}
 		if options.Dialer != nil {
 			connector.Dialer(options.Dialer)
 		}

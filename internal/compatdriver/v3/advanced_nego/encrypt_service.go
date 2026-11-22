@@ -11,6 +11,7 @@ import (
 type encryptService struct {
 	defaultService
 	algoID            int
+	modernIV          []byte
 	versionReceived   bool
 	algorithmReceived bool
 }
@@ -94,11 +95,11 @@ func (serv *encryptService) activateAlgorithm() error {
 	case 10:
 		algo, err = security.NewOracleNetworkRC4Cryptor(key, iv, 128)
 	case 15:
-		algo, err = security.NewOracleNetworkCBCEncrypter(key[:16], nil)
+		algo, err = security.NewOracleNetworkCBCEncrypter(key[:16], serv.modernIV)
 	case 16:
-		algo, err = security.NewOracleNetworkCBCEncrypter(key[:24], nil)
+		algo, err = security.NewOracleNetworkCBCEncrypter(key[:24], serv.modernIV)
 	case 17:
-		algo, err = security.NewOracleNetworkCBCEncrypter(key[:32], nil)
+		algo, err = security.NewOracleNetworkCBCEncrypter(key[:32], serv.modernIV)
 	default:
 		err = errors.New(fmt.Sprintf("advanced negotiation error: encryption service algorithm: %d still not supported", serv.algoID))
 	}
