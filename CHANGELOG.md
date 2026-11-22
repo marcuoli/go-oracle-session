@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Select a qualified finalizer for borrowed Oracle cursor samples on the existing lease (#68).
+
 - Add an opt-in native regression for Oracle-confirmed AES256 encryption and SHA256 checksumming through the shared connector (#25).
 
 - Sample and close native Oracle rows on a caller-owned connection and require qualified proof before reuse (#64).

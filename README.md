@@ -183,6 +183,24 @@ when enabled. An ordinary query rejection follows database/sql handling.
 This API handles intentional samples outside transactions. Consume complete
 datasets through EOF using the normal native query or rowset interfaces.
 
+### Selecting a borrowed-sample finalizer
+
+`compat.QualifyBorrowedSample` checks the supplied native lease before the
+caller dispatches its statement. It requires exclusive, nontransaction
+ownership and checks read-only server identity on that connection. The initial
+profiles are TCP Oracle 26ai 23.26.1.0.0, PRIMARY READ WRITE CDB root, with an
+ordinary SYSTEM login. The checked providers are Windows amd64 retained V2
+and Linux amd64 godror v0.51.0 with standalone OCI client 23.26.1.0.0.
+OCI callers supply standalone and client-version facts from the selected
+connector and raw driver.
+
+An unsupported decision permits the caller to use its existing route before
+dispatch. Treat any other error as a failure of admission or the identity
+check. A successful decision binds the finalizer to the original native
+connection. Keep the same lease and cancellation ownership for
+`session.SampleBorrowed`. Transaction usability depends on the qualified
+profile and the caller's nontransaction assurance.
+
 ## Execution and transactions
 
 `Session.Exec` and `Pool.Exec` accept `Statement` and `ExecOptions` and return
