@@ -68,3 +68,37 @@ func TestStrictCryptoPreparationAndFolding(t *testing.T) {
 		})
 	}
 }
+
+func TestStrictCryptoHonorsOfferedServices(t *testing.T) {
+	for _, tc := range []struct {
+		name                             string
+		encrypt, integrity, wantE, wantI int
+		allowed                          bool
+	}{
+		{"required encryption missing", 3, 0, 0, 5, false},
+		{"required integrity missing", 0, 3, 17, 0, false},
+		{"rejected encryption negotiated", 1, 3, 17, 5, false},
+		{"rejected integrity negotiated", 3, 1, 17, 5, false},
+		{"encryption only", 3, 1, 17, 0, true},
+		{"integrity only", 1, 3, 0, 5, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &configurations.ConnectionConfig{}
+			cfg.EncServiceLevel, cfg.IntServiceLevel = tc.encrypt, tc.integrity
+			session := network.NewSessionWithInputBufferForDebug(nil)
+			nego, err := NewAdvNego(session, trace.NilTracer(), cfg)
+			if err != nil {
+				t.Fatal(err)
+			}
+			encryption := nego.serviceList[2].(*encryptService)
+			encryption.algoID, encryption.algorithmReceived = tc.wantE, true
+			integrity := nego.serviceList[3].(*dataIntegrityService)
+			integrity.algoID, integrity.algorithmReceived = tc.wantI, true
+			integrity.sharedKey = make([]byte, 64)
+			err = nego.prepareModernCrypto("")
+			if tc.allowed && err != nil || !tc.allowed && !errors.Is(err, ErrStrictCryptoUnavailable) {
+				t.Fatalf("strict selection error=%v, allowed=%t", err, tc.allowed)
+			}
+		})
+	}
+}

@@ -26,13 +26,11 @@ func (nego *AdvNego) prepareModernCrypto(authService string) error {
 	if authService != "" || !encryption.algorithmReceived || !integrity.algorithmReceived {
 		return ErrStrictCryptoUnavailable
 	}
-	encrypted := encryption.algoID != 0
-	checksummed := integrity.algoID != 0
-	// After a weak-adapter rejection, do not send credentials through a
-	// weaker service. The upgraded path supports AES and the SHA-2 checksums.
-	if (!encrypted && !checksummed) ||
-		(encrypted && (encryption.algoID < 15 || encryption.algoID > 17 || !upgradedService(encryption.version))) ||
-		(checksummed && (integrity.algoID < 4 || integrity.algoID > 6 || !upgradedService(integrity.version))) ||
+	// Honor the original service offers, including REQUIRED and REJECTED.
+	// Only AES and SHA-2 are supported by this upgraded exchange.
+	if (encryption.algoID == 0 && integrity.algoID == 0) ||
+		!encryption.acceptsUpgradedChoice(encryption.algoID, 15, 17) ||
+		!integrity.acceptsUpgradedChoice(integrity.algoID, 4, 6) ||
 		len(integrity.sharedKey) < 4*aes.BlockSize {
 		return ErrStrictCryptoUnavailable
 	}
@@ -42,10 +40,22 @@ func (nego *AdvNego) prepareModernCrypto(authService string) error {
 	// on this route.
 	integrity.modernIV = make([]byte, 2*aes.BlockSize)
 	copy(integrity.modernIV, integrity.sharedKey[2*aes.BlockSize:])
-	if encrypted {
+	if encryption.algoID != 0 {
 		encryption.modernIV = integrity.modernIV[:aes.BlockSize]
 	}
 	return nil
+}
+
+func (serv *defaultService) acceptsUpgradedChoice(id, minID, maxID int) bool {
+	if id != 0 && (id < minID || id > maxID || !upgradedService(serv.version)) {
+		return false
+	}
+	for _, index := range serv.selectedIndices {
+		if serv.availableServiceIDs[index] == id {
+			return true
+		}
+	}
+	return false
 }
 
 // FoldKey rekeys the negotiated services after successful password

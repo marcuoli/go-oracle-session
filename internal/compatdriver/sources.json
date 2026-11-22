@@ -56,12 +56,12 @@
   "inclusion": "All reviewed production files, MIT licenses and retained regressions; nested module metadata and unrelated upstream integration/examples omitted",
   "files": {
     "v3/advanced_nego/strict_crypto.go": {
-      "sha256": "59a763a8bf61b5af05ba45866f0dfb4540a6a1cacf2d0100f918b426efe2c470",
+      "sha256": "e7f2fab33280fdbad347ef340d2af9192d7673c5247805fecf8362f7df06063a",
       "upstream_sha256": null,
       "kind": "retained-regression-or-compatibility-addition"
     },
     "v3/advanced_nego/strict_crypto_test.go": {
-      "sha256": "534313d625c55382f3e786b0895197bf8f9c757606df202b31cfcd3b2f3e85fe",
+      "sha256": "1acfd544217c6e1d904df60e174b05340a66ea236e1f5feb3881bb2ccbb7c5f4",
       "upstream_sha256": null,
       "kind": "retained-regression-or-compatibility-addition"
     },
