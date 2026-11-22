@@ -196,7 +196,7 @@ func TestNativeReleaseMatrixEntry(t *testing.T) {
 		}
 		return rows.Scan(&first)
 	}
-	err = session.SampleBorrowed(ctx, lease, statement, read, func(ctx context.Context, raw any) (session.SampleHealth, error) {
+	sampleErr := session.SampleBorrowed(ctx, lease, statement, read, func(ctx context.Context, raw any) (session.SampleHealth, error) {
 		if raw != physical {
 			return session.SampleHealth{}, errors.New("sample finalizer changed physical connection")
 		}
@@ -208,10 +208,10 @@ func TestNativeReleaseMatrixEntry(t *testing.T) {
 	if first != 1 {
 		t.Fatal("unexpected partial-sample value")
 	}
-	if cfg.Target == "9.2.0.8" && errors.Is(err, compat.ErrUnsupported) {
+	if cfg.Target == "9.2.0.8" && errors.Is(sampleErr, compat.ErrUnsupported) {
 		proof["sample"] = "unsupported native ping; lease retired"
 	} else {
-		check("borrowed sample", err)
+		check("borrowed sample", sampleErr)
 		check("same lease after sample", lease.Raw(func(raw any) error {
 			if raw != physical {
 				return errors.New("same lease proof failed")
@@ -224,7 +224,7 @@ func TestNativeReleaseMatrixEntry(t *testing.T) {
 		proof["sample"] = "same lease and rollback"
 		first = 0
 		unqualifiedCalls := 0
-		err = session.SampleBorrowed(ctx, lease, statement, read, func(context.Context, any) (session.SampleHealth, error) {
+		sampleErr = session.SampleBorrowed(ctx, lease, statement, read, func(context.Context, any) (session.SampleHealth, error) {
 			unqualifiedCalls++
 			return session.SampleHealth{}, nil
 		})
@@ -232,7 +232,7 @@ func TestNativeReleaseMatrixEntry(t *testing.T) {
 			t.Fatal("missing-proof finalizer did not run after reading and closing the cursor")
 		}
 	}
-	if !errors.Is(err, session.ErrUnavailable) ||
+	if !errors.Is(sampleErr, session.ErrUnavailable) ||
 		!errors.Is(lease.Raw(func(any) error { return nil }), sql.ErrConnDone) {
 		t.Fatal("unproven native connection returned to the caller")
 	}
@@ -240,6 +240,12 @@ func TestNativeReleaseMatrixEntry(t *testing.T) {
 	replacement, err := pool.Conn(ctx)
 	check("fresh admission after retirement", err)
 	defer replacement.Close()
+	check("fresh physical connection", replacement.Raw(func(raw any) error {
+		if raw == physical {
+			return errors.New("retired connection reused by the pool")
+		}
+		return nil
+	}))
 	var one int
 	check("fresh query after retirement", replacement.QueryRowContext(ctx, "SELECT 1 FROM DUAL").Scan(&one))
 	if one != 1 {
