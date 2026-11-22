@@ -4,6 +4,8 @@
 
 - Add opt-in automatic selection of V3 when V2 receives a confirmed pre-authentication crypto-adapter rejection, and preserve the V3-first legacy capability route (#71).
 
+- Preserve valid scalar VARCHAR2 inputs in prepared PL/SQL on pre-12.2 Oracle servers so temporary CLOB OUT can complete (#25).
+
 - Require a native test on each of nine Oracle release targets before module publication (#67).
 
 - Select a qualified finalizer for borrowed Oracle cursor samples on the existing lease (#68).

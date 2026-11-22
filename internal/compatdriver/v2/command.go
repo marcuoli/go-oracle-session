@@ -1923,20 +1923,21 @@ func (stmt *Stmt) NewParam(name string, val driver.Value, size int, direction Pa
 			}
 		}
 	}
-	err := param.encodeValue(size, stmt.connection)
-	// SQL VARCHAR2 has a 4000-byte limit on 9.2, but a PL/SQL scalar can hold
-	// 32767 bytes. Keep a valid PL/SQL input as VARCHAR2: the legacy LONG bind
-	// protocol otherwise produces ORA-03120. Preserve bytes and other profiles.
-	if err == nil && stmt.stmtType == PLSQL && direction == Input &&
-		stmt.connection.dBVersion != nil && stmt.connection.dBVersion.MajorVersion == 9 &&
+	if err := param.encodeValue(size, stmt.connection); err != nil {
+		return nil, err
+	}
+	// Before 12.2, LONG framing can return ORA-03120 for valid scalar PL/SQL
+	// inputs that exceed the negotiated SQL VARCHAR2 capacity (issue #25).
+	// PL/SQL VARCHAR2 supports up to 32767 encoded bytes.
+	version := stmt.connection.dBVersion
+	if stmt.stmtType == PLSQL && direction == Input &&
+		version != nil && version.MajorVersion >= 9 &&
+		(version.MajorVersion < 12 || (version.MajorVersion == 12 && version.MinorVersion < 2)) &&
 		param.MaxNoOfArrayElements == 0 && param.parent == nil && param.cusType == nil &&
 		param.DataType == LongVarChar && len(param.BValue) <= 32767 {
 		param.DataType = NCHAR
 	}
-	if err != nil {
-		return nil, err
-	}
-	return param, err
+	return param, nil
 }
 
 func (stmt *Stmt) setParam(pos int, par ParameterInfo) {
