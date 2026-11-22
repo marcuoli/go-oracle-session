@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Require a native test on each of nine Oracle release targets before module publication (#67).
+
 - Select a qualified finalizer for borrowed Oracle cursor samples on the existing lease (#68).
 
 - Add an opt-in native regression for Oracle-confirmed AES256 encryption and SHA256 checksumming through the shared connector (#25).

@@ -87,6 +87,46 @@ retained SDK profile is an exception; cache modification, hidden protocol patche
 and additional copied drivers remain prohibited.
 ## Qualification requirements
 
+### Required release matrix
+
+Before publishing each SDK module release, run the native default V2 path
+against all nine targets below. Use the final candidate and record its exact
+commit with the database's observed numeric version.
+
+| Required target | Version check |
+| --- | --- |
+| Oracle 9iR2 | 9.2.0.8 |
+| Oracle 10gR2 | 10.2.0.5 |
+| Oracle 11gR2 | 11.2.0.4 |
+| Oracle 12cR1 | 12.1.0.2 |
+| Oracle 12cR2 | 12.2.0.1 |
+| Oracle 18c | Observed 18c patch |
+| Oracle 19c | Observed 19c patch |
+| Oracle 23ai | Observed numeric 23ai release |
+| Oracle AI Database 26ai | Observed numeric 26ai release, for example 23.26.1.0.0 |
+
+Build the `./goora/compat` test executable from a clean checkout using the
+release Go compiler, `GOWORK=off`, and `CGO_ENABLED=0`. Use
+`go test -c -buildvcs=true -o <external-probe-path> ./goora/compat`.
+For each target, set `ORACLE_COMPAT_RELEASE_STDIN=1` and run the executable
+with `-test.run=^TestNativeReleaseMatrixEntry$ -test.timeout=90s`. Send one
+JSON object over stdin with `DSN`, `Target` (the version check's value, or
+`18`, `19`, `23`, `26ai`), `SourceRevision`, and an external `ProofPath`.
+Keep credentials, private input and proof files outside the source tree.
+Record the fixture, account, database state, connection route, executable
+hash and build metadata separately. The 23ai and 26ai rows require a matching
+numeric version and the product name from `V$VERSION`.
+
+The probe checks the default driver, exact values, partial cursor close and
+continued use on the same lease when qualified. It also verifies retirement
+when settlement is unavailable or unproven, then tests a fresh admission.
+Oracle 9.2 can satisfy this probe through safe retirement when its native
+protocol ping is unavailable. Tests that merely connect, run synthetic
+fixtures or use a different patch do not satisfy this release check. Keep
+publication pending if a required target is missing or the probe fails. Use
+the additional operation-specific checks below when evaluating broader
+compatibility or changing an affected feature.
+
 Cover 9.2, 10.1/10.2, 11.1/11.2, 12.1/12.2, 18c, 19c, 21c, the 23ai/26ai
 release line and subsequent releases. Record exact patches instead of assuming
 a result on one patch applies to every patch or family. Cover applicable

@@ -12,6 +12,8 @@ A bounded independent review precedes integration. Merge through the source forg
 
 ## Releases and public copy
 
+Verify the [nine-target native matrix](oracle-compatibility.md#required-release-matrix) for the exact candidate before creating the immutable module tag.
+
 The configured Gitea origin owns the history. GitHub is a public copy with the same branch and tag identities. Module releases use ordinary immutable tags such as v0.1.0. The copy workflow uses a repository-scoped deploy key, explicit non-forced atomic branch/tag pushes and no deletion. Release pages are published separately. Audit all public content and commit metadata first; private provenance remains outside the repository.
 
 ## Storage and issue closeout
