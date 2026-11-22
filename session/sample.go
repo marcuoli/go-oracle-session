@@ -15,11 +15,10 @@ type SampleHealth struct {
 }
 
 // SampleFinalizer settles and checks the original driver after cursor cleanup.
-// It must join its I/O and retain no driver resource. The default supplies a
-// bounded context. With Cancellation configured, it receives a value-preserving
-// context canceled when its owner commits to transport disposal: that Watch
-// bounds its I/O and cleanup
-// without a second native cancellation controller.
+// It must join its I/O and retain no driver resource. With an SDK-owned session,
+// the default supplies a bounded context. With Cancellation configured, the
+// callback receives a value-preserving context canceled when the owner commits
+// to transport disposal. The same Watch bounds I/O and cleanup.
 // It must not issue application SQL, manage transactions, release or replace the
 // physical session, or call Session/Tx methods. The caller qualifies its behavior
 // and the disposal hook on the actual database, driver version and platform.

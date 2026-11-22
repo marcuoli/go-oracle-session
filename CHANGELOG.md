@@ -4,6 +4,8 @@
 
 - Add an opt-in native regression for Oracle-confirmed AES256 encryption and SHA256 checksumming through the shared connector (#25).
 
+- Sample and close native Oracle rows on a caller-owned connection and require qualified proof before reuse (#64).
+
 - Add a protocol-only health probe for shared connections and document the common consumer setup (#61).
 
 - Accept caller-provided TLS configuration in the shared connector while retaining the SDK's driver selection (#59).
