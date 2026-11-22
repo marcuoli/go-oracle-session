@@ -42,7 +42,7 @@
     "SDK shared lazy-read transport close-once supports external disposal during noncancelable active I/O",
     "SDK terminal DATA FINAL has a distinct non-retry cause and invalidates native health",
     "SDK Oracle9.2 large character OUT TTC7 row continuation without reducing caller capacity",
-    "SDK Oracle9i PL/SQL scalar VARCHAR2 input through32767 bytes stays VARCHAR2 instead of LONG",
+    "SDK pre-12.2 scalar PL/SQL VARCHAR2 inputs through 32767 encoded bytes retain VARCHAR2 framing when the SQL capacity would select LONG (issue #25)",
     "SDK Oracle9i packed variable-width CLOB code units normalize after complete read; malformed data has no prefix and retires",
     "SDK legacy scalar OUT continuation must complete before success; arrays/UDTs retain their prior framing",
     "Report whether retained V2 Ping can use its protocol command without the existing legacy SQL fallback"
@@ -955,7 +955,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/command.go": {
-      "sha256": "045a7737f8bf53d6c9a2f2466f1f30ba5e457bb463d8b087901a07313ba3dbcd",
+      "sha256": "9fb6da035e23d9b2c67134bbadce67d741bca61a22d2ffe7d337480a18124ffb",
       "upstream_sha256": "ace8366523a16b08a2a79725fa6f2565cb72f5e60fd6824cb159ffef83d18b69",
       "kind": "retained-production-or-license"
     },
@@ -1380,7 +1380,7 @@
       "kind": "SDK-regression-or-compatibility-addition"
     },
     "v2/legacy_output_test.go": {
-      "sha256": "b2af12f77eec26a2a72165f71442e4f42ef810ec0298808950ef610fd7a42835",
+      "sha256": "51459c0feb6088cbfe34746d7c13c74f3ff4f3e469bb08d2f8ea279b062d34b0",
       "upstream_sha256": null,
       "kind": "SDK-regression-or-compatibility-addition"
     }

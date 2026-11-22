@@ -66,35 +66,6 @@ func TestLegacyLargeCharacterOutputContinuesAtNextBind(t *testing.T) {
 	}
 }
 
-func TestLegacyPLSQLVarcharInputDoesNotBecomeLong(t *testing.T) {
-	text := strings.Repeat("é漢", 1000)
-	for _, tc := range []struct {
-		name, sql string
-		major     int
-		want      TNSType
-	}{
-		{"legacy PL/SQL", "BEGIN :1 := :1; END;", 9, NCHAR},
-		{"legacy SQL", "SELECT :1 FROM DUAL", 9, LongVarChar},
-		{"modern PL/SQL", "BEGIN :1 := :1; END;", 12, LongVarChar},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			conn, err := NewConnection("", &configurations.ConnectionConfig{CharsetID: 873})
-			if err != nil {
-				t.Fatal(err)
-			}
-			conn.State = Opened
-			conn.sStrConv = conn.cStrConv
-			conn.maxLen.varchar = 4000
-			conn.dBVersion = &DBVersion{MajorVersion: tc.major}
-			statement := NewStmt(tc.sql, conn)
-			par, err := statement.NewParam("value", text, 0, Input)
-			if err != nil || par.DataType != tc.want || !bytes.Equal(par.BValue, []byte(text)) {
-				t.Fatalf("type=%v err=%v; want%v and exact bytes", par.DataType, err, tc.want)
-			}
-		})
-	}
-}
-
 func legacyOutputConnection(t *testing.T) *Connection {
 	t.Helper()
 	conn, err := NewConnection("", &configurations.ConnectionConfig{CharsetID: 873})
@@ -187,5 +158,76 @@ func TestLegacyPLSQLArrayInputRetainsItsExistingType(t *testing.T) {
 	}
 	if par.MaxNoOfArrayElements != 1 || par.DataType != NCHAR {
 		t.Fatalf("array changed: elements=%d type=%v", par.MaxNoOfArrayElements, par.DataType)
+	}
+}
+
+func TestPLSQLScalarCharacterBindPreservesVARCHAR2(t *testing.T) {
+	const plsql = "DECLARE v VARCHAR2(32767) := :1; BEGIN NULL; END;"
+	const sql = "SELECT :1 FROM DUAL"
+	multibyte := strings.Repeat("é漢", 1000)
+	for _, test := range []struct {
+		name      string
+		major     int
+		minor     int
+		sqlLimit  int
+		statement string
+		direction ParameterDirection
+		input     string
+		want      TNSType
+	}{
+		{"9i compatibility", 9, 2, 4000, plsql, Input, multibyte, NCHAR},
+		{"10g scalar", 10, 2, 4000, plsql, Input, multibyte, NCHAR},
+		{"11g scalar", 11, 2, 4000, plsql, Input, multibyte, NCHAR},
+		{"12c scalar", 12, 1, 4000, plsql, Input, multibyte, NCHAR},
+		{"small input", 12, 1, 4000, plsql, Input, strings.Repeat("a", 4000), NCHAR},
+		{"first byte above SQL limit", 12, 1, 4000, plsql, Input, strings.Repeat("a", 4001), NCHAR},
+		{"maximum PL/SQL length", 12, 1, 4000, plsql, Input, strings.Repeat("é漢", 6553) + "aa", NCHAR},
+		{"above PL/SQL limit", 12, 1, 4000, plsql, Input, strings.Repeat("é漢", 6553) + "aaa", LongVarChar},
+		{"IN OUT bind retains existing type", 12, 1, 4000, plsql, InOut, multibyte, LongVarChar},
+		{"ordinary SQL on 9i", 9, 2, 4000, sql, Input, multibyte, LongVarChar},
+		{"ordinary SQL on 12.1", 12, 1, 4000, sql, Input, multibyte, LongVarChar},
+		{"12.2 PL/SQL retains negotiated type", 12, 2, 4000, plsql, Input, multibyte, LongVarChar},
+		{"future PL/SQL retains negotiated type", 75, 0, 4000, plsql, Input, multibyte, LongVarChar},
+		{"unknown version retains negotiated type", 0, 0, 4000, plsql, Input, multibyte, LongVarChar},
+		{"extended SQL capability", 23, 0, 32767, sql, Input, multibyte, NCHAR},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			conn := legacyOutputConnection(t)
+			conn.dBVersion = &DBVersion{Number: uint16(test.major*1000 + test.minor*100), MajorVersion: test.major, MinorVersion: test.minor}
+			conn.maxLen.varchar = test.sqlLimit
+			stmt := NewStmt(test.statement, conn)
+			par, err := stmt.NewParam("text", test.input, 0, test.direction)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if par.DataType != test.want {
+				t.Fatalf("type=%v, want %v", par.DataType, test.want)
+			}
+			if par.MaxLen != len(test.input) || !bytes.Equal(par.BValue, []byte(test.input)) {
+				t.Fatal("character bind length or encoded bytes changed")
+			}
+		})
+	}
+}
+
+func TestPLSQLScalarCharacterBindUsesEncodedLength(t *testing.T) {
+	conn, err := NewConnection("", &configurations.ConnectionConfig{CharsetID: 178})
+	if err != nil {
+		t.Fatal(err)
+	}
+	conn.State = Opened
+	conn.sStrConv = conn.cStrConv
+	conn.maxLen.varchar = 4000
+	conn.dBVersion = &DBVersion{Number: 11204, MajorVersion: 11, MinorVersion: 2}
+
+	// WE8MSWIN1252 encodes each é as one byte, versus two bytes in Go.
+	const count = 16384
+	stmt := NewStmt("DECLARE v VARCHAR2(32767) := :1; BEGIN NULL; END;", conn)
+	par, err := stmt.NewParam("text", strings.Repeat("é", count), 0, Input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if par.DataType != NCHAR || par.MaxLen != count || !bytes.Equal(par.BValue, bytes.Repeat([]byte{0xe9}, count)) {
+		t.Fatalf("type=%v, max length=%d, encoded length=%d", par.DataType, par.MaxLen, len(par.BValue))
 	}
 }

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Preserve valid scalar VARCHAR2 inputs in prepared PL/SQL on pre-12.2 Oracle servers so temporary CLOB OUT can complete (#25).
+
 - Require a native test on each of nine Oracle release targets before module publication (#67).
 
 - Select a qualified finalizer for borrowed Oracle cursor samples on the existing lease (#68).

@@ -278,15 +278,11 @@ separate v0.17.0 test. Track strict SDK and wider version qualification in #25.
 
 ## Oracle9.2 scalar wire behavior
 
-Native 9.2.0.8 testing exposed and verified three additional retained changes.
+Native 9.2.0.8 testing exposed two distinct issues in output framing.
 A large scalar character OUT buffer can split a PL/SQL bind row with another
 TTC7 message. The reader resumes at the next parameter and rejects incomplete
 continuations before assigning caller destinations. Requested character
 capacity is preserved. Arrays/UDTs retain their separate existing paths.
-
-For 9i PL/SQL scalar input through 32767 bytes, keep VARCHAR2 rather than selecting
-LONG merely because the SQL VARCHAR2 limit is 4000 bytes. This rule does not
-rewrite SQL or change SQL/array/newer-server type selection.
 
 Variable-width 9i CLOB reads use length-prefixed code units in the tested wire
 path. Expand them only after all data messages join, using the locator's existing
@@ -301,6 +297,42 @@ Oracle9i PL/SQL User's Guide and Reference, "PL/SQL Datatypes", read 2026-11-19,
 documents a 32767-byte PL/SQL VARCHAR2 maximum and a 4000-byte SQL column maximum.
 These language limits are separate from the observed retained-driver wire fix:
 https://docs.oracle.com/cd/A97630_01/appdev.920/a96624/03_types.htm
+
+## Scalar PL/SQL character input before Oracle 12.2
+
+The retained V2 encoder normally promotes character inputs beyond the
+negotiated SQL VARCHAR2 capacity to LONG. Oracle PL/SQL supports scalar
+VARCHAR2 values up to 32767 bytes. On Oracle 9i through 12.1, LONG framing
+for a valid scalar PL/SQL input can fail with ORA-03120 before a temporary
+CLOB is returned. The V2 statement encoder keeps VARCHAR2 framing for these
+inputs when their encoded size is within 32767 bytes.
+
+The guard uses the parsed server major and minor versions, statement type, direction,
+scalar shape, and encoded byte length. Oracle 12.2 and newer use the negotiated
+type selection. SQL statements, array and custom-type parameters, and OUT or
+IN OUT parameters follow their existing bind paths.
+
+Oracle defines the PL/SQL VARCHAR2 limit in the
+[Oracle9i PL/SQL User's Guide and Reference](https://docs.oracle.com/cd/A97630_01/appdev.920/a96624/03_types.htm)
+and the
+[Oracle Database PL/SQL Language Reference for 11g Release 1](https://docs.oracle.com/html/B28370_05/datatypes.htm).
+The [Oracle Database Error Messages guide](https://docs.oracle.com/en/error-help/db/ora-03120/)
+describes the conversion overflow.
+
+Native comparisons on 2026-11-22 used Go 1.27.4 on Windows/amd64 with the
+pure-Go V2 default and the same prepared CLOB test on each exact fixture.
+The run held four physical leases, assigned a 5000-byte Unicode value to
+a PL/SQL VARCHAR2, and verified the complete 125000-byte CLOB.
+
+| Observed Oracle release | Original V2 | Corrected V2 |
+| --- | --- | --- |
+| 10.2.0.1.0 and 10.2.0.5.0 | ORA-03120 during execution | Pass |
+| 11.2.0.2.0 and 11.2.0.4.0 | ORA-03120 during execution | Pass |
+| 12.1.0.2.0 | ORA-03120 during execution | Pass |
+
+The result covers the supplied fixture accounts and states. The harness
+tests scalar values, repeated prepared OUT calls and the temporary CLOB.
+Oracle 10.1 and 11.1 remain unqualified.
 
 ## Official-fix adoption and scans
 
