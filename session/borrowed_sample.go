@@ -14,9 +14,11 @@ import (
 // the rows or use the connection concurrently. Do not use it in a transaction.
 //
 // SampleBorrowed closes the rows without fetching any more, then calls finalize
-// on the original driver connection through sql.Conn.Raw. The finalizer must
-// qualify both protocol and transaction health under the caller's context.
-// The caller owns the deadline and cancellation policy, and the driver and
+// on the original driver connection through sql.Conn.Raw. The finalizer uses
+// its native argument exclusively. Calling back into sql.Conn or sql.DB can
+// deadlock or acquire a different connection. The finalizer must qualify both
+// protocol and transaction health under the caller's context. The caller
+// owns the deadline and cancellation policy, and the driver and
 // finalizer must honor it. A nil error permits reuse of the still-borrowed
 // connection. An intentional sample does not establish a complete result.
 //
@@ -25,7 +27,7 @@ import (
 // configurations that the caller has qualified to retire the physical session
 // on that path, including when the driver manages a native pool. Callback panics
 // propagate after cleanup. An ordinary query rejection follows database/sql
-// handling. The method opens no new lease. Errors expose the query or sample
+// handling. It opens no new lease. Errors expose the query or sample
 // stage and underlying causes reported by database/sql.
 func SampleBorrowed(ctx context.Context, conn *sql.Conn, statement Statement, read func(*sql.Rows) error, finalize SampleFinalizer) (returnedErr error) {
 	if conn == nil || read == nil || finalize == nil {

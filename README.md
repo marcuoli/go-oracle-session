@@ -171,7 +171,9 @@ for an intentional sample on that exact connection. The callback works with
 native `sql.Rows`, including `ColumnTypes` and `Scan`. Finish using any borrowed row
 or LOB values in the callback and let the SDK close the cursor. Supply a
 `SampleFinalizer` qualified for the actual driver and deployment. Use the existing
-caller context and keep the lease exclusive until the call returns.
+caller context and keep the lease exclusive until the call returns. The
+finalizer works only with its native driver argument. It must avoid reentry
+through database/sql while the raw connection is held.
 
 The SDK leaves a qualified connection in the caller's hands. After failed,
 canceled, or unproven cursor cleanup it marks the database/sql connection bad.
