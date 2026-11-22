@@ -42,7 +42,8 @@ func TestNativeCompatibility(t *testing.T) {
 		OutCharacters                  int
 		Mode                           compat.Mode
 		Container, ExtendedVersion     bool
-		Expected                       struct{ User, Database, Container, Version, IsDBA string }
+		StrictNetworkEncryption        bool
+		Expected                       struct{ User, Database, Container, Version, VersionFull, IsDBA string }
 	}
 	decoder := json.NewDecoder(io.LimitReader(os.Stdin, 64<<10))
 	decoder.DisallowUnknownFields()
@@ -52,6 +53,12 @@ func TestNativeCompatibility(t *testing.T) {
 	var extra any
 	if err := decoder.Decode(&extra); err != io.EOF {
 		t.Fatal("unexpected private input suffix")
+	}
+	if cfg.StrictNetworkEncryption && cfg.Expected.Version != "" {
+		t.Fatal("strict network profile uses ExtendedVersion and Expected.VersionFull for optional version verification")
+	}
+	if cfg.Expected.VersionFull != "" && !cfg.ExtendedVersion {
+		t.Fatal("Expected.VersionFull requires ExtendedVersion")
 	}
 	dialer := &nativeDialCounter{}
 	connector, err := compat.NewConnector(cfg.DSN, compat.Options{Mode: cfg.Mode, Dialer: dialer, LoginWarningHandler: func(string) bool { return true }})
@@ -64,10 +71,31 @@ func TestNativeCompatibility(t *testing.T) {
 	pool.SetMaxIdleConns(4)
 	ctx, cancel := context.WithTimeout(t.Context(), 45*time.Second)
 	defer cancel()
-	type identity struct{ User, Database, Container, Version, VersionFull, IsDBA, Selected string }
+	type identity struct {
+		User, Database, Container, Version, VersionFull, IsDBA, Selected string
+		NetworkServiceBanners                                            []string `json:",omitempty"`
+	}
 	observe := func(lease *sql.Conn) (identity, error) {
 		var result identity
-		err := lease.QueryRowContext(ctx, "SELECT USER,(SELECT NAME FROM V$DATABASE),VERSION,SYS_CONTEXT('USERENV','ISDBA') FROM V$INSTANCE").Scan(&result.User, &result.Database, &result.Version, &result.IsDBA)
+		if cfg.StrictNetworkEncryption {
+			if err := lease.PingContext(ctx); err != nil {
+				return result, fmt.Errorf("strict network ping: %w", err)
+			}
+			banners, err := nativeNetworkBanners(ctx, lease)
+			if err != nil {
+				return result, fmt.Errorf("current-session network banners: %w", err)
+			}
+			result.NetworkServiceBanners = banners
+		}
+		var err error
+		if cfg.StrictNetworkEncryption {
+			// The network regression can use a PDB login without access to
+			// V$DATABASE or V$INSTANCE. Qualify the fixture release separately
+			// if that login cannot select the optional version projection.
+			err = lease.QueryRowContext(ctx, "SELECT USER,SYS_CONTEXT('USERENV','DB_NAME'),SYS_CONTEXT('USERENV','ISDBA') FROM DUAL").Scan(&result.User, &result.Database, &result.IsDBA)
+		} else {
+			err = lease.QueryRowContext(ctx, "SELECT USER,(SELECT NAME FROM V$DATABASE),VERSION,SYS_CONTEXT('USERENV','ISDBA') FROM V$INSTANCE").Scan(&result.User, &result.Database, &result.Version, &result.IsDBA)
+		}
 		if err != nil {
 			return result, err
 		}
@@ -111,7 +139,33 @@ func TestNativeCompatibility(t *testing.T) {
 	var observations []identity
 	checkIdentity := func(value identity) bool {
 		expected := cfg.Expected
-		return (expected.User == "" || value.User == expected.User) && (expected.Database == "" || value.Database == expected.Database) && (expected.Container == "" || value.Container == expected.Container) && (expected.Version == "" || value.Version == expected.Version) && (expected.IsDBA == "" || value.IsDBA == expected.IsDBA) && value.Selected == cfg.Mode.String()
+		return (expected.User == "" || value.User == expected.User) && (expected.Database == "" || value.Database == expected.Database) && (expected.Container == "" || value.Container == expected.Container) && (expected.Version == "" || value.Version == expected.Version) && (expected.VersionFull == "" || value.VersionFull == expected.VersionFull) && (expected.IsDBA == "" || value.IsDBA == expected.IsDBA) && value.Selected == cfg.Mode.String()
+	}
+	proof := map[string]any{
+		"checkedUTC": time.Now().UTC(), "sourceRevision": cfg.SourceRevision,
+		"go": runtime.Version(), "os": runtime.GOOS, "arch": runtime.GOARCH,
+		"mode": cfg.Mode.String(), "patchInventory": "Not queried",
+		"scope": "Four concurrent physical admissions, identity, repeated prepared OUT, exact scalar/NULL/Unicode and temporary CLOB only",
+	}
+	writeProof := func() {
+		t.Helper()
+		proof["identities"] = observations
+		proof["physicalDials"] = dialer.calls.Load()
+		data, err := json.MarshalIndent(proof, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(cfg.ProofPath, data, 0600); err != nil {
+			t.Fatal("cannot retain native proof")
+		}
+	}
+	if cfg.StrictNetworkEncryption {
+		proof["scope"] = "Four concurrent physical admissions, identity, ping and current-session native encryption and integrity banners"
+		proof["strictNetworkEncryption"] = true
+		proof["completed"] = false
+		proof["stage"] = "admission"
+		// Replace any previous success receipt before attempting a new admission.
+		writeProof()
 	}
 	// Holding all leases forces distinct physical admissions through one factory.
 	leases := make([]*sql.Conn, 4)
@@ -129,9 +183,6 @@ func TestNativeCompatibility(t *testing.T) {
 	}
 	group.Wait()
 	close(failures)
-	for err := range failures {
-		safeFailure("concurrent admission", err)
-	}
 	defer func() {
 		for _, lease := range leases {
 			if lease != nil {
@@ -139,33 +190,51 @@ func TestNativeCompatibility(t *testing.T) {
 			}
 		}
 	}()
+	acquired := len(leases) - len(failures)
+	if cfg.StrictNetworkEncryption {
+		proof["successfulAdmissions"] = acquired
+		if acquired == len(leases) {
+			proof["stage"] = "session observation"
+		}
+		writeProof()
+	}
+	if acquired != len(leases) {
+		t.Logf("concurrent physical admissions: %d/%d leases acquired; %d socket dials", acquired, len(leases), dialer.calls.Load())
+		safeFailure("concurrent admission", <-failures)
+	}
 	for _, lease := range leases {
 		value, err := observe(lease)
-		if err != nil {
-			safeFailure("identity", err)
-		}
 		observations = append(observations, value)
-	}
-	// Retain observations even when caller-supplied identity expectations fail.
-	proof := map[string]any{"checkedUTC": time.Now().UTC(), "sourceRevision": cfg.SourceRevision, "go": runtime.Version(), "os": runtime.GOOS, "arch": runtime.GOARCH, "mode": cfg.Mode.String(), "identities": observations, "physicalDials": dialer.calls.Load(), "patchInventory": "Not queried", "scope": "Four concurrent physical admissions, identity, repeated prepared OUT, exact scalar/NULL/Unicode and temporary CLOB only"}
-	writeProof := func() {
-		t.Helper()
-		data, err := json.MarshalIndent(proof, "", "  ")
 		if err != nil {
-			t.Fatal(err)
+			if cfg.StrictNetworkEncryption {
+				writeProof()
+			}
+			safeFailure("session observation", err)
 		}
-		if err := os.WriteFile(cfg.ProofPath, data, 0600); err != nil {
-			t.Fatal("cannot retain native proof")
-		}
+	}
+	// Retain observations even when caller-supplied expectations fail.
+	if cfg.StrictNetworkEncryption {
+		proof["stage"] = "session assertions"
 	}
 	writeProof()
 	for _, value := range observations {
 		if !checkIdentity(value) {
 			t.Fatal("identity differs from supplied expectation; observed proof retained")
 		}
+		if cfg.StrictNetworkEncryption && !hasStrictNetworkAdapters(value.NetworkServiceBanners) {
+			t.Fatal("Oracle did not report both AES256 encryption and SHA256 checksumming; observed proof retained")
+		}
 	}
 	if dialer.calls.Load() != 4 {
 		t.Fatal("unexpected physical admission count")
+	}
+	if cfg.StrictNetworkEncryption {
+		proof["oracleConfirmedAES256AndSHA256Sessions"] = len(observations)
+		proof["completed"] = true
+		proof["stage"] = "complete"
+		writeProof()
+		t.Log("Oracle reported AES256 encryption and SHA256 checksumming on all four physical sessions")
+		return
 	}
 	lease := leases[0]
 	var number, text string
@@ -264,4 +333,55 @@ func TestNativeCompatibility(t *testing.T) {
 	proof["completed"] = true
 	writeProof()
 	t.Log("bounded native compatibility checks passed; scope and untested conditions retained")
+}
+
+func nativeNetworkBanners(ctx context.Context, lease *sql.Conn) ([]string, error) {
+	// Read on the held lease and constrain the report to its session. On
+	// eligible fixtures USERENV supplies SID without requiring V$MYSTAT access.
+	rows, err := lease.QueryContext(ctx, "SELECT NETWORK_SERVICE_BANNER FROM V$SESSION_CONNECT_INFO WHERE SID = TO_NUMBER(SYS_CONTEXT('USERENV','SID'))")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var banners []string
+	for rows.Next() {
+		var banner string
+		if err := rows.Scan(&banner); err != nil {
+			return nil, err
+		}
+		banners = append(banners, banner)
+	}
+	return banners, rows.Err()
+}
+
+func hasStrictNetworkAdapters(banners []string) bool {
+	var encryption, integrity bool
+	for _, banner := range banners {
+		encryption = encryption || strings.HasPrefix(banner, "AES256 Encryption service adapter ")
+		integrity = integrity || strings.HasPrefix(banner, "SHA256 Crypto-checksumming service adapter ")
+	}
+	return encryption && integrity
+}
+
+func TestStrictNetworkAdapters(t *testing.T) {
+	const aes256 = "AES256 Encryption service adapter for Linux: Version 23.26.4.0.0 - Production"
+	const sha256 = "SHA256 Crypto-checksumming service adapter for Linux: Version 23.26.4.0.0 - Production"
+	for _, tc := range []struct {
+		name    string
+		banners []string
+		want    bool
+	}{
+		{name: "both exact algorithms", banners: []string{sha256, aes256}, want: true},
+		{name: "no banners"},
+		{name: "encryption only", banners: []string{aes256, "Crypto-checksumming service for Linux"}},
+		{name: "checksum only", banners: []string{"Encryption service for Linux", sha256}},
+		{name: "different algorithms", banners: []string{"AES128 Encryption service adapter for Linux", "SHA1 Crypto-checksumming service adapter for Linux"}},
+		{name: "unrelated banner", banners: []string{"TCP/IP NT Protocol Adapter - " + aes256, sha256}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := hasStrictNetworkAdapters(tc.banners); got != tc.want {
+				t.Fatalf("hasStrictNetworkAdapters = %t, want %t", got, tc.want)
+			}
+		})
+	}
 }

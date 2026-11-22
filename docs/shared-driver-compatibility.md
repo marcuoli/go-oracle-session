@@ -208,6 +208,74 @@ patch certification was inferred.
 - https://docs.oracle.com/en/database/oracle/oracle-database/18/refrn/V-INSTANCE.html
 - https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/V-INSTANCE.html
 
+### Strict native network encryption
+
+Set `StrictNetworkEncryption: true` in the private stdin JSON to run the
+network regression instead of the scalar, OUT and CLOB checks. Select bundled
+V3 with `Mode: 1`. Leave both fields omitted for the usual V2 compatibility
+profile. Run each configured fixture with uncached results:
+
+~~~sh
+ORACLE_COMPAT_NATIVE_STDIN=1 go test -count=1 -run '^TestNativeCompatibility$' -v ./goora/compat < "$private_fixture_json"
+~~~
+
+Use a disposable Oracle Net TCP fixture and record its observed numeric release,
+image or patch identity, account and service. Read back the effective server
+settings from the fixture. The [upstream #729 profile](https://github.com/sijms/go-ora/issues/729)
+sets `SQLNET.ENCRYPTION_SERVER=required`, `SQLNET.CRYPTO_CHECKSUM_SERVER=required`,
+and `SQLNET.ALLOW_WEAK_CRYPTO_CLIENTS=FALSE`.
+The test holds four concurrent physical leases, pings each and requires both
+`AES256 Encryption service adapter` and `SHA256 Crypto-checksumming service adapter`
+in Oracle's banners for that lease. Generic service banners are insufficient.
+The supplied account needs read access to `V$SESSION_CONNECT_INFO`.
+
+For the network profile set the expected user, database, role, and container
+where applicable. Enable `ExtendedVersion` and set `Expected.VersionFull` when the
+account has access to `V$INSTANCE.VERSION_FULL`. Otherwise attach the
+independently observed fixture release to the result. `Expected.Version` applies
+to the baseline profile. The strict receipt records the stage and admission count
+on failure, and the verbose test log records the error. Keep a separate run for
+the value profile and for each version, account and security configuration.
+Preserve failed outcomes and rerun the same profile against upstream fixes.
+
+| Release family | Network projection selection and native evidence |
+| --- | --- |
+| 9.2, 10.1 | Run the baseline profile. The strict fixture profile is unqualified. Oracle 9.2 documents the banner view but its `USERENV` list lacks `SID`. |
+| 10.2, 11.1, 11.2, 12.1, 12.2, 18c, 19c, 21c | Run the baseline profile. Enable the strict profile only where the exact release, patch, account and Oracle Net policy support the settings and the current-session SID projection. Strict execution is unqualified. |
+| 23c/23ai, 26ai | The supplied fixture can select both profiles separately. See the strict qualification below for exact native results. |
+| Later releases | Select by documented and observed applicability. Each new configuration starts unqualified. |
+
+Oracle defines the own-session `SID` context and the Oracle Net service banners
+in the [26ai SQL Language Reference](https://docs.oracle.com/en/database/oracle/oracle-database/26/sqlrf/SYS_CONTEXT.html)
+and [26ai Database Reference](https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/V-SESSION_CONNECT_INFO.html).
+The [9.2 SQL Reference](https://docs.oracle.com/cd/B10500_01/server.920/a96540/functions122a.htm)
+documents the legacy context attributes. Oracle's
+[network encryption and integrity guide](https://docs.oracle.com/en/cloud/paas/database-dbaas-cloud/csdbi/use-network-encryption-and-integrity.html)
+distinguishes generic service banners from negotiated algorithm adapters.
+
+### Strict qualification recorded on 2026-11-21
+
+Linux/amd64, Go 1.27.4, pure Go, TCP to the disposable Oracle Free PDB as
+`PDBADMIN` without SYSDBA. Both images required native encryption and
+checksumming and rejected weak clients. The source image digests for
+`container-registry.oracle.com/database/free` were
+`sha256:109421eb0e97db4ba5f01086d02c20ace673b809cd8c9a1a6e193bb04424abfb`
+for 23ai and `sha256:0d714311690f0481b49819ff6f35f756441ca165ad3d757c90a8e351fbf567da`
+for 26ai. The Oracle client control requested AES256 and SHA256 explicitly.
+
+| Release | Bundled V3 | Independent Oracle client control |
+| --- | --- | --- |
+| Oracle 23ai Free `23.9.0.25.07` | 0/4 strict physical admissions, EOF | Same user, Oracle reported AES256 and SHA256 |
+| Oracle 26ai Free `23.26.4.0.0` | 0/4 strict physical admissions, EOF | Same user, Oracle reported AES256 and SHA256 |
+
+The server returned these banners on the control sessions. Bundled V3 returned
+EOF before acquiring a lease, so its banner and runtime checks were unreachable.
+Official upstream V3 commit
+[`62f8a42`](https://github.com/sijms/go-ora/commit/62f8a42fe821414cec8fcacb1b877dfef836f798)
+passed two strict connections to each image in a separate run. The compatibility
+profile defaults to retained V2, which also failed the strict fixtures in the
+separate v0.17.0 test. Track strict SDK and wider version qualification in #25.
+
 ## Oracle9.2 scalar wire behavior
 
 Native 9.2.0.8 testing exposed and verified three additional retained changes.
