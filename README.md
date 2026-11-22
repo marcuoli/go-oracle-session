@@ -166,19 +166,20 @@ proof it retires its session.
 
 ### Samples on a caller-owned pool
 
-Lease a native connection with sql.DB.Conn, then use session.SampleBorrowed
+Lease a native connection with `sql.DB.Conn`, then use `session.SampleBorrowed`
 for an intentional sample on that exact connection. The callback works with
-native sql.Rows, including ColumnTypes and Scan. Finish using any borrowed row
+native `sql.Rows`, including `ColumnTypes` and `Scan`. Finish using any borrowed row
 or LOB values in the callback and let the SDK close the cursor. Supply a
-SampleFinalizer qualified for the actual driver and deployment. Use the existing
+`SampleFinalizer` qualified for the actual driver and deployment. Use the existing
 caller context and keep the lease exclusive until the call returns.
 
 The SDK leaves a qualified connection in the caller's hands. After failed,
-canceled, or unproven cursor cleanup it tells database/sql to discard that
-physical connection. An ordinary query rejection retains normal database/sql
-handling. Preserve errors.Is and errors.As when handling failures. This API is
-for intentional samples outside transactions. For a complete dataset, consume
-through EOF using the normal native query or rowset interfaces.
+canceled, or unproven cursor cleanup it marks the database/sql connection bad.
+The caller must qualify that the configured driver retires the physical session
+when database/sql closes it. This includes the driver's own native pooling,
+when enabled. An ordinary query rejection follows database/sql handling.
+This API handles intentional samples outside transactions. Consume complete
+datasets through EOF using the normal native query or rowset interfaces.
 
 ## Execution and transactions
 

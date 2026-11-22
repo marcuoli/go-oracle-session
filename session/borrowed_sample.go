@@ -21,10 +21,12 @@ import (
 // connection. An intentional sample does not establish a complete result.
 //
 // On a failure after opening the rows, or cancellation during query admission,
-// SampleBorrowed discards the physical connection through database/sql. Callback
-// panics propagate after cleanup. An ordinary query rejection leaves the
-// connection under normal database/sql ownership. No new lease or SQL retry
-// is performed. Errors expose the stage (query or sample) and reported causes.
+// SampleBorrowed marks the database/sql connection bad. Use it only with driver
+// configurations that the caller has qualified to retire the physical session
+// on that path, including when the driver manages a native pool. Callback panics
+// propagate after cleanup. An ordinary query rejection follows database/sql
+// handling. The method opens no new lease. Errors expose the query or sample
+// stage and underlying causes reported by database/sql.
 func SampleBorrowed(ctx context.Context, conn *sql.Conn, statement Statement, read func(*sql.Rows) error, finalize SampleFinalizer) (returnedErr error) {
 	if conn == nil || read == nil || finalize == nil {
 		return safeError("sample", statement.Reference, ErrUnsupported)
