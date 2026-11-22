@@ -212,13 +212,16 @@ func (connector *OracleConnector) connect(ctx context.Context, diagnostics *conn
 	}
 	err = conn.OpenWithContext(ctx)
 	if err != nil {
+		legacyRejection := err == ErrLegacyServer
 		if conn.session != nil {
 			if closeErr := conn.session.DisconnectWithError(); closeErr != nil {
 				err = errors.Join(err, closeErr)
 			}
 		}
 		if conn.tracer != nil {
-			_ = conn.tracer.Close()
+			if closeErr := conn.tracer.Close(); legacyRejection && closeErr != nil {
+				err = errors.Join(err, closeErr)
+			}
 		}
 		return nil, err
 	}
@@ -643,6 +646,7 @@ func (conn *Connection) OpenWithContext(ctx context.Context) error {
 	if d := conn.connectionDiagnostics; d != nil {
 		d.TNSVersion, d.TNSVersionKnown = session.Context.Version, true
 	}
+	var authService string
 	// advanced negotiation
 	if session.Context.ACFL0&1 != 0 && session.Context.ACFL0&4 == 0 && session.Context.ACFL1&8 == 0 {
 		if d := conn.connectionDiagnostics; d != nil {
@@ -665,6 +669,7 @@ func (conn *Connection) OpenWithContext(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		authService = ano.AuthenticationService()
 		conn.connectionDiagnostics.phase("native_negotiation_start")
 		err = ano.StartServices()
 		if err != nil {
@@ -729,7 +734,7 @@ func (conn *Connection) OpenWithContext(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		if err = conn.checkLegacyServer(); err != nil {
+		if err = conn.checkLegacyServer(authService); err != nil {
 			return err
 		}
 		conn.connectionDiagnostics.phase("ttc_datatypes")

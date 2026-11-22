@@ -24,13 +24,23 @@ receives its original context.
 | --- | --- |
 | V2, the zero/default | Select the legacy-compatible retained implementation directly. |
 | V3 | Select the modern retained implementation directly. |
-| Negotiated | Start modern; select legacy only after its clean pre-authentication capability signal and completed transport cleanup. |
+| Negotiated | Start V3. Select V2 only when the handshake confirms legacy authentication is required and cleanup succeeds. |
+| Automatic | Start V2. Select V3 only when Oracle returns ORA-12269 in the initial native encryption negotiation and cleanup succeeds. |
 
-Negotiated is opt-in and does not select by a numeric database-version ceiling.
-Authentication, transport, cancellation, joined cleanup and panic failures never
-select another backend. At most one backend submits authentication. SQL is never
-replayed. Explicit V2 is the conservative default, not proof of every native
-server/patch/feature combination.
+Automatic and Negotiated are opt-in. Use the mode whose starting backend fits
+the deployment. The compatibility decision uses a specific protocol signal
+before authentication and permits at most one alternate attempt on the same
+context and configured connection profile. Connections using external Oracle
+authentication, wallets or client TLS certificates stay on the initial driver.
+Authentication, EOF, cancellation, cleanup failures, and panics are terminal.
+SQL is never replayed. A change to the zero-value default requires native
+qualification across the release matrix, strict encryption and the affected
+encrypted Oracle 12.1 profile.
+
+[Oracle ORA-12269](https://docs.oracle.com/en/error-help/db/ora-12269/) identifies
+a rejected client encryption or integrity adapter version. The server's strict
+policy still applies to the alternate driver. V3 must independently negotiate
+and pass admission. Check both backend attempts if admission still fails.
 
 V2 removes only FAST LOGIN options that its parser cannot accept. V3 selects
 FAST LOGIN=FALSE through the existing goora.PrepareURL policy. Other decoded URL

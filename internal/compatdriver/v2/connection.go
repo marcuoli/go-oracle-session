@@ -157,11 +157,20 @@ func (connector *OracleConnector) Connect(ctx context.Context) (driver.Conn, err
 	}
 	err = conn.OpenWithContext(ctx)
 	if err != nil {
+		cryptoRejection := err == advanced_nego.ErrClientCryptoVersion
 		if conn.session != nil {
-			conn.session.Disconnect()
+			if cryptoRejection {
+				if closeErr := conn.session.DisconnectWithError(); closeErr != nil {
+					err = errors.Join(err, closeErr)
+				}
+			} else {
+				conn.session.Disconnect()
+			}
 		}
 		if conn.tracer != nil {
-			_ = conn.tracer.Close()
+			if closeErr := conn.tracer.Close(); cryptoRejection && closeErr != nil {
+				err = errors.Join(err, closeErr)
+			}
 		}
 		return nil, err
 	}

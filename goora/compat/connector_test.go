@@ -112,7 +112,7 @@ func TestCompatibilityFactoryAndRegistration(t *testing.T) {
 	if !slices.Contains(sql.Drivers(), DriverName) {
 		t.Fatal("compatibility driver not registered")
 	}
-	for _, mode := range []Mode{V2, V3, Negotiated} {
+	for _, mode := range []Mode{V2, V3, Negotiated, Automatic} {
 		c, err := NewConnector("oracle://fixture:unused@127.0.0.1:1/fixture", Options{Mode: mode})
 		if err != nil {
 			t.Fatal(err)

@@ -13,6 +13,10 @@ import (
 
 var version = 0xB200200
 
+// ErrClientCryptoVersion is a server rejection of the client's encryption or
+// integrity adapter in the initial service response, before Oracle logon.
+var ErrClientCryptoVersion = errors.New("advanced negotiation error: during receive service header: network excpetion: ora-12269")
+
 // KerberosAuthInterface is an alias for configurations.KerberosAuthInterface, maintained for backwards compatibility.
 type KerberosAuthInterface = configurations.KerberosAuthInterface
 
@@ -24,11 +28,12 @@ func SetKerberosAuth(input KerberosAuthInterface) {
 }
 
 type AdvNego struct {
-	comm        *AdvancedNegoComm
-	clientInfo  *configurations.ClientInfo
-	negoInfo    *configurations.AdvNegoServiceInfo
-	tracer      trace.Tracer
-	serviceList []AdvNegoService
+	comm                  *AdvancedNegoComm
+	clientInfo            *configurations.ClientInfo
+	negoInfo              *configurations.AdvNegoServiceInfo
+	tracer                trace.Tracer
+	serviceList           []AdvNegoService
+	reportCryptoRejection bool
 }
 
 func NewAdvNego(session *network.Session, tracer trace.Tracer, config *configurations.ConnectionConfig) (*AdvNego, error) {
@@ -38,6 +43,10 @@ func NewAdvNego(session *network.Session, tracer trace.Tracer, config *configura
 		negoInfo:    &config.AdvNegoServiceInfo,
 		tracer:      tracer,
 		serviceList: make([]AdvNegoService, 5),
+		// A wallet or client TLS certificate may already have authenticated
+		// the client at the transport layer when Oracle replies.
+		reportCryptoRejection: config.AuthType == configurations.Normal && config.Wallet == nil &&
+			(config.TLSConfig == nil || (len(config.TLSConfig.Certificates) == 0 && config.TLSConfig.GetClientCertificate == nil)),
 	}
 	var err error
 	output.serviceList[1], err = newAuthService(output.comm, output.negoInfo)
@@ -118,6 +127,11 @@ func (nego *AdvNego) Read() error {
 			return err
 		}
 		if serviceHeader[2] != 0 {
+			service := serviceHeader[0]
+			if nego.reportCryptoRejection && serviceHeader[2] == 12269 &&
+				service > 0 && service < len(nego.serviceList) && nego.serviceList[service] != nil {
+				return ErrClientCryptoVersion
+			}
 			return fmt.Errorf("advanced negotiation error: during receive service header: network excpetion: ora-%d", serviceHeader[2])
 		}
 		err = nego.serviceList[serviceHeader[0]].readServiceData(serviceHeader[1])

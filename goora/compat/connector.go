@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"errors"
 
+	legacyNegotiation "github.com/marcuoli/go-oracle-session/internal/compatdriver/v2/advanced_nego"
 	legacyNetwork "github.com/marcuoli/go-oracle-session/internal/compatdriver/v2/network"
 	modern "github.com/marcuoli/go-oracle-session/internal/compatdriver/v3"
 	modernNetwork "github.com/marcuoli/go-oracle-session/internal/compatdriver/v3/network"
@@ -45,7 +46,7 @@ func NewConnectorWithTLSConfig(dsn string, options Options, config *tls.Config) 
 }
 
 func newConnector(dsn string, options Options, tlsConfig *tls.Config) (*Connector, error) {
-	if options.Mode > Negotiated {
+	if options.Mode > Automatic {
 		return nil, ErrInvalidOptions
 	}
 	c := &Connector{mode: options.Mode, owner: &compatibilityDriver{options: options, tlsConfig: tlsConfig}}
@@ -66,16 +67,16 @@ func newConnector(dsn string, options Options, tlsConfig *tls.Config) (*Connecto
 	return c, nil
 }
 
-// Mode reports configured policy, which may differ from the selected backend
-// for Negotiated. ConnectionMode reports the physical connection's selection.
+// Mode reports configured policy. ConnectionMode reports the backend used
+// by a physical connection, which can differ in a selecting policy.
 func (c *Connector) Mode() Mode { return c.mode }
 
 // Driver returns the compatibility database/sql factory, never a native backend.
 func (c *Connector) Driver() driver.Driver { return c.owner }
 
-// Connect authenticates at most one backend. Negotiated may reopen only after
-// the modern backend's clean pre-authentication capability signal and joined
-// transport cleanup. No authentication, transport, panic or SQL error is retried.
+// Connect authenticates at most one backend per call. Automatic and Negotiated
+// can select the alternate once after a specific pre-authentication signal and
+// successful transport cleanup. Authentication and SQL failures are terminal.
 func (c *Connector) Connect(ctx context.Context) (driver.Conn, error) {
 	return c.connect(ctx, ConnectionObserver{}, nil)
 }
@@ -84,17 +85,35 @@ func (c *Connector) connect(ctx context.Context, observer ConnectionObserver, at
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	if c.mode == V2 {
-		return finishConnection(connectAttempt(ctx, c.legacy, V2, observer, attempts))
+	primary, alternate := c.modern, c.legacy
+	firstMode, nextMode := V3, V2
+	var signal error
+	switch c.mode {
+	case V2, Automatic:
+		primary, alternate = c.legacy, c.modern
+		firstMode, nextMode = V2, V3
+		if c.mode == Automatic {
+			signal = legacyNegotiation.ErrClientCryptoVersion
+		}
+	case Negotiated:
+		signal = modern.ErrLegacyServer
 	}
-	conn, err := connectAttempt(ctx, c.modern, V3, observer, attempts)
-	if c.mode != Negotiated || conn != nil || !onlyLegacySignal(err) {
-		return finishConnection(conn, err)
+	conn, err := connectAttempt(ctx, primary, firstMode, observer, attempts)
+	if signal == nil || conn != nil || !onlySelectionSignal(err, signal) {
+		conn, err = finishConnection(conn, err)
+		if signal != nil {
+			err = preventConnectRetry(err)
+		}
+		return conn, err
 	}
-	if err := ctx.Err(); err != nil {
-		return nil, err
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return nil, ctxErr
 	}
-	return finishConnection(connectAttempt(ctx, c.legacy, V2, observer, attempts))
+	conn, alternateErr := finishConnection(connectAttempt(ctx, alternate, nextMode, observer, attempts))
+	if c.mode == Automatic && alternateErr != nil {
+		alternateErr = errors.Join(err, alternateErr)
+	}
+	return conn, preventConnectRetry(alternateErr)
 }
 
 func finishConnection(conn driver.Conn, err error) (driver.Conn, error) {
@@ -112,9 +131,9 @@ func finishConnection(conn driver.Conn, err error) (driver.Conn, error) {
 	return conn, nil
 }
 
-func onlyLegacySignal(err error) bool {
+func onlySelectionSignal(err, signal error) bool {
 	for err != nil {
-		if err == modern.ErrLegacyServer {
+		if err == signal {
 			return true
 		}
 		// Even a joined signal with a cleanup failure is not safe selection evidence.

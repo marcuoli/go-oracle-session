@@ -18,7 +18,7 @@ func TestOfficialDriverRegistrationCoexists(t *testing.T) {
 	if compat.IsDriver(official.NewConnector("unused").Driver()) {
 		t.Fatal("official driver mislabeled")
 	}
-	for _, mode := range []compat.Mode{compat.V2, compat.V3, compat.Negotiated} {
+	for _, mode := range []compat.Mode{compat.V2, compat.V3, compat.Negotiated, compat.Automatic} {
 		connector, err := compat.NewConnector("oracle://fixture:unused@127.0.0.1:1/fixture", compat.Options{Mode: mode})
 		if err != nil || !compat.IsDriver(connector.Driver()) || connector.Mode() != mode {
 			t.Fatalf("factory policy=%s err=%v", mode, err)

@@ -35,6 +35,7 @@
     "Joined legacy break and settlement capability",
     "Optional scalar modern connection diagnostics",
     "SDK strict pre-authentication cleanup preserves the original close failure; joined cleanup errors prohibit selecting another backend",
+    "SDK initial Oracle Net ORA-12269 may select an alternate only after cleanup, before Oracle authentication and without external or client-certificate authentication",
     "SDK terminal transport-only discard invalidates physical state after lazy CLOB protocol failures; no post-execution retry sentinel",
     "SDK exact decimal validation and low-exponent zero distinction",
     "SDK joined terminal lazy-read cancellation closes captured transport outside protocol locks and closes once",
@@ -50,7 +51,7 @@
   "inclusion": "All reviewed production files, MIT licenses and retained regressions; nested module metadata and unrelated upstream integration/examples omitted",
   "files": {
     "v3/advanced_nego/advanced_nego.go": {
-      "sha256": "e8f8ba27e1da80f5bef8e7f996a0cf1ee7982997ca320a4a214b28d0479f907c",
+      "sha256": "dd9025d43c024df36ea3dddd23f6e9370866d936d32fe651816b72c4929bebd5",
       "upstream_sha256": "9f444910d62bf68a8e0dc06d758cc957041ca7d6c1719940a89754f3d067ee3a",
       "kind": "retained-production-or-license"
     },
@@ -260,7 +261,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/connection.go": {
-      "sha256": "fcead9663dc7e619e7a0277618f2a5df0269a59e142a427ae651751c3c264f09",
+      "sha256": "9ed494bdb4ee7660b9abdfde5cf43c6a25f4d9a0c977788abec002e061e520e8",
       "upstream_sha256": "5af4cb323d90197ecd2d7bd890992b27a4c6529fd1825b285b388daf659d4c83",
       "kind": "retained-production-or-license"
     },
@@ -340,12 +341,12 @@
       "kind": "retained-production-or-license"
     },
     "v3/legacy_detection_test.go": {
-      "sha256": "7bca49fe9ee7dc0aed026a5ae167ac6fc14a5826bdf19d565ff0628692727b5d",
+      "sha256": "abac3b5e48fedbbee4e0e257b1e25ce05947560f7d6026df62f4777d2c977d4a",
       "upstream_sha256": null,
       "kind": "retained-regression-or-compatibility-addition"
     },
     "v3/legacy_detection.go": {
-      "sha256": "8eaa476991abdac6486f7b11ca3afac2d3ce045efc7964547f5bac3991a602ca",
+      "sha256": "ff9b705941dacada9ee3dff2efd252adee094b0048f2cfc3cc8ce2b553b27cbd",
       "upstream_sha256": null,
       "kind": "retained-regression-or-compatibility-addition"
     },
@@ -845,7 +846,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/advanced_nego/advanced_nego.go": {
-      "sha256": "4c3404aba4d97bd55db64ee7ca77f1400118224c0a13786169bce6e23945c277",
+      "sha256": "b917b4ab915d68a3a506fc9eb58b7e17493c9e228bf358f12f0cdcd8321d9662",
       "upstream_sha256": "94349a24e64e1f86976122b7144a08f509cecbfcf71b0472967f005652cd7732",
       "kind": "retained-production-or-license"
     },
@@ -853,6 +854,11 @@
       "sha256": "7c7c7d41cb7aa4b443310d3414c796cc2705d769af568e0fcfd0b46ebde7b45e",
       "upstream_sha256": "3b04a44dc5bfb826a5c5483b451d17958f832862c4743978f83ee44a08a4eda3",
       "kind": "retained-production-or-license"
+    },
+    "v2/advanced_nego/crypto_rejection_test.go": {
+      "sha256": "d13c9228edd664ffe0cdc8e757d68bde36f79381376a97bd0587a2c8d349c3bf",
+      "upstream_sha256": null,
+      "kind": "retained-regression-or-compatibility-addition"
     },
     "v2/advanced_nego/comm.go": {
       "sha256": "22d38431472f8f16705239a6e4e353d54dd7df04e3b995cb48a83660df6caa6d",
@@ -1005,7 +1011,7 @@
       "kind": "retained-production-or-license"
     },
     "v2/connection.go": {
-      "sha256": "864714f21c6750338a82b077a3faf5ac6655892f624f4af84b535e12b7483623",
+      "sha256": "3f072add0d76b2bf54dac27baab41c53b6ac24df39fc798e826a4d5f4206a7db",
       "upstream_sha256": "ce9729f098c77e1fe159bc89981fee2bf2cd0a5df9b13fa713e3c823371c75f0",
       "kind": "retained-production-or-license"
     },

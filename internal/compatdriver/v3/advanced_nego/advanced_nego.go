@@ -107,6 +107,15 @@ func (nego *AdvNego) readServiceHeader() ([]int, error) {
 	return output, err
 }
 
+// AuthenticationService reports the external authentication selected by the
+// server. It is available after the initial advanced negotiation response.
+func (nego *AdvNego) AuthenticationService() string {
+	if service, ok := nego.serviceList[1].(*authService); ok && service.active {
+		return service.serviceName
+	}
+	return ""
+}
+
 func (nego *AdvNego) Read() error {
 	header, err := nego.readHeader()
 	if err != nil {
@@ -129,18 +138,8 @@ func (nego *AdvNego) Read() error {
 			return err
 		}
 	}
-	authKerberos := false
-	authNTS := false
-	if authServ, ok := nego.serviceList[1].(*authService); ok {
-		if authServ.active {
-			if authServ.serviceName == "KERBEROS5" {
-				// return errors.New("advanced negotiation: KERBEROS5 authentication still not supported")
-				authKerberos = true
-			} else if authServ.serviceName == "NTS" {
-				authNTS = true
-			}
-		}
-	}
+	service := nego.AuthenticationService()
+	authKerberos, authNTS := service == "KERBEROS5", service == "NTS"
 	size := 0
 	numService := 0
 	if dataServ, ok := nego.serviceList[3].(*dataIntegrityService); ok {

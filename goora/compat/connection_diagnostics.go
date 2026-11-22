@@ -61,7 +61,7 @@ func (c *Connector) ConnectObserved(ctx context.Context, observer ConnectionObse
 }
 
 // ConnectWithDiagnostics makes one Connect operation and additionally returns
-// the attempted backends in order, including a clean legacy selection when
+// the attempted backends in order, including an alternate selection when
 // configured. The returned connection and error follow Connect's existing
 // contract. Results are owned by this call and can be kept after it returns.
 func (c *Connector) ConnectWithDiagnostics(ctx context.Context) (driver.Conn, []ConnectionAttempt, error) {
@@ -123,18 +123,22 @@ func connectAttempt(ctx context.Context, backend driver.Connector, mode Mode, ob
 func rejectObservation(conn driver.Conn, observeErr, backendErr error) (driver.Conn, error) {
 	// A joined error cannot be mistaken for the clean capability signal.
 	_, err := finishConnection(conn, errors.Join(observeErr, backendErr))
-	if errors.Is(err, driver.ErrBadConn) {
-		return nil, nonRetryableObservationError{err}
-	}
-	return nil, err
+	return nil, preventConnectRetry(err)
 }
 
-// A failed observation must not request another admission from database/sql.
-// Keep meaningful typed causes available without exposing its retry sentinel.
-type nonRetryableObservationError struct{ cause error }
+// database/sql must not restart a completed automatic admission decision or
+// a rejected observation. Preserve access to the native error and its causes.
+func preventConnectRetry(err error) error {
+	if errors.Is(err, driver.ErrBadConn) {
+		return nonRetryableConnectError{err}
+	}
+	return err
+}
 
-func (e nonRetryableObservationError) Error() string { return e.cause.Error() }
-func (e nonRetryableObservationError) Is(target error) bool {
+type nonRetryableConnectError struct{ cause error }
+
+func (e nonRetryableConnectError) Error() string { return e.cause.Error() }
+func (e nonRetryableConnectError) Is(target error) bool {
 	return target != driver.ErrBadConn && errors.Is(e.cause, target)
 }
-func (e nonRetryableObservationError) As(target any) bool { return errors.As(e.cause, target) }
+func (e nonRetryableConnectError) As(target any) bool { return errors.As(e.cause, target) }

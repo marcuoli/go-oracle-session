@@ -128,7 +128,7 @@ func newConfiguredModernConnector(dsn string, options Options, tlsConfig *tls.Co
 		connector := modern.NewConnector(dsn).(*modern.OracleConnector)
 		connector.WithLoginWarningHandler(options.LoginWarningHandler)
 		connector.WithTLSConfig(tlsConfig.Clone())
-		if options.Mode == Negotiated {
+		if options.Mode == Negotiated || options.Mode == Automatic {
 			connector.WithLegacyServerDetection()
 		}
 		if options.Dialer != nil {

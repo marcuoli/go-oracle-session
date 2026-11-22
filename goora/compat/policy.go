@@ -26,6 +26,9 @@ const (
 	// Negotiated starts v3 and selects v2 only on its clean, pre-authentication
 	// legacy-capability signal. Native qualification is configuration specific.
 	Negotiated
+	// Automatic starts V2 and selects V3 only when Oracle rejects the
+	// client's crypto adapter before authentication and cleanup succeeds.
+	Automatic
 )
 
 // String returns the configured policy name.
@@ -37,6 +40,8 @@ func (m Mode) String() string {
 		return "v3"
 	case Negotiated:
 		return "negotiated"
+	case Automatic:
+		return "automatic"
 	default:
 		return "invalid"
 	}
