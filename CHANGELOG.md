@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Run both bundled drivers against two wallet-based Autonomous Database profiles and a wallet-backed TNS profile in the opt-in native matrix (#25).
+
 - Use the upgraded Oracle Net native crypto exchange in the retained V3 alternate after V2's confirmed pre-authentication crypto rejection (#71).
 
 - Add opt-in automatic selection of V3 when V2 receives a confirmed pre-authentication crypto-adapter rejection, and preserve the V3-first legacy capability route (#71).

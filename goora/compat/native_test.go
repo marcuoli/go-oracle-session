@@ -29,6 +29,30 @@ func (d *nativeDialCounter) DialContext(ctx context.Context, network, address st
 	return (&net.Dialer{}).DialContext(ctx, network, address)
 }
 
+type nativeCompatibilityConfig struct {
+	DSN, ProofPath, SourceRevision string
+	OutCharacters                  int
+	Mode                           compat.Mode
+	Container, ExtendedVersion     bool
+	StrictNetworkEncryption        bool
+	Expected                       struct{ User, Database, Container, Version, VersionFull, IsDBA string }
+
+	adb bool
+}
+
+func readNativeInput(t *testing.T, input any) {
+	t.Helper()
+	decoder := json.NewDecoder(io.LimitReader(os.Stdin, 64<<10))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(input); err != nil {
+		t.Fatal("invalid private native input")
+	}
+	var extra any
+	if err := decoder.Decode(&extra); err != io.EOF {
+		t.Fatal("unexpected private input suffix")
+	}
+}
+
 // TestNativeCompatibility is opt-in and accepts private input only over stdin.
 // It changes session-local/temporary state; never create users, grants or objects.
 // Container projection is explicitly optional so the baseline query remains
@@ -37,23 +61,13 @@ func TestNativeCompatibility(t *testing.T) {
 	if os.Getenv("ORACLE_COMPAT_NATIVE_STDIN") != "1" {
 		t.Skip("native compatibility not enabled")
 	}
-	var cfg struct {
-		DSN, ProofPath, SourceRevision string
-		OutCharacters                  int
-		Mode                           compat.Mode
-		Container, ExtendedVersion     bool
-		StrictNetworkEncryption        bool
-		Expected                       struct{ User, Database, Container, Version, VersionFull, IsDBA string }
-	}
-	decoder := json.NewDecoder(io.LimitReader(os.Stdin, 64<<10))
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(&cfg); err != nil {
-		t.Fatal("invalid private native input")
-	}
-	var extra any
-	if err := decoder.Decode(&extra); err != io.EOF {
-		t.Fatal("unexpected private input suffix")
-	}
+	var cfg nativeCompatibilityConfig
+	readNativeInput(t, &cfg)
+	runNativeCompatibility(t, cfg)
+}
+
+func runNativeCompatibility(t *testing.T, cfg nativeCompatibilityConfig) {
+	t.Helper()
 	if cfg.StrictNetworkEncryption && cfg.Expected.Version != "" {
 		t.Fatal("strict network profile uses ExtendedVersion and Expected.VersionFull for optional version verification")
 	}
@@ -74,6 +88,7 @@ func TestNativeCompatibility(t *testing.T) {
 	type identity struct {
 		User, Database, Container, Version, VersionFull, IsDBA, Selected string
 		NetworkServiceBanners                                            []string `json:",omitempty"`
+		CloudService, NetworkProtocol                                    string   `json:",omitempty"`
 	}
 	observe := func(lease *sql.Conn) (identity, error) {
 		var result identity
@@ -110,6 +125,15 @@ func TestNativeCompatibility(t *testing.T) {
 				return result, err
 			}
 		}
+		if cfg.adb {
+			// This cloud-only projection never runs against the legacy matrix.
+			var cloud, protocol sql.NullString
+			err := lease.QueryRowContext(ctx, "SELECT SYS_CONTEXT('USERENV','CLOUD_SERVICE'),SYS_CONTEXT('USERENV','NETWORK_PROTOCOL') FROM DUAL").Scan(&cloud, &protocol)
+			if err != nil {
+				return result, err
+			}
+			result.CloudService, result.NetworkProtocol = cloud.String, protocol.String
+		}
 		err = lease.Raw(func(raw any) error {
 			selected, ok := raw.(interface{ CompatibilityMode() compat.Mode })
 			if !ok {
@@ -120,9 +144,15 @@ func TestNativeCompatibility(t *testing.T) {
 		})
 		return result, err
 	}
+	var failurePhase string
+	var oracleCode int
 	safeFailure := func(phase string, err error) {
 		t.Helper()
 		code, _ := compat.OracleCode(err)
+		if cfg.adb {
+			failurePhase, oracleCode = phase, code
+			t.Fatalf("%s failed: type=%T ORA=%d", phase, err, code)
+		}
 		secrets := []string{cfg.DSN}
 		if parsed, parseErr := url.Parse(cfg.DSN); parseErr == nil && parsed.User != nil {
 			secrets = append(secrets, parsed.User.Username())
@@ -156,7 +186,21 @@ func TestNativeCompatibility(t *testing.T) {
 	}
 	writeProof := func() {
 		t.Helper()
-		proof["identities"] = observations
+		if cfg.adb {
+			type cloudSession struct {
+				VersionFull, Selected, CloudService, NetworkProtocol string
+			}
+			sessions := make([]cloudSession, 0, len(observations))
+			for _, value := range observations {
+				sessions = append(sessions, cloudSession{value.VersionFull, value.Selected, value.CloudService, value.NetworkProtocol})
+			}
+			proof["sessions"] = sessions
+			if failurePhase != "" {
+				proof["failurePhase"], proof["oracleCode"] = failurePhase, oracleCode
+			}
+		} else {
+			proof["identities"] = observations
+		}
 		proof["physicalDials"] = dialer.calls.Load()
 		data, err := json.MarshalIndent(proof, "", "  ")
 		if err != nil {
@@ -173,6 +217,11 @@ func TestNativeCompatibility(t *testing.T) {
 		proof["stage"] = "admission"
 		// Replace any previous success receipt before attempting a new admission.
 		writeProof()
+	}
+	if cfg.adb {
+		proof["scope"] = "Four concurrent physical admissions, Autonomous Database identity and TCPS, repeated prepared OUT, exact scalar/NULL/Unicode and temporary CLOB"
+		proof["completed"] = false
+		t.Cleanup(writeProof)
 	}
 	// Holding all leases forces distinct physical admissions through one factory.
 	leases := make([]*sql.Conn, 4)
@@ -205,6 +254,9 @@ func TestNativeCompatibility(t *testing.T) {
 		}
 		writeProof()
 	}
+	if cfg.adb {
+		proof["successfulAdmissions"] = acquired
+	}
 	if acquired != len(leases) {
 		t.Logf("concurrent physical admissions: %d/%d leases acquired; %d socket dials", acquired, len(leases), dialer.calls.Load())
 		safeFailure("concurrent admission", <-failures)
@@ -228,12 +280,19 @@ func TestNativeCompatibility(t *testing.T) {
 		if !checkIdentity(value) {
 			t.Fatal("identity differs from supplied expectation; observed proof retained")
 		}
+		if cfg.adb && (!strings.EqualFold(value.NetworkProtocol, "tcps") ||
+			(value.CloudService != "DWCS" && value.CloudService != "OLTP" && value.CloudService != "JDCS") ||
+			value.VersionFull == "") {
+			t.Fatal("Oracle did not confirm an Autonomous Database session over TCPS with an observed full version")
+		}
 		if cfg.StrictNetworkEncryption && !hasStrictNetworkAdapters(value.NetworkServiceBanners) {
 			t.Fatal("Oracle did not report both AES256 encryption and SHA256 checksumming; observed proof retained")
 		}
 	}
-	if got := dialer.calls.Load(); got != wantDials {
-		t.Fatalf("physical dials = %d, want %d", got, wantDials)
+	// ADB listeners can redirect a connection. The four held leases above
+	// prove distinct physical sessions; a valid redirect can add socket dials.
+	if got := dialer.calls.Load(); got < wantDials || (!cfg.adb && got != wantDials) {
+		t.Fatalf("unexpected physical dial count: %d for %d required dials", got, wantDials)
 	}
 	if cfg.StrictNetworkEncryption {
 		proof["oracleConfirmedAES256AndSHA256Sessions"] = len(observations)
@@ -318,8 +377,10 @@ func TestNativeCompatibility(t *testing.T) {
 		proof["clobObservedRunes"] = utf8.RuneCountInString(text)
 		proof["clobObservedSHA256"] = fmt.Sprintf("%x", sha256.Sum256([]byte(text)))
 		proof["clobExpectedBytes"] = len(strings.Repeat(input, 25))
-		proof["clobPrefixHex"] = fmt.Sprintf("%x", []byte(text)[:min(32, len(text))])
-		writeProof()
+		if !cfg.adb {
+			proof["clobPrefixHex"] = fmt.Sprintf("%x", []byte(text)[:min(32, len(text))])
+			writeProof()
+		}
 	}
 	if value != strings.Repeat(input, 25) {
 		clob.Free()

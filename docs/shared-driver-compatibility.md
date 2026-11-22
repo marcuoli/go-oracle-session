@@ -218,6 +218,47 @@ patch certification was inferred.
 - https://docs.oracle.com/en/database/oracle/oracle-database/18/refrn/V-INSTANCE.html
 - https://docs.oracle.com/en/database/oracle/oracle-database/26/refrn/V-INSTANCE.html
 
+### Autonomous Database driver matrix
+
+The opt-in ADB matrix selects two wallet-based URLs and one wallet-backed TNS
+alias by their exact names in a caller-owned inventory. Pass the selection
+and paths through private stdin JSON. The test reads the existing inventory
+and Oracle Net files, runs both bundled drivers for each route, and continues
+through failures. Ordinary SDK connections still default to V2.
+
+~~~json
+{
+  "SourceRevision": "<SDK source revision>",
+  "ProofDirectory": "<existing empty directory for this run>",
+  "InventoryPath": "<private inventory CSV>",
+  "WalletProfiles": ["<first wallet profile name>", "<second wallet profile name>"],
+  "TNSProfile": "<TNS profile name>",
+  "TNSAdmin": "<directory containing the alias and its wallet configuration>"
+}
+~~~
+
+Use the source revision of the test binary and a separate proof directory for
+each run. Keep the inventory and wallet files in their approved locations.
+The harness resolves the selected alias and uses its exact descriptor.
+
+~~~sh
+ORACLE_COMPAT_ADB_STDIN=1 go test -count=1 -run '^TestNativeADBMatrix$' -v ./goora/compat < "$private_adb_json"
+~~~
+
+Each case holds four physical sessions and checks the selected driver,
+normal login, observed database version, Oracle's CLOUD_SERVICE and TCPS
+session attributes, exact NUMBER/NULL/Unicode results, repeated OUT binds,
+and the complete temporary CLOB. The proof files use fixed case labels.
+They record admissions, Oracle failure codes and session facts without
+exposing the login, directory, wallet, endpoint or descriptor.
+Cases that fail admission fail the test without claiming SQL qualification.
+
+The [Oracle SQL Language Reference](https://docs.oracle.com/en/database/oracle/oracle-database/26/sqlrf/SYS_CONTEXT.html)
+documents CLOUD_SERVICE for Oracle cloud deployments and NETWORK_PROTOCOL
+for the current connection. These cloud assertions apply only to the ADB
+matrix. The legacy and strict native Oracle Net cases retain their own
+projections and pass conditions.
+
 ### Strict native network encryption
 
 Set `StrictNetworkEncryption: true` in the private stdin JSON to run the
