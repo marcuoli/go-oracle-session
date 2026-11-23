@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expose value-only V2 configuration and direct dial observations for caller-owned connection diagnostics (#79).
+
 - Document the released configured-memory API in go-oracle-info and its use with an admitted SDK session (#6).
 
 - Refresh stable SDK and native-harness dependencies, use govulncheck v1.10.0, and verify SDK source compatibility with Go 1.27.3 (#76).

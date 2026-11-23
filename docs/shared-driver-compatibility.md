@@ -76,6 +76,20 @@ addressed host. Each physical connection receives a separate config clone so
 that concurrent admissions do not share that driver mutation. The caller
 owns the trust roots, certificates and callback policy.
 
+## Configure and dial observations
+
+Use `compat.InspectV2Config` to observe connection timeout, ordered endpoints,
+service, SID, instance, administrative mode, TLS and wallet presence. It uses
+the retained V2 parser, including wallet reads, and returns the original error
+for caller-owned redaction. A successful snapshot carries no credentials,
+wallet contents or full connection descriptor.
+
+Use `transport.DialContext` when the caller already owns its sockets. It uses
+the supplied dialer and returns the original socket and error from one dial.
+TCP uses the existing go-hostdiscovery classification. Other networks report
+the actual addresses without assigning a TCP status. The caller retains
+logging, cancellation and disposal.
+
 ## Handshake observations
 
 ConnectWithDiagnostics runs the same connector selection as Connect and returns

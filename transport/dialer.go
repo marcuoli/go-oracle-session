@@ -1,4 +1,4 @@
-// Package transport tracks the physical sockets owned by one injected connector.
+// Package transport observes direct dials and tracks sockets owned by one connector.
 package transport
 
 import (
@@ -7,8 +7,6 @@ import (
 	"net"
 	"sync"
 	"time"
-
-	endpoint "github.com/marcuoli/go-hostdiscovery/pkg/hostdiscovery/tcp"
 )
 
 // ErrClosed identifies a permanently discarded transport group.
@@ -60,10 +58,8 @@ func (transport *Dialer) DialContext(ctx context.Context, network, address strin
 	var err error
 	if transport.injected != nil {
 		connection, err = transport.injected(ctx, network, address)
-	} else if network == "tcp" || network == "tcp4" || network == "tcp6" {
-		connection, _, err = endpoint.DialContext(ctx, &transport.dialer, network, address)
 	} else {
-		connection, err = transport.dialer.DialContext(ctx, network, address)
+		connection, _, err = DialContext(ctx, &transport.dialer, network, address)
 	}
 	if err != nil {
 		return nil, err
