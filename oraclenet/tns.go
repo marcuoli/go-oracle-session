@@ -12,7 +12,10 @@ import (
 	"unicode"
 )
 
-const maxTNSNamesSize = 1 << 20
+const (
+	maxTNSNamesSize  = 1 << 20
+	tnsNamesFilename = "tnsnames.ora"
+)
 
 var tnsAliasPattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+$`)
 
@@ -38,7 +41,7 @@ func ResolveAlias(alias, adminDirectory string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	path := filepath.Join(strings.TrimSpace(adminDirectory), "tnsnames.ora")
+	path := filepath.Join(strings.TrimSpace(adminDirectory), tnsNamesFilename)
 	descriptors, err := parseTNSNames(string(data))
 	if err != nil {
 		return "", newTNSResolutionError(TNSFileMalformed, alias, path, err)
@@ -66,7 +69,7 @@ func readTNSNames(alias, adminDirectory string) ([]byte, error) {
 		return nil, newTNSResolutionError(TNSAdminUnavailable, alias, directory, err)
 	}
 
-	path := filepath.Join(directory, "tnsnames.ora")
+	path := filepath.Join(directory, tnsNamesFilename)
 	info, err = os.Lstat(path)
 	if err != nil || info.Mode()&os.ModeSymlink != 0 || !info.Mode().IsRegular() {
 		return nil, newTNSResolutionError(TNSFileUnavailable, alias, path, err)

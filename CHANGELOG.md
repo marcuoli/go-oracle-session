@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expose Oracle Net connection-input and wallet-path metadata for caller-owned diagnostics (#82).
+
 - Use a relative Unix socket name in the dial regression so it fits the macOS runner address limit (#79).
 
 - Expose value-only V2 configuration and direct dial observations for caller-owned connection diagnostics (#79).
