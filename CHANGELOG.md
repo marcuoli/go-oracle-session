@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Format credential-free Oracle Net routing references for Easy Connect, tnsnames.ora and JDBC Thin (#88).
+
 - Refresh the stable libc dependency and use released SDK v0.23.0 in the native harness (#86).
 
 - Observe caller-owned pings with synchronous start and completion callbacks (#84).
