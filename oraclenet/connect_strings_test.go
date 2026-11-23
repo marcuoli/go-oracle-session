@@ -25,7 +25,7 @@ func TestFormatConnectStrings(t *testing.T) {
 			name: "TCPS IPv6 service override", reference: "tcps://[2001:db8::A]:1522/ignored?SERVICE+NAME=app.example", alias: "APP",
 			want: oraclenet.ConnectStrings{
 				EasyConnect: "tcps://[2001:db8::A]:1522/app.example",
-				TNSNames:    "APP = (DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)(HOST=2001:db8::A)(PORT=1522))(CONNECT_DATA=(SERVICE_NAME=app.example)))",
+				TNSNames:    "APP = (DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)(HOST=2001:db8::A)(PORT=1522))(CONNECT_DATA=(SERVICE_NAME=app.example))(SECURITY=(SSL_SERVER_DN_MATCH=YES)))",
 				JDBCThin:    "jdbc:oracle:thin:@tcps://[2001:db8::A]:1522/app.example",
 			},
 		},
@@ -48,14 +48,14 @@ func TestFormatConnectStrings(t *testing.T) {
 			name: "wallet TCPS", reference: "tcps://db.example.invalid:1521/app", alias: "APP", wallet: true,
 			want: oraclenet.ConnectStrings{
 				EasyConnect: `tcps://db.example.invalid:1521/app?wallet_location="<wallet-directory>"`,
-				TNSNames:    `APP = (DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)(HOST=db.example.invalid)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=app))(SECURITY=(WALLET_LOCATION="<wallet-directory>")))`,
+				TNSNames:    `APP = (DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)(HOST=db.example.invalid)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=app))(SECURITY=(SSL_SERVER_DN_MATCH=YES)(WALLET_LOCATION="<wallet-directory>")))`,
 				JDBCThin:    `jdbc:oracle:thin:@tcps://db.example.invalid:1521/app?wallet_location="<wallet-directory>"`,
 			},
 		},
 		{
 			name: "wallet SID without entry", reference: "tcps://db.example.invalid:1522/?SID=XE", wallet: true,
 			want: oraclenet.ConnectStrings{
-				JDBCThin: `jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)(HOST=db.example.invalid)(PORT=1522))(CONNECT_DATA=(SID=XE))(SECURITY=(WALLET_LOCATION="<wallet-directory>")))`,
+				JDBCThin: `jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)(HOST=db.example.invalid)(PORT=1522))(CONNECT_DATA=(SID=XE))(SECURITY=(SSL_SERVER_DN_MATCH=YES)(WALLET_LOCATION="<wallet-directory>")))`,
 			},
 		},
 	} {

@@ -39,7 +39,8 @@ const walletDirectoryPlaceholder = "<wallet-directory>"
 //
 // entryAlias names the generated tnsnames.ora entry; an empty name omits it.
 // SID routes have no Easy Connect form. A wallet template requires TCPS or an
-// opaque alias. Callers supply client trust, certificate policy and any wallet
+// opaque alias. TCPS descriptors request server DN matching. Callers supply
+// client trust, any stricter certificate policy, and any wallet
 // files separately. TCPS Easy Connect requires support for Easy Connect Plus,
 // and JDBC alias TNS_ADMIN in the URL requires JDBC 18.3 or newer.
 //
@@ -95,9 +96,16 @@ func FormatConnectStrings(reference, entryAlias string, options ConnectStringOpt
 	}
 
 	var security, walletQuery string
-	if options.WalletTemplate {
-		walletQuery = `?wallet_location="` + walletDirectoryPlaceholder + `"`
-		security = `(SECURITY=(WALLET_LOCATION="` + walletDirectoryPlaceholder + `"))`
+	if protocol == "tcps" {
+		// Older clients recognize the SSL spelling, which newer Oracle Net
+		// clients still accept. A wallet path alone does not enable DN matching.
+		security = "(SECURITY=(SSL_SERVER_DN_MATCH=YES)"
+		if options.WalletTemplate {
+			directory := `"` + walletDirectoryPlaceholder + `"`
+			walletQuery = "?wallet_location=" + directory
+			security += "(WALLET_LOCATION=" + directory + ")"
+		}
+		security += ")"
 	}
 	descriptor := func(host string) string {
 		return fmt.Sprintf("(DESCRIPTION=(ADDRESS=(PROTOCOL=%s)(HOST=%s)(PORT=%d))(CONNECT_DATA=(%s=%s))%s)",
