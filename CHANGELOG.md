@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Use a relative Unix socket name in the dial regression so it fits the macOS runner address limit (#79).
+
 - Expose value-only V2 configuration and direct dial observations for caller-owned connection diagnostics (#79).
 
 - Document the released configured-memory API in go-oracle-info and its use with an admitted SDK session (#6).

@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"net"
-	"os"
-	"path/filepath"
 	"runtime"
 	"syscall"
 	"testing"
@@ -78,13 +76,9 @@ func TestDialContextUnix(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("Unix-domain socket fixture runs on Unix")
 	}
-	// Use a short basename to fit the platform's sockaddr_un path limit.
-	dir, err := os.MkdirTemp("", "uds-")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = os.Remove(dir) })
-	address := filepath.Join(dir, "s")
+	// A relative name fits sockaddr_un even when runner scratch is deeply nested.
+	t.Chdir(t.TempDir())
+	const address = "s"
 	listener, err := net.Listen("unix", address)
 	if err != nil {
 		t.Fatal(err)
