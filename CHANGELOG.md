@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Observe caller-owned pings with synchronous start and completion callbacks (#84).
+
 - Expose Oracle Net connection-input and wallet-path metadata for caller-owned diagnostics (#82).
 
 - Use a relative Unix socket name in the dial regression so it fits the macOS runner address limit (#79).
