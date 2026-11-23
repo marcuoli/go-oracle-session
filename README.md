@@ -71,6 +71,7 @@ compilation. Go-textoutput v0.1.1 also declares Go 1.27.3. Mingo v0.19.0
 identified the Go 1.27 family. That analysis does not resolve patch versions.
 The unchanged shipping module still requires 1.27.4. The source probe is
 separate from native Oracle qualification.
+The independent native harness requires Go 1.27.4 through its released SDK dependency.
 
 License: UPL 1.0.
 

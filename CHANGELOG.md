@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Refresh the stable libc dependency and use released SDK v0.23.0 in the native harness (#86).
+
 - Observe caller-owned pings with synchronous start and completion callbacks (#84).
 
 - Expose Oracle Net connection-input and wallet-path metadata for caller-owned diagnostics (#82).

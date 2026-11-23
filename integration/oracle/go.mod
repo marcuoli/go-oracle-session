@@ -3,7 +3,7 @@ module github.com/marcuoli/go-oracle-session/integration/oracle
 go 1.27.4
 
 require (
-	github.com/marcuoli/go-oracle-session v0.19.0
+	github.com/marcuoli/go-oracle-session v0.23.0
 	github.com/marcuoli/go-sqltemplate v0.1.1
 	github.com/sijms/go-ora/v2 v2.9.0
 	github.com/sijms/go-ora/v3 v3.0.1
@@ -43,7 +43,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/gorm v1.31.2 // indirect
 	modernc.org/cc/v4 v4.35.0 // indirect
-	modernc.org/libc v1.82.12 // indirect
+	modernc.org/libc v1.82.13 // indirect
 	modernc.org/memory v1.13.0 // indirect
 	modernc.org/sqlite v1.63.0 // indirect
 	xorm.io/builder v0.3.13 // indirect

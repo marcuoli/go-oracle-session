@@ -80,7 +80,7 @@ require (
 	modernc.org/gc/v3 v3.2.1 // indirect
 	modernc.org/goabi0 v0.2.1 // indirect
 	modernc.org/lexer v1.0.5 // indirect
-	modernc.org/libc v1.82.12 // indirect
+	modernc.org/libc v1.82.13 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.13.0 // indirect
 	modernc.org/opt v0.2.0 // indirect
