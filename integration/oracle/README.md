@@ -101,7 +101,7 @@ dependency review; no shared fork, cache patch or protocol rewrite is authorized
 ## Native cancellation profiles
 
 The default integration targets include native continuation against released
-go-oracle-session v0.7.0. Use GOWORK=off without a first-party replacement.
+go-oracle-session v0.19.0. Use GOWORK=off without a first-party replacement.
 For an unreleased first-party candidate, use a separate external modfile; do not
 change application manifests or introduce a third-party replacement.
 

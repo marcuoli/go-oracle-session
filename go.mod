@@ -13,7 +13,7 @@ require (
 )
 
 require (
-	codeberg.org/miekg/dns v0.6.133 // indirect
+	codeberg.org/miekg/dns v0.6.142 // indirect
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d // indirect
 	github.com/apparentlymart/go-cidr v1.1.1 // indirect
 	github.com/caddyserver/certmagic v0.25.6 // indirect
@@ -33,9 +33,10 @@ require (
 	github.com/j-keck/arping v1.0.3 // indirect
 	github.com/jpillora/backoff v1.1.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/klauspost/compress v1.20.4 // indirect
+	github.com/klauspost/compress v1.20.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.2 // indirect
 	github.com/koron/go-ssdp v0.9.2 // indirect
+	github.com/letsencrypt/challtestsrv v1.5.0 // indirect
 	github.com/letsencrypt/pebble/v2 v2.10.3 // indirect
 	github.com/libdns/libdns v1.1.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
@@ -44,7 +45,7 @@ require (
 	github.com/miekg/dns v1.1.73 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/oschwald/geoip2-golang/v2 v2.5.0 // indirect
-	github.com/oschwald/maxminddb-golang/v2 v2.9.0 // indirect
+	github.com/oschwald/maxminddb-golang/v2 v2.9.1 // indirect
 	github.com/prometheus/client_golang v1.25.0 // indirect
 	github.com/prometheus/client_model v0.6.3 // indirect
 	github.com/prometheus/common v0.74.0 // indirect
@@ -63,15 +64,15 @@ require (
 	golang.org/x/crypto v0.59.0 // indirect
 	golang.org/x/exp v0.0.0-20261106112924-d498a4c2cc9a // indirect
 	golang.org/x/mod v0.43.0 // indirect
-	golang.org/x/net v0.62.0 // indirect
+	golang.org/x/net v0.63.0 // indirect
 	golang.org/x/sync v0.25.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
-	golang.org/x/telemetry v0.0.0-20261111153349-cdaf7e97dd7b // indirect
-	golang.org/x/tools v0.52.0 // indirect
+	golang.org/x/telemetry v0.0.0-20261116191925-e77a43154acb // indirect
+	golang.org/x/tools v0.53.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	lukechampine.com/uint128 v1.3.0 // indirect
 	modernc.org/cc/v3 v3.41.0 // indirect
-	modernc.org/cc/v4 v4.34.0 // indirect
+	modernc.org/cc/v4 v4.35.0 // indirect
 	modernc.org/ccgo/v3 v3.17.0 // indirect
 	modernc.org/ccgo/v4 v4.39.3 // indirect
 	modernc.org/fileutil v1.4.0 // indirect
@@ -79,12 +80,12 @@ require (
 	modernc.org/gc/v3 v3.2.1 // indirect
 	modernc.org/goabi0 v0.2.1 // indirect
 	modernc.org/lexer v1.0.5 // indirect
-	modernc.org/libc v1.81.0 // indirect
+	modernc.org/libc v1.82.12 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.12.1 // indirect
+	modernc.org/memory v1.13.0 // indirect
 	modernc.org/opt v0.2.0 // indirect
 	modernc.org/sortutil v1.2.1 // indirect
-	modernc.org/sqlite v1.62.0 // indirect
+	modernc.org/sqlite v1.63.0 // indirect
 	modernc.org/strutil v1.2.1 // indirect
 	modernc.org/token v1.1.0 // indirect
 )

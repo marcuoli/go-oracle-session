@@ -51,11 +51,11 @@ go list -m -json all > "$output/modules.json"
 printf 'nativeHarness=%s\nbuildTags=%s\n' "${native:-false}" "${tags:-none}" > "$output/validation-options.txt"
 if $scan; then
   if [[ -n "$native" ]]; then
-    go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -test "-tags=$tags" ./...
+    go run golang.org/x/vuln/cmd/govulncheck@v1.10.0 -test "-tags=$tags" ./...
   else
-    go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+    go run golang.org/x/vuln/cmd/govulncheck@v1.10.0 ./...
   fi
-  go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary "$output/$binary_name"
+  go run golang.org/x/vuln/cmd/govulncheck@v1.10.0 -mode=binary "$output/$binary_name"
 fi
 if [[ -n "$native" ]]; then printf 'Native harness validation is offline; no database qualification was performed.\n'; fi
 printf 'Validation passed. Evidence: %s\n' "$output"

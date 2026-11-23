@@ -34,7 +34,7 @@ try {
     & $GoExecutable env -json GOVERSION GOOS GOARCH GOFLAGS CGO_ENABLED GOWORK | Set-Content -LiteralPath (Join-Path $output 'build-settings.json');if($LASTEXITCODE -ne 0){throw 'Build settings inspection failed'}
     & $GoExecutable list -m -json all | Set-Content -LiteralPath (Join-Path $output 'modules.json');if($LASTEXITCODE -ne 0){throw 'Module graph inspection failed'}
     @{nativeHarness=[bool]$NativeHarness;buildFlags=$buildFlags;scanFlags=$scanFlags;testPackage=$testPackage}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $output 'validation-options.json')
-    if($Scan){Invoke-Go -Arguments (@('run','golang.org/x/vuln/cmd/govulncheck@v1.9.0')+$scanFlags+@('./...'));Invoke-Go -Arguments @('run','golang.org/x/vuln/cmd/govulncheck@v1.9.0','-mode=binary',$binary)}
+    if($Scan){Invoke-Go -Arguments (@('run','golang.org/x/vuln/cmd/govulncheck@v1.10.0')+$scanFlags+@('./...'));Invoke-Go -Arguments @('run','golang.org/x/vuln/cmd/govulncheck@v1.10.0','-mode=binary',$binary)}
     if($NativeHarness){Write-Output 'Native harness validation is offline; no database qualification was performed.'}
     Write-Output "Validation passed. Evidence: $output"
 } finally {

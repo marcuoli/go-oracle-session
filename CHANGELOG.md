@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Refresh stable SDK and native-harness dependencies, use govulncheck v1.10.0, and verify SDK source compatibility with Go 1.27.3 (#76).
+
 - Run both bundled drivers against two wallet-based Autonomous Database profiles and a wallet-backed TNS profile in the opt-in native matrix (#25).
 
 - Use the upgraded Oracle Net native crypto exchange in the retained V3 alternate after V2's confirmed pre-authentication crypto rejection (#71).

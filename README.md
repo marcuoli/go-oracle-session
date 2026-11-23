@@ -1,7 +1,7 @@
 # go-oracle-session
 
 ![Module/build Go 1.27.4](https://img.shields.io/badge/module%2Fbuild-Go%201.27.4-00ADD8)
-![Source compatibility 1.27.3 tested; minimum unverified](https://img.shields.io/badge/source%20compatibility-1.27.3%20tested%3B%20minimum%20unverified-yellow)
+![Source compatibility Go 1.27.3 verified](https://img.shields.io/badge/source%20compatibility-Go%201.27.3%20verified-2ea44f)
 
 Reusable single-session query ownership, cancellation evidence, direct socket tracking and strict credential-bearing connection inventory. Use the functional imports `session`, `cancel`, `transport` and `inventory`.
 
@@ -52,22 +52,18 @@ yet natively qualified by this module.
 
 ## Go compatibility
 
-The declared module requirement and current build compiler are Go 1.27.4.
-Separately, earlier source and selected dependencies passed an isolated probe
-using exact Go 1.27.3, with only an alternate probe module's Go directive adjusted:
-Windows/amd64 tests, race, vet, module verification and builds passed;
-Linux/amd64 and macOS/arm64 test binaries cross-compiled without execution.
-This does not make the unchanged shipping module installable with Go 1.27.3.
-That historical probe predates rowset; the new package is qualified with the
-configured Go 1.27.4 compiler.
+The shipping module and configured builds require Go 1.27.4.
 
-The lower source-compatibility boundary remains unverified. Exact Go 1.27.2
-was rejected by an unchanged dependency's Go 1.27.3 declaration before source
-compilation. Mingo v0.18.0 reports the Go 1.27 family from dependency metadata;
-it does not establish a patch minimum. The library's `sync.WaitGroup.Go` use
-requires at least Go 1.25, but that alone does not establish the dependency floor.
-These probes establish source compatibility under their tested configurations,
-not security support or native Oracle driver qualification.
+The SDK source-compatibility floor is Go 1.27.3. The exact 1.27.3 compiler
+passed Windows/amd64 tests, race checks, vet, module verification and builds
+with only the Go directive lowered in an isolated copy of the SDK. The same
+source cross-built for Linux/amd64 and macOS/arm64.
+
+Go 1.27.2 rejected the unchanged go-sqltemplate v0.1.1 requirement before
+compilation. Go-textoutput v0.1.1 also declares Go 1.27.3. Mingo v0.19.0
+identified the Go 1.27 family. That analysis does not resolve patch versions.
+The unchanged shipping module still requires 1.27.4. The source probe is
+separate from native Oracle qualification.
 
 License: UPL 1.0.
 
