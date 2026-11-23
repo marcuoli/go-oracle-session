@@ -50,6 +50,13 @@ combinations require native qualification. See the [compatibility contract and
 qualification checklist](docs/oracle-compatibility.md); the full range is not
 yet natively qualified by this module.
 
+For configured SGA and PGA facts, use
+[`go-oracle-info/memory`](https://pkg.go.dev/github.com/marcuoli/go-oracle-info/memory)
+with a caller-admitted session. The fact library owns Oracle SQL selection and
+decoding, including container scope, value provenance and the guarded
+Autonomous Database fallback. The session library owns query execution and
+connection lifetime.
+
 ## Go compatibility
 
 The shipping module and configured builds require Go 1.27.4.
