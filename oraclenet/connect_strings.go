@@ -2,7 +2,6 @@ package oraclenet
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"net/netip"
 	"net/url"
@@ -27,6 +26,10 @@ type ConnectStringOptions struct {
 	// WalletTemplate adds a <wallet-directory> placeholder to TCPS or alias
 	// output. The caller decides from known configuration whether to request it.
 	WalletTemplate bool
+
+	// IndentTNSNames writes the tnsnames.ora entry across multiple lines with
+	// two spaces per nesting level. The default is a compact single line.
+	IndentTNSNames bool
 }
 
 const walletDirectoryPlaceholder = "<wallet-directory>"
@@ -95,24 +98,17 @@ func FormatConnectStrings(reference, entryAlias string, options ConnectStringOpt
 		return result, err
 	}
 
-	var security, walletQuery string
-	if protocol == "tcps" {
-		// Older clients recognize the SSL spelling, which newer Oracle Net
-		// clients still accept. A wallet path alone does not enable DN matching.
-		security = "(SECURITY=(SSL_SERVER_DN_MATCH=YES)"
-		if options.WalletTemplate {
-			directory := `"` + walletDirectoryPlaceholder + `"`
-			walletQuery = "?wallet_location=" + directory
-			security += "(WALLET_LOCATION=" + directory + ")"
-		}
-		security += ")"
-	}
-	descriptor := func(host string) string {
-		return fmt.Sprintf("(DESCRIPTION=(ADDRESS=(PROTOCOL=%s)(HOST=%s)(PORT=%d))(CONNECT_DATA=(%s=%s))%s)",
-			strings.ToUpper(protocol), host, port, key, name, security)
+	portText = strconv.FormatUint(port, 10)
+	var walletDirectory string
+	if options.WalletTemplate {
+		walletDirectory = `"` + walletDirectoryPlaceholder + `"`
 	}
 	if entryAlias != "" {
-		result.TNSNames = entryAlias + " = " + descriptor(host)
+		separator := " = "
+		if options.IndentTNSNames {
+			separator = " =\n"
+		}
+		result.TNSNames = entryAlias + separator + formatConnectDescriptor(protocol, host, portText, key, name, walletDirectory, options.IndentTNSNames)
 	}
 	if key == "SID" {
 		// Oracle Net descriptors can use a bare IPv6 literal. JDBC URL
@@ -120,19 +116,57 @@ func FormatConnectStrings(reference, entryAlias string, options ConnectStringOpt
 		if ip.Is6() {
 			host = "[" + host + "]"
 		}
-		result.JDBCThin = jdbcPrefix + descriptor(host)
+		result.JDBCThin = jdbcPrefix + formatConnectDescriptor(protocol, host, portText, key, name, walletDirectory, false)
 		return result, nil
 	}
 
-	address := net.JoinHostPort(host, strconv.FormatUint(port, 10)) + "/" + name
+	address := net.JoinHostPort(host, portText) + "/" + name
 	if protocol == "tcps" {
-		result.EasyConnect = "tcps://" + address + walletQuery
+		result.EasyConnect = "tcps://" + address
+		if walletDirectory != "" {
+			result.EasyConnect += "?wallet_location=" + walletDirectory
+		}
 		result.JDBCThin = jdbcPrefix + result.EasyConnect
 	} else {
 		result.EasyConnect = address + "\n//" + address
 		result.JDBCThin = jdbcPrefix + "//" + address
 	}
 	return result, nil
+}
+
+func formatConnectDescriptor(protocol, host, port, key, name, walletDirectory string, indent bool) string {
+	var descriptor strings.Builder
+	write := func(depth int, text string) {
+		if indent {
+			if descriptor.Len() > 0 {
+				descriptor.WriteByte('\n')
+			}
+			descriptor.WriteString(strings.Repeat("  ", depth))
+		}
+		descriptor.WriteString(text)
+	}
+
+	write(1, "(DESCRIPTION=")
+	write(2, "(ADDRESS=")
+	write(3, "(PROTOCOL="+strings.ToUpper(protocol)+")")
+	write(3, "(HOST="+host+")")
+	write(3, "(PORT="+port+")")
+	write(2, ")")
+	write(2, "(CONNECT_DATA=")
+	write(3, "("+key+"="+name+")")
+	write(2, ")")
+	if protocol == "tcps" {
+		// Older clients recognize this spelling, which newer Oracle Net
+		// clients still accept. A wallet path alone does not enable DN matching.
+		write(2, "(SECURITY=")
+		write(3, "(SSL_SERVER_DN_MATCH=YES)")
+		if walletDirectory != "" {
+			write(3, "(WALLET_LOCATION="+walletDirectory+")")
+		}
+		write(2, ")")
+	}
+	write(1, ")")
+	return descriptor.String()
 }
 
 func connectData(parsed *url.URL) (key, value string, err error) {
