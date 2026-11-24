@@ -16,6 +16,7 @@ func TestFormatConnectStrings(t *testing.T) {
 		wallet                 bool
 		want                   oraclenet.ConnectStrings
 		wantIndentedTNS        string
+		wantCompactSections    string
 	}{
 		{
 			name: "TCP service", reference: "oracle://db.example.invalid:1521/app", alias: "APP",
@@ -35,6 +36,11 @@ func TestFormatConnectStrings(t *testing.T) {
       (SERVICE_NAME=app)
     )
   )`,
+			wantCompactSections: `APP =
+    (DESCRIPTION=
+        (ADDRESS=(PROTOCOL=TCP)(HOST=db.example.invalid)(PORT=1521))
+        (CONNECT_DATA=(SERVICE_NAME=app))
+    )`,
 		},
 		{
 			name: "TCPS IPv6 service override", reference: "tcps://[2001:db8::A]:1522/ignored?SERVICE+NAME=app.example", alias: "APP",
@@ -57,6 +63,12 @@ func TestFormatConnectStrings(t *testing.T) {
       (SSL_SERVER_DN_MATCH=YES)
     )
   )`,
+			wantCompactSections: `APP =
+    (DESCRIPTION=
+        (ADDRESS=(PROTOCOL=TCPS)(HOST=2001:db8::A)(PORT=1522))
+        (CONNECT_DATA=(SERVICE_NAME=app.example))
+        (SECURITY=(SSL_SERVER_DN_MATCH=YES))
+    )`,
 		},
 		{
 			name: "SID takes precedence", reference: "tcp://[2001:db8::2]:1522/old?SID=XE&service+name=other", alias: "XE",
@@ -75,6 +87,11 @@ func TestFormatConnectStrings(t *testing.T) {
       (SID=XE)
     )
   )`,
+			wantCompactSections: `XE =
+    (DESCRIPTION=
+        (ADDRESS=(PROTOCOL=TCP)(HOST=2001:db8::2)(PORT=1522))
+        (CONNECT_DATA=(SID=XE))
+    )`,
 		},
 		{
 			name: "opaque alias", reference: "adb_high", alias: "NO_DESCRIPTOR",
@@ -106,6 +123,12 @@ func TestFormatConnectStrings(t *testing.T) {
       (WALLET_LOCATION="<wallet-directory>")
     )
   )`,
+			wantCompactSections: `APP =
+    (DESCRIPTION=
+        (ADDRESS=(PROTOCOL=TCPS)(HOST=db.example.invalid)(PORT=1521))
+        (CONNECT_DATA=(SERVICE_NAME=app))
+        (SECURITY=(SSL_SERVER_DN_MATCH=YES)(WALLET_LOCATION="<wallet-directory>"))
+    )`,
 		},
 		{
 			name: "wallet SID without entry", reference: "tcps://db.example.invalid:1522/?SID=XE", wallet: true,
@@ -129,28 +152,40 @@ func TestFormatConnectStrings(t *testing.T) {
 				}
 			}
 
-			indented, err := oraclenet.FormatConnectStrings(tc.reference, tc.alias, oraclenet.ConnectStringOptions{
-				WalletTemplate: tc.wallet, IndentTNSNames: true,
-			})
-			if err != nil {
-				t.Fatal(err)
-			}
-			want := tc.want
-			want.TNSNames = tc.wantIndentedTNS
-			if indented != want {
-				t.Fatalf("indented strings = %+v, want %+v", indented, want)
-			}
-			if indented.TNSNames != "" {
-				admin := t.TempDir()
-				file := filepath.Join(admin, "tnsnames.ora")
-				if err := os.WriteFile(file, []byte(indented.TNSNames), 0600); err != nil {
-					t.Fatal(err)
-				}
-				_, descriptor, _ := strings.Cut(tc.wantIndentedTNS, "=")
-				resolved, err := oraclenet.ResolveAlias(strings.ToLower(tc.alias), admin)
-				if err != nil || resolved != strings.TrimSpace(descriptor) {
-					t.Fatalf("resolved indented descriptor = %q, error %v", resolved, err)
-				}
+			for _, layout := range []struct {
+				name, tns       string
+				indent, compact bool
+			}{
+				{"detailed", tc.wantIndentedTNS, true, false},
+				{"compact sections", tc.wantCompactSections, true, true},
+				{"compact sections flag alone", tc.want.TNSNames, false, true},
+			} {
+				t.Run(layout.name, func(t *testing.T) {
+					formatted, err := oraclenet.FormatConnectStrings(tc.reference, tc.alias, oraclenet.ConnectStringOptions{
+						WalletTemplate: tc.wallet, IndentTNSNames: layout.indent, CompactTNSNamesSections: layout.compact,
+					})
+					if err != nil {
+						t.Fatal(err)
+					}
+					want := tc.want
+					want.TNSNames = layout.tns
+					if formatted != want {
+						t.Fatalf("formatted strings = %+v, want %+v", formatted, want)
+					}
+					if formatted.TNSNames == "" {
+						return
+					}
+					admin := t.TempDir()
+					file := filepath.Join(admin, "tnsnames.ora")
+					if err := os.WriteFile(file, []byte(formatted.TNSNames), 0600); err != nil {
+						t.Fatal(err)
+					}
+					_, descriptor, _ := strings.Cut(layout.tns, "=")
+					resolved, err := oraclenet.ResolveAlias(strings.ToLower(tc.alias), admin)
+					if err != nil || resolved != strings.TrimSpace(descriptor) {
+						t.Fatalf("resolved descriptor = %q, error %v", resolved, err)
+					}
+				})
 			}
 		})
 	}
@@ -186,12 +221,14 @@ func TestFormatConnectStringsRejectsUnsafeInput(t *testing.T) {
 		{name: "alias comment", reference: "tcp://db.example.invalid:1521/app", alias: "APP#comment"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			for _, indent := range []bool{false, true} {
-				got, err := oraclenet.FormatConnectStrings(tc.reference, tc.alias, oraclenet.ConnectStringOptions{
-					WalletTemplate: tc.wallet, IndentTNSNames: indent,
-				})
+			for _, options := range []oraclenet.ConnectStringOptions{
+				{WalletTemplate: tc.wallet},
+				{WalletTemplate: tc.wallet, IndentTNSNames: true},
+				{WalletTemplate: tc.wallet, IndentTNSNames: true, CompactTNSNamesSections: true},
+			} {
+				got, err := oraclenet.FormatConnectStrings(tc.reference, tc.alias, options)
 				if got != (oraclenet.ConnectStrings{}) || !errors.Is(err, oraclenet.ErrInvalidConnectStringInput) || err.Error() != "invalid Oracle Net connection string input" {
-					t.Fatalf("indent=%t: got %+v, %v, want zero output and the static input error", indent, got, err)
+					t.Fatalf("options=%+v: got %+v, %v, want zero output and the static input error", options, got, err)
 				}
 			}
 		})

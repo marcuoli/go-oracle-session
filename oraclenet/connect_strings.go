@@ -30,6 +30,10 @@ type ConnectStringOptions struct {
 	// IndentTNSNames writes the tnsnames.ora entry across multiple lines with
 	// two spaces per nesting level. The default is a compact single line.
 	IndentTNSNames bool
+
+	// CompactTNSNamesSections puts each DESCRIPTION section on a single line
+	// and uses four spaces per nesting level when IndentTNSNames is true.
+	CompactTNSNamesSections bool
 }
 
 const walletDirectoryPlaceholder = "<wallet-directory>"
@@ -108,7 +112,7 @@ func FormatConnectStrings(reference, entryAlias string, options ConnectStringOpt
 		if options.IndentTNSNames {
 			separator = " =\n"
 		}
-		result.TNSNames = entryAlias + separator + formatConnectDescriptor(protocol, host, portText, key, name, walletDirectory, options.IndentTNSNames)
+		result.TNSNames = entryAlias + separator + formatConnectDescriptor(protocol, host, portText, key, name, walletDirectory, options)
 	}
 	if key == "SID" {
 		// Oracle Net descriptors can use a bare IPv6 literal. JDBC URL
@@ -116,7 +120,7 @@ func FormatConnectStrings(reference, entryAlias string, options ConnectStringOpt
 		if ip.Is6() {
 			host = "[" + host + "]"
 		}
-		result.JDBCThin = jdbcPrefix + formatConnectDescriptor(protocol, host, portText, key, name, walletDirectory, false)
+		result.JDBCThin = jdbcPrefix + formatConnectDescriptor(protocol, host, portText, key, name, walletDirectory, ConnectStringOptions{})
 		return result, nil
 	}
 
@@ -134,36 +138,47 @@ func FormatConnectStrings(reference, entryAlias string, options ConnectStringOpt
 	return result, nil
 }
 
-func formatConnectDescriptor(protocol, host, port, key, name, walletDirectory string, indent bool) string {
+func formatConnectDescriptor(protocol, host, port, key, name, walletDirectory string, options ConnectStringOptions) string {
+	compactSections := options.IndentTNSNames && options.CompactTNSNamesSections
+	indent := "  "
+	if compactSections {
+		indent = "    "
+	}
+
 	var descriptor strings.Builder
 	write := func(depth int, text string) {
-		if indent {
+		if options.IndentTNSNames {
 			if descriptor.Len() > 0 {
 				descriptor.WriteByte('\n')
 			}
-			descriptor.WriteString(strings.Repeat("  ", depth))
+			descriptor.WriteString(strings.Repeat(indent, depth))
 		}
 		descriptor.WriteString(text)
 	}
+	writeSection := func(name string, values ...string) {
+		open := "(" + name + "="
+		if compactSections {
+			write(2, open+strings.Join(values, "")+")")
+			return
+		}
+		write(2, open)
+		for _, value := range values {
+			write(3, value)
+		}
+		write(2, ")")
+	}
 
 	write(1, "(DESCRIPTION=")
-	write(2, "(ADDRESS=")
-	write(3, "(PROTOCOL="+strings.ToUpper(protocol)+")")
-	write(3, "(HOST="+host+")")
-	write(3, "(PORT="+port+")")
-	write(2, ")")
-	write(2, "(CONNECT_DATA=")
-	write(3, "("+key+"="+name+")")
-	write(2, ")")
+	writeSection("ADDRESS", "(PROTOCOL="+strings.ToUpper(protocol)+")", "(HOST="+host+")", "(PORT="+port+")")
+	writeSection("CONNECT_DATA", "("+key+"="+name+")")
 	if protocol == "tcps" {
 		// Older clients recognize this spelling, which newer Oracle Net
 		// clients still accept. A wallet path alone does not enable DN matching.
-		write(2, "(SECURITY=")
-		write(3, "(SSL_SERVER_DN_MATCH=YES)")
+		security := []string{"(SSL_SERVER_DN_MATCH=YES)"}
 		if walletDirectory != "" {
-			write(3, "(WALLET_LOCATION="+walletDirectory+")")
+			security = append(security, "(WALLET_LOCATION="+walletDirectory+")")
 		}
-		write(2, ")")
+		writeSection("SECURITY", security...)
 	}
 	write(1, ")")
 	return descriptor.String()
