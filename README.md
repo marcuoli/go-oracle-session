@@ -117,7 +117,7 @@ policy. Callers decide whether and when to construct a new admitted pool.
 The original Session.Open/Query options and exact result behavior remain stable.
 Native driver/version/platform qualification remains the consuming application's work.
 
-The `oraclenet` package resolves bounded `tnsnames.ora` aliases and wallet paths without a driver. It preserves connection-compatible alias precedence and descriptor text, handles `MY_WALLET_DIRECTORY`, `sqlnet.ora` file wallets and native environment expansion, and never reads wallet contents. Callers decide when a selected TCPS endpoint needs client credentials; ordinary TCP endpoints must not inherit a wallet. `ResolveDescriptorWallet` considers explicit descriptor settings only, without automatic file discovery. Application diagnostics and TLS negotiation remain caller-owned.
+The SDK `oraclenet` package preserves its API and delegates to [go-oracle-net](https://github.com/marcuoli/go-oracle-net). Use the standalone module for Oracle Net configuration tools. The package resolves bounded `tnsnames.ora` aliases and wallet paths without a driver. It preserves connection-compatible alias precedence and descriptor text, handles `MY_WALLET_DIRECTORY`, `sqlnet.ora` file wallets and native environment expansion, and never reads wallet contents. Callers decide when a selected TCPS endpoint needs client credentials; ordinary TCP endpoints must not inherit a wallet. `ResolveDescriptorWallet` considers explicit descriptor settings only, without automatic file discovery. Application diagnostics and TLS negotiation remain caller-owned.
 
 
 ### Native cancellation and continuation

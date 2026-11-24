@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Delegate Oracle Net parsing, formatting and configuration resolution to go-oracle-net while preserving the SDK API (#90).
+
 - Format credential-free Oracle Net routing references for Easy Connect, tnsnames.ora and JDBC Thin, with optional detailed or compact multiline tnsnames.ora indentation (#88).
 
 - Refresh the stable libc dependency and use released SDK v0.23.0 in the native harness (#86).

@@ -39,6 +39,7 @@ require (
 	github.com/letsencrypt/challtestsrv v1.5.0 // indirect
 	github.com/letsencrypt/pebble/v2 v2.10.3 // indirect
 	github.com/libdns/libdns v1.1.1 // indirect
+	github.com/marcuoli/go-oracle-net v0.1.0
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mattn/go-runewidth v0.0.31 // indirect
 	github.com/mholt/acmez/v3 v3.1.7 // indirect
