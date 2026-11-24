@@ -3,7 +3,7 @@ module github.com/marcuoli/go-oracle-session/integration/oracle
 go 1.27.4
 
 require (
-	github.com/marcuoli/go-oracle-session v0.23.0
+	github.com/marcuoli/go-oracle-session v0.25.0
 	github.com/marcuoli/go-sqltemplate v0.1.1
 	github.com/sijms/go-ora/v2 v2.9.0
 	github.com/sijms/go-ora/v3 v3.0.1
@@ -11,7 +11,7 @@ require (
 
 // Keep stable versions selected for the upstream graph after go mod tidy.
 require (
-	codeberg.org/miekg/dns v0.6.142 // indirect
+	codeberg.org/miekg/dns v0.6.143 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.24.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.15.0 // indirect
@@ -38,7 +38,9 @@ require (
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/shopspring/decimal v1.6.0 // indirect
 	github.com/stretchr/objx v0.8.0 // indirect
+	golang.org/x/crypto v0.59.0 // indirect
 	golang.org/x/net v0.63.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/tools v0.53.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/gorm v1.31.2 // indirect

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Refresh DNS to v0.6.143 and validate the independent Oracle harness against released SDK v0.25.0. Record the separately verified Go source and test boundaries (#92).
+
 - Delegate Oracle Net parsing, formatting and configuration resolution to go-oracle-net while preserving the SDK API (#90).
 
 - Format credential-free Oracle Net routing references for Easy Connect, tnsnames.ora and JDBC Thin, with optional detailed or compact multiline tnsnames.ora indentation (#88).

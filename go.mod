@@ -7,13 +7,14 @@ go 1.27.4
 
 require (
 	github.com/marcuoli/go-hostdiscovery v1.6.0
+	github.com/marcuoli/go-oracle-net v0.1.0
 	github.com/marcuoli/go-sqltemplate v0.1.1
 	github.com/marcuoli/go-textoutput v0.1.1
 	golang.org/x/text v0.44.0
 )
 
 require (
-	codeberg.org/miekg/dns v0.6.142 // indirect
+	codeberg.org/miekg/dns v0.6.143 // indirect
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d // indirect
 	github.com/apparentlymart/go-cidr v1.1.1 // indirect
 	github.com/caddyserver/certmagic v0.25.6 // indirect
@@ -39,7 +40,6 @@ require (
 	github.com/letsencrypt/challtestsrv v1.5.0 // indirect
 	github.com/letsencrypt/pebble/v2 v2.10.3 // indirect
 	github.com/libdns/libdns v1.1.1 // indirect
-	github.com/marcuoli/go-oracle-net v0.1.0
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mattn/go-runewidth v0.0.31 // indirect
 	github.com/mholt/acmez/v3 v3.1.7 // indirect

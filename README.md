@@ -1,7 +1,7 @@
 # go-oracle-session
 
 ![Module/build Go 1.27.4](https://img.shields.io/badge/module%2Fbuild-Go%201.27.4-00ADD8)
-![Source compatibility Go 1.27.3 verified](https://img.shields.io/badge/source%20compatibility-Go%201.27.3%20verified-2ea44f)
+![Production source builds verified with Go 1.25.0](https://img.shields.io/badge/production%20source%20build-Go%201.25.0%20verified-2ea44f)
 
 Reusable single-session query ownership, cancellation evidence, direct socket tracking and strict credential-bearing connection inventory. Use the functional imports `session`, `cancel`, `transport` and `inventory`.
 
@@ -59,19 +59,20 @@ connection lifetime.
 
 ## Go compatibility
 
-The shipping module and configured builds require Go 1.27.4.
+The shipping SDK, independent Oracle harness, and configured builds require
+Go 1.27.4. Go 1.27.3 rejects the SDK's released go-oracle-net dependency and
+the harness's released SDK dependency.
 
-The SDK source-compatibility floor is Go 1.27.3. The exact 1.27.3 compiler
-passed Windows/amd64 tests, race checks, vet, module verification and builds
-with only the Go directive lowered in an isolated copy of the SDK. The same
-source cross-built for Linux/amd64 and macOS/arm64.
+**Production source builds are verified with Go 1.25.0.** The exact compiler
+built the SDK for Windows/amd64, Linux/amd64, and macOS/arm64. Both independent
+harness profiles passed their offline tests on Windows/amd64. The Go 1.24.0
+compiler rejects the SDK's use of [sync.WaitGroup.Go](https://pkg.go.dev/sync#WaitGroup.Go).
 
-Go 1.27.2 rejected the unchanged go-sqltemplate v0.1.1 requirement before
-compilation. Go-textoutput v0.1.1 also declares Go 1.27.3. Mingo v0.19.0
-identified the Go 1.27 family. That analysis does not resolve patch versions.
-The unchanged shipping module still requires 1.27.4. The source probe is
-separate from native Oracle qualification.
-The independent native harness requires Go 1.27.4 through its released SDK dependency.
+The full SDK test suite passed with Go 1.27.0 on Windows/amd64. Go 1.26.11
+rejects retained-driver test literals that name promoted struct fields.
+These source checks used byte-verified copies of the selected packages in
+isolated GOPATH snapshots. The Go 1.27.4 module requirement and native Oracle
+qualification are separate.
 
 License: UPL 1.0.
 
