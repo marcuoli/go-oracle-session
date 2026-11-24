@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/marcuoli/go-oracle-net"
 	"github.com/marcuoli/go-oracle-session/goora/compat"
 	"github.com/marcuoli/go-oracle-session/inventory"
-	"github.com/marcuoli/go-oracle-session/oraclenet"
 )
 
 // TestNativeADBMatrix runs both bundled drivers against three explicitly

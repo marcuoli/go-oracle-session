@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Use go-oracle-net directly in SDK callers and verify the compatibility import's error details and cause (#94).
+
 - Refresh DNS to v0.6.143 and validate the independent Oracle harness against released SDK v0.25.0. Record the separately verified Go source and test boundaries (#92).
 
 - Delegate Oracle Net parsing, formatting and configuration resolution to go-oracle-net while preserving the SDK API (#90).

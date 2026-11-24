@@ -2,6 +2,8 @@ package oraclenet_test
 
 import (
 	"errors"
+	"io/fs"
+	"path/filepath"
 	"testing"
 
 	netconfig "github.com/marcuoli/go-oracle-net"
@@ -24,15 +26,17 @@ func TestOracleNetCompatibility(t *testing.T) {
 		t.Fatalf("SDK TNS parse = %+v, error %v", config, err)
 	}
 
-	_, err = oraclenet.ResolveAlias("APP", t.TempDir())
-	var resolution *netconfig.ResolutionError
+	dir := t.TempDir()
+	_, err = oraclenet.ResolveAlias("APP", dir)
+	var resolution *oraclenet.ResolutionError
 	if !errors.As(err, &resolution) || resolution.Reason != oraclenet.TNSFileUnavailable ||
 		!errors.Is(err, oraclenet.ErrTNSAliasUnavailable) || !errors.Is(err, netconfig.ErrTNSAliasUnavailable) {
 		t.Fatalf("SDK alias error = %v, resolution = %+v", err, resolution)
 	}
-	var oldResolution *oraclenet.ResolutionError = resolution
-	if oldResolution != resolution {
-		t.Fatalf("SDK resolution error differs: %v", oldResolution)
+	wantPath := filepath.Join(dir, "tnsnames.ora")
+	if resolution.Alias != "APP" || resolution.Path != wantPath || !errors.Is(err, fs.ErrNotExist) {
+		t.Fatalf("SDK alias error has alias %q, path %q, cause %v; want APP, %q and a missing file",
+			resolution.Alias, resolution.Path, resolution.Cause, wantPath)
 	}
 
 	_, err = oraclenet.FormatConnectStrings("unrecognized://bad", "APP", opts)

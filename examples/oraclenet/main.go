@@ -3,8 +3,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/marcuoli/go-oracle-session/oraclenet"
 	"os"
+
+	"github.com/marcuoli/go-oracle-net"
 )
 
 func main() {
