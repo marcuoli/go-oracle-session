@@ -26,6 +26,11 @@ func TestOracleNetCompatibility(t *testing.T) {
 		t.Fatalf("SDK TNS parse = %+v, error %v", config, err)
 	}
 
+	config, err = oraclenet.ParseTNSNames([]byte("IFILE=\n" + got.TNSNames))
+	if !errors.Is(err, oraclenet.ErrNetConfigSyntax) || len(config.Entries) != 0 || len(config.Includes) != 0 {
+		t.Fatalf("SDK TNS parse with an empty IFILE = %+v, error %v; want syntax error and no configuration", config, err)
+	}
+
 	dir := t.TempDir()
 	_, err = oraclenet.ResolveAlias("APP", dir)
 	var resolution *oraclenet.ResolutionError

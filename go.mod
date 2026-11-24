@@ -7,7 +7,7 @@ go 1.27.4
 
 require (
 	github.com/marcuoli/go-hostdiscovery v1.6.0
-	github.com/marcuoli/go-oracle-net v0.1.0
+	github.com/marcuoli/go-oracle-net v0.1.1
 	github.com/marcuoli/go-sqltemplate v0.1.1
 	github.com/marcuoli/go-textoutput v0.1.1
 	golang.org/x/text v0.44.0
