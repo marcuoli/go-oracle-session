@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Preserve scalar PL/SQL VARCHAR2 input through 32767 encoded bytes in retained V3 before Oracle 12.2 (#99).
+
 - Accept a caller-supplied borrowed-sample identity reader on the existing lease and preserve the original qualification API (#96).
 
 - Use go-oracle-net v0.1.1 directly in SDK callers. Keep the compatibility import and verify rejection of empty TNS IFILE assignments through it (#94).
