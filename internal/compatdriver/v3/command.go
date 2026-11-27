@@ -1578,7 +1578,7 @@ func (stmt *Stmt) structPar(parValue driver.Value, parIndex int) (processedPars 
 				if err != nil {
 					return
 				}
-				err = tempPar.encodeValue(0, stmt.connection)
+				err = stmt.encodeParam(tempPar, 0)
 				if err != nil {
 					return
 				}
@@ -1606,7 +1606,7 @@ func (stmt *Stmt) structPar(parValue driver.Value, parIndex int) (processedPars 
 					if err != nil {
 						return
 					}
-					err = tempPar.encodeValue(0, stmt.connection)
+					err = stmt.encodeParam(tempPar, 0)
 				} else {
 					tempPar, err = addOutputField(name, _type, size, ParameterDirection(dir), i)
 				}
@@ -1981,11 +1981,29 @@ func (stmt *Stmt) NewParam(name string, val driver.Value, size int, direction Pa
 	//		}
 	//	}
 	//}
-	err := param.encodeValue(int64(size), stmt.connection)
+	err := stmt.encodeParam(param, int64(size))
 	if err != nil {
 		return nil, err
 	}
-	return param, err
+	return param, nil
+}
+
+func (stmt *Stmt) encodeParam(param *ParameterInfo, size int64) error {
+	if err := param.encodeValue(size, stmt.connection); err != nil {
+		return err
+	}
+	// Older releases can reject LONG framing for a scalar PL/SQL VARCHAR2 IN
+	// bind above the SQL limit (ORA-03120). MaxLen includes the encoded bytes
+	// and any declared capacity. Keep both within the PL/SQL byte limit.
+	version := stmt.connection.dBVersion
+	if stmt.stmtType == PLSQL && param.Direction == Input &&
+		version != nil && version.MajorVersion >= 9 &&
+		(version.MajorVersion < 12 || (version.MajorVersion == 12 && version.MinorVersion < 2)) &&
+		param.ArraySize == 0 && param.parent == nil && param.cusType == nil &&
+		param.CharsetForm == 1 && param.DataType == oraTypes.LongVarChar && param.MaxLen <= 32767 {
+		param.DataType = oraTypes.NCHAR
+	}
+	return nil
 }
 
 func (stmt *Stmt) setParam(pos int, par ParameterInfo) {
