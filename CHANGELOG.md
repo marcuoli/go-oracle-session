@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Accept a caller-supplied borrowed-sample identity reader on the existing lease and preserve the original qualification API (#96).
+
 - Use go-oracle-net v0.1.1 directly in SDK callers. Keep the compatibility import and verify rejection of empty TNS IFILE assignments through it (#94).
 
 - Refresh DNS to v0.6.143 and validate the independent Oracle harness against released SDK v0.25.0. Record the separately verified Go source and test boundaries (#92).
