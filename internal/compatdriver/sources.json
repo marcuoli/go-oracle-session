@@ -51,22 +51,22 @@
   "strict_crypto_backport": {
     "upstream": "62f8a42fe821414cec8fcacb1b877dfef836f798",
     "scope": "Upgraded native AES and SHA-2 negotiation, IV and key derivation, password key folding and packet marker only",
-    "activation": "Retained V3 alternate after the clean initial V2 crypto-adapter rejection; preserve original V3 and V2 modes"
+    "activation": "Retained V3 password-authentication attempts when selected Oracle Net services use the upgrade; required for the Automatic alternate after the clean initial V2 crypto rejection"
   },
   "inclusion": "All reviewed production files, MIT licenses and retained regressions; nested module metadata and unrelated upstream integration/examples omitted",
   "files": {
     "v3/advanced_nego/strict_crypto.go": {
-      "sha256": "e7f2fab33280fdbad347ef340d2af9192d7673c5247805fecf8362f7df06063a",
+      "sha256": "1aebb28b5495982a2cdc55fda0c66075882e6b36dd4d82138e2cb2c43705d740",
       "upstream_sha256": null,
       "kind": "retained-regression-or-compatibility-addition"
     },
     "v3/advanced_nego/strict_crypto_test.go": {
-      "sha256": "1acfd544217c6e1d904df60e174b05340a66ea236e1f5feb3881bb2ccbb7c5f4",
+      "sha256": "eace2d567f77b434891e64c18d5e829b8b3c16159a57852b1dde34ec45fc661d",
       "upstream_sha256": null,
       "kind": "retained-regression-or-compatibility-addition"
     },
     "v3/advanced_nego/advanced_nego.go": {
-      "sha256": "e2d1f1ce818f149c54307c3e64386f99e46412029d3eab4322efd957b6c71ad5",
+      "sha256": "af90f74cd5765d952295c491fb00eee0e2d322b4c51e914ddecaba27f71991bb",
       "upstream_sha256": "9f444910d62bf68a8e0dc06d758cc957041ca7d6c1719940a89754f3d067ee3a",
       "kind": "retained-production-or-license"
     },
@@ -276,7 +276,7 @@
       "kind": "retained-production-or-license"
     },
     "v3/connection.go": {
-      "sha256": "d53b1906e738f0ef971ddf0ad539a49a691139496b49c875c38f2daa4234b3ec",
+      "sha256": "2f6b70bda5b5694b709520ea7af7aaa0743bba36f490a9786bc6b37d1c2669cc",
       "upstream_sha256": "5af4cb323d90197ecd2d7bd890992b27a4c6529fd1825b285b388daf659d4c83",
       "kind": "retained-production-or-license"
     },

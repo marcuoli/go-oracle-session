@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Use upgraded Oracle Net crypto on the first retained V3 password-authentication attempt when indicated by server-selected services (#71).
+
 - Preserve scalar PL/SQL VARCHAR2 input through 32767 encoded bytes in retained V3 before Oracle 12.2 (#99).
 
 - Accept a caller-supplied borrowed-sample identity reader on the existing lease and preserve the original qualification API (#96).

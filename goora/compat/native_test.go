@@ -173,6 +173,9 @@ func runNativeCompatibility(t *testing.T, cfg nativeCompatibilityConfig) {
 			wantMode, wantDials = compat.V3, 8
 		}
 	}
+	if cfg.StrictNetworkEncryption && cfg.Mode == compat.Negotiated {
+		wantMode = compat.V3
+	}
 	var observations []identity
 	checkIdentity := func(value identity) bool {
 		expected := cfg.Expected
