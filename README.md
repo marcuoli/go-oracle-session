@@ -199,6 +199,12 @@ and Linux amd64 godror v0.51.0 with standalone OCI client 23.26.1.0.0.
 OCI callers supply standalone and client-version facts from the selected
 connector and raw driver.
 
+Use **QualifyBorrowedSampleWithIdentity** when the caller owns the identity
+reader. The SDK calls it once with the same lease and context after provider
+checks. The reader supplies the observed facts and finishes cursor work before
+returning. The SDK still qualifies the profile and retires a canceled lease.
+The original API keeps its built-in identity reader for compatibility.
+
 An unsupported decision permits the caller to use its existing route before
 dispatch. Treat any other error as a failure of admission or the identity
 check. A successful decision binds the finalizer to the original native

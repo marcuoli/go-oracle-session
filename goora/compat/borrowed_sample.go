@@ -29,14 +29,17 @@ type BorrowedSampleOptions struct {
 
 const qualifiedBorrowedVersion = "23.26.1.0.0"
 
-type borrowedSampleIdentity struct {
-	version, user, isDBA, container, databaseRole, openMode, protocol string
+// BorrowedSampleIdentity is the exact Oracle identity observed on the borrowed
+// connection. Version is VERSION_FULL; IsDBA and Protocol are the raw USERENV
+// values. Keep all fields as returned by Oracle.
+type BorrowedSampleIdentity struct {
+	Version, User, IsDBA, Container, DatabaseRole, OpenMode, Protocol string
 }
 
-func (id borrowedSampleIdentity) qualified() bool {
-	return id == (borrowedSampleIdentity{
-		version: qualifiedBorrowedVersion, user: "SYSTEM", isDBA: "FALSE",
-		container: "CDB$ROOT", databaseRole: "PRIMARY", openMode: "READ WRITE", protocol: "tcp",
+func (id BorrowedSampleIdentity) qualified() bool {
+	return id == (BorrowedSampleIdentity{
+		Version: qualifiedBorrowedVersion, User: "SYSTEM", IsDBA: "FALSE",
+		Container: "CDB$ROOT", DatabaseRole: "PRIMARY", OpenMode: "READ WRITE", Protocol: "tcp",
 	})
 }
 
@@ -53,10 +56,24 @@ func (id borrowedSampleIdentity) qualified() bool {
 // adds no cancellation owner. Cancellation after identity dispatch retires
 // the lease. In other cases the caller keeps ownership of the supplied lease.
 func QualifyBorrowedSample(ctx context.Context, conn *sql.Conn, options BorrowedSampleOptions) (session.SampleFinalizer, error) {
+	return QualifyBorrowedSampleWithIdentity(ctx, conn, options, readLegacyBorrowedSampleIdentity)
+}
+
+// QualifyBorrowedSampleWithIdentity applies the same profile and lifetime
+// checks as QualifyBorrowedSample using a caller-supplied identity reader.
+// It calls read once, synchronously, with the exact context and connection,
+// after the provider checks have passed. A nil reader returns ErrUnsupported.
+//
+// The reader must use only that lease for the read, use the supplied context,
+// and finish all cursor work before returning. Return the underlying query or
+// scan error so qualification can distinguish unsupported identity from
+// admission failure and retire an interrupted lease. The caller retains
+// ownership and must keep the lease exclusive through sampling and cleanup.
+func QualifyBorrowedSampleWithIdentity(ctx context.Context, conn *sql.Conn, options BorrowedSampleOptions, read func(context.Context, *sql.Conn) (BorrowedSampleIdentity, error)) (session.SampleFinalizer, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	if conn == nil || !options.ExclusiveNonTransaction {
+	if conn == nil || !options.ExclusiveNonTransaction || read == nil {
 		return nil, ErrUnsupported
 	}
 
@@ -99,12 +116,7 @@ func QualifyBorrowedSample(ctx context.Context, conn *sql.Conn, options Borrowed
 		return nil, err
 	}
 
-	var id borrowedSampleIdentity
-	err = conn.QueryRowContext(ctx, "SELECT VERSION_FULL, SYS_CONTEXT('USERENV','SESSION_USER'), "+
-		"SYS_CONTEXT('USERENV','ISDBA'), SYS_CONTEXT('USERENV','CON_NAME'), "+
-		"DATABASE_ROLE, OPEN_MODE, SYS_CONTEXT('USERENV','NETWORK_PROTOCOL') "+
-		"FROM V$INSTANCE CROSS JOIN V$DATABASE").Scan(
-		&id.version, &id.user, &id.isDBA, &id.container, &id.databaseRole, &id.openMode, &id.protocol)
+	id, err := read(ctx, conn)
 	if cause := errors.Join(err, ctx.Err()); errors.Is(cause, context.Canceled) || errors.Is(cause, context.DeadlineExceeded) {
 		// Identity can be the canceled in-flight statement. A normal pool
 		// return would leave the session available without settlement proof.
@@ -141,6 +153,18 @@ func QualifyBorrowedSample(ctx context.Context, conn *sql.Conn, options Borrowed
 		// excludes an active transaction. Ping contributes protocol evidence.
 		return session.SampleHealth{ProtocolSettled: true, TransactionUsable: true}, nil
 	}, nil
+}
+
+// Keep the built-in projection for existing callers of QualifyBorrowedSample.
+// The reader-based entry point leaves the SQL and decoding to the caller.
+func readLegacyBorrowedSampleIdentity(ctx context.Context, conn *sql.Conn) (BorrowedSampleIdentity, error) {
+	var id BorrowedSampleIdentity
+	err := conn.QueryRowContext(ctx, "SELECT VERSION_FULL, SYS_CONTEXT('USERENV','SESSION_USER'), "+
+		"SYS_CONTEXT('USERENV','ISDBA'), SYS_CONTEXT('USERENV','CON_NAME'), "+
+		"DATABASE_ROLE, OPEN_MODE, SYS_CONTEXT('USERENV','NETWORK_PROTOCOL') "+
+		"FROM V$INSTANCE CROSS JOIN V$DATABASE").Scan(
+		&id.Version, &id.User, &id.IsDBA, &id.Container, &id.DatabaseRole, &id.OpenMode, &id.Protocol)
+	return id, err
 }
 
 func borrowedSampleIdentityUnavailable(err error, oci bool) bool {
