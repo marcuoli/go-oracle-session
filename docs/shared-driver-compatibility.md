@@ -276,10 +276,14 @@ projections and pass conditions.
 ### Strict native network encryption
 
 Set `StrictNetworkEncryption: true` in the private stdin JSON to run the
-network regression instead of the scalar, OUT and CLOB checks. Select
-`Automatic` (`Mode: 3`) to test V2's strict rejection followed by one
-retained V3 admission per lease. Explicit V3 (`Mode: 1`) uses the original
-retained exchange. Omit both fields for the usual V2 compatibility profile. Run each configured fixture with uncached results:
+network regression instead of the scalar, OUT and CLOB checks. Use `V3`
+(`Mode: 1`) or `Negotiated` (`Mode: 2`) to test an initial V3 admission.
+A password-authenticated V3 attempt uses upgraded AES or SHA-2 when the
+Oracle Net peer selects a compatible service. The existing service offers
+are preserved. Unusable upgraded selections are terminal on that attempt.
+Select `Automatic` (`Mode: 3`) to test V2's strict rejection followed by one
+retained V3 admission per lease. Omit both fields for the usual V2
+compatibility profile. Run each configured fixture with uncached results:
 
 ~~~sh
 ORACLE_COMPAT_NATIVE_STDIN=1 go test -count=1 -run '^TestNativeCompatibility$' -v ./goora/compat < "$private_fixture_json"

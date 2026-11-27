@@ -670,6 +670,10 @@ func (conn *Connection) OpenWithContext(ctx context.Context) error {
 		}
 		if conn.strictCryptoFallback {
 			ano.RequireModernCrypto()
+		} else if !authMayHaveStarted(conn.connOption, "") && len(conn.token) == 0 {
+			// Select the upgrade within the same password-authentication attempt.
+			// Earlier peers and connections without native crypto can continue.
+			ano.AllowModernCrypto()
 		}
 		conn.connectionDiagnostics.phase("native_negotiation_write")
 		err = ano.Write()
@@ -761,9 +765,10 @@ func (conn *Connection) OpenWithContext(ctx context.Context) error {
 
 	}
 
+	modernCrypto := ano != nil && ano.UsesModernCrypto()
 	var foldingKey []byte
 	var captureKey *[]byte
-	if conn.strictCryptoFallback {
+	if modernCrypto {
 		captureKey = &foldingKey
 		defer func() { clear(foldingKey) }()
 	}
@@ -798,7 +803,7 @@ func (conn *Connection) OpenWithContext(ctx context.Context) error {
 		d.AuthenticationCompleted = true
 		d.TTCVersion, d.TTCVersionKnown = session.TTCVersion, true
 	}
-	if conn.strictCryptoFallback {
+	if modernCrypto {
 		conn.connectionDiagnostics.phase("native_crypto_fold")
 		if err := ano.FoldKey(foldingKey); err != nil {
 			return err

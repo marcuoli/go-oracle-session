@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-// ErrStrictCryptoUnavailable is a terminal error for an alternate that cannot
+// ErrStrictCryptoUnavailable is a terminal error for an attempt that cannot
 // negotiate the upgraded native encryption or integrity service.
 var ErrStrictCryptoUnavailable = errors.New("upgraded Oracle native crypto unavailable")
 
@@ -13,6 +13,36 @@ var ErrStrictCryptoUnavailable = errors.New("upgraded Oracle native crypto unava
 // Call before Write. The normal retained V3 exchange is unchanged.
 func (nego *AdvNego) RequireModernCrypto() {
 	nego.strictCrypto = true
+}
+
+// AllowModernCrypto enables the upgraded exchange when the peer selects it.
+// A connection without an upgraded service retains its original exchange.
+func (nego *AdvNego) AllowModernCrypto() {
+	nego.allowModernCrypto = true
+}
+
+// UsesModernCrypto reports whether negotiation prepared upgraded crypto.
+func (nego *AdvNego) UsesModernCrypto() bool {
+	return nego.serviceList[3].(*dataIntegrityService).modernIV != nil
+}
+
+func (nego *AdvNego) prepareNegotiatedCrypto(authService string) error {
+	if nego.strictCrypto {
+		return nego.prepareModernCrypto(authService)
+	}
+	if !nego.allowModernCrypto || authService != "" {
+		return nil
+	}
+	encryption := nego.serviceList[2].(*encryptService)
+	integrity := nego.serviceList[3].(*dataIntegrityService)
+	modernEncryption := encryption.algorithmReceived && encryption.algoID >= 15 &&
+		encryption.algoID <= 17 && upgradedService(encryption.version)
+	modernIntegrity := integrity.algorithmReceived && integrity.algoID >= 4 &&
+		integrity.algoID <= 6 && upgradedService(integrity.version)
+	if modernEncryption || modernIntegrity {
+		return nego.prepareModernCrypto(authService)
+	}
+	return nil
 }
 
 func upgradedService(version uint32) bool {
